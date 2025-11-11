@@ -56,8 +56,8 @@ type Source struct {
 
 // Generate contains generation configuration.
 type Generate struct {
-	// OutputDir is the directory where generated code is written (relative to repository root).
-	OutputDir string `yaml:"output_dir,omitempty"`
+	// Output is the directory where generated code is written (relative to repository root).
+	Output string `yaml:"output,omitempty"`
 }
 
 // Release contains release configuration.
@@ -68,17 +68,18 @@ type Release struct {
 }
 
 // Read reads the configuration from a file.
-func (c *Config) Read(path string) error {
+func Read(path string) (*Config, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("failed to read config file: %w", err)
+		return nil, fmt.Errorf("failed to read config file: %w", err)
 	}
 
-	if err := yaml.Unmarshal(data, c); err != nil {
-		return fmt.Errorf("failed to unmarshal config: %w", err)
+	var c Config
+	if err := yaml.Unmarshal(data, &c); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal config: %w", err)
 	}
 
-	return nil
+	return &c, nil
 }
 
 // Write writes the configuration to a file.
@@ -93,4 +94,66 @@ func (c *Config) Write(path string) error {
 	}
 
 	return nil
+}
+
+// Set sets a key in the config based on the key path.
+func (c *Config) Set(key, value string) error {
+	switch key {
+	case "release.tag_format":
+		if c.Release == nil {
+			c.Release = &Release{}
+		}
+		c.Release.TagFormat = value
+	case "generate.output":
+		if c.Generate == nil {
+			c.Generate = &Generate{}
+		}
+		c.Generate.Output = value
+	default:
+		return fmt.Errorf("invalid key: %s", key)
+	}
+	return nil
+}
+
+// Unset removes a key value from the config based on the key path.
+func (c *Config) Unset(key string) error {
+	switch key {
+	case "release.tag_format":
+		if c.Release != nil {
+			c.Release.TagFormat = ""
+		}
+	case "generate.output":
+		if c.Generate != nil {
+			c.Generate.Output = ""
+		}
+	default:
+		return fmt.Errorf("invalid key: %s", key)
+	}
+	return nil
+}
+
+// New creates a new Config with default settings.
+// If language is specified, it includes language-specific configuration.
+// If source is provided, it is added to the Sources.
+func New(version, language string, source *Source) *Config {
+	cfg := &Config{
+		Version: version,
+		Release: &Release{
+			TagFormat: "{name}/v{version}",
+		},
+	}
+
+	if language == "" {
+		return cfg
+	}
+
+	cfg.Language = language
+
+	if source != nil {
+		cfg.Sources = Sources{
+			Googleapis: source,
+		}
+	}
+
+	return cfg
 }

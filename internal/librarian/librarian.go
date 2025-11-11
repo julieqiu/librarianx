@@ -29,6 +29,8 @@ import (
 // Sentinel errors for validation.
 var (
 	errConfigAlreadyExists = errors.New("librarian.yaml already exists in current directory")
+	errConfigNotFound      = errors.New("librarian.yaml not found in current directory")
+	errInvalidKey          = errors.New("invalid key name")
 )
 
 // Run executes the librarian command with the given arguments.
@@ -39,6 +41,7 @@ func Run(ctx context.Context, args []string) error {
 		UsageText: "librarian [command]",
 		Version:   Version(),
 		Commands: []*cli.Command{
+			configCommand(),
 			initCommand(),
 			versionCommand(),
 		},
@@ -107,7 +110,7 @@ func runInit(language string, source *config.Source) error {
 	}
 
 	// Create default config based on language
-	cfg := createDefaultConfig(language, source)
+	cfg := config.New(Version(), language, source)
 
 	// Write config to librarian.yaml
 	if err := cfg.Write(configPath); err != nil {
@@ -118,27 +121,114 @@ func runInit(language string, source *config.Source) error {
 	return nil
 }
 
-func createDefaultConfig(language string, source *config.Source) *config.Config {
-	cfg := &config.Config{
-		Version: Version(),
-		Release: &config.Release{
-			TagFormat: "{name}/v{version}",
+// configCommand manages configuration.
+func configCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "config",
+		Usage:     "manage configuration",
+		UsageText: "librarian config <command>",
+		Commands: []*cli.Command{
+			configSetCommand(),
+			configUnsetCommand(),
 		},
 	}
+}
 
-	if language == "" {
-		// No language specified - minimal config with release defaults
-		return cfg
+// configSetCommand sets a configuration key value.
+func configSetCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "set",
+		Usage:     "set a configuration key",
+		UsageText: "librarian config set <key> <value>",
+		Description: `Set configuration key values in librarian.yaml.
+
+Supported keys:
+  release.tag_format  - Git tag format template
+  generate.output     - Output directory for generated code
+
+Example:
+  librarian config set release.tag_format '{id}/v{version}'
+  librarian config set generate.output packages/`,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return errors.New("set requires key and value")
+			}
+			key := cmd.Args().Get(0)
+			value := cmd.Args().Get(1)
+			return runSet(key, value)
+		},
+	}
+}
+
+func runSet(key, value string) error {
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err != nil {
+		return errConfigNotFound
 	}
 
-	// Language-specific configuration
-	cfg.Language = language
-
-	if source != nil {
-		cfg.Sources = config.Sources{
-			Googleapis: source,
-		}
+	cfg, err := config.Read(configPath)
+	if err != nil {
+		return err
 	}
 
-	return cfg
+	if err := cfg.Set(key, value); err != nil {
+		return fmt.Errorf("%w: %s", errInvalidKey, key)
+	}
+
+	if err := cfg.Write(configPath); err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
+	}
+
+	fmt.Printf("Set %s to %q\n", key, value)
+	return nil
+}
+
+// configUnsetCommand removes a configuration key value.
+func configUnsetCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "unset",
+		Usage:     "unset a configuration key",
+		UsageText: "librarian config unset <key>",
+		Description: `Unset configuration key values in librarian.yaml.
+
+This removes the key from the configuration file.
+
+Supported keys:
+  release.tag_format  - Git tag format template
+  generate.output     - Output directory for generated code
+
+Example:
+  librarian config unset release.tag_format
+  librarian config unset generate.output`,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 1 {
+				return errors.New("unset requires a key")
+			}
+			key := cmd.Args().Get(0)
+			return runUnset(key)
+		},
+	}
+}
+
+func runUnset(key string) error {
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err != nil {
+		return errConfigNotFound
+	}
+
+	cfg, err := config.Read(configPath)
+	if err != nil {
+		return err
+	}
+
+	if err := cfg.Unset(key); err != nil {
+		return fmt.Errorf("%w: %s", errInvalidKey, key)
+	}
+
+	if err := cfg.Write(configPath); err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
+	}
+
+	fmt.Printf("Unset %s\n", key)
+	return nil
 }

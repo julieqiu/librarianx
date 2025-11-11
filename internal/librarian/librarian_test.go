@@ -197,8 +197,8 @@ func TestRunInit_ConfigContent(t *testing.T) {
 				t.Fatal(err)
 			}
 
-			cfg := &config.Config{}
-			if err := cfg.Read("librarian.yaml"); err != nil {
+			cfg, err := config.Read("librarian.yaml")
+			if err != nil {
 				t.Fatal(err)
 			}
 
@@ -216,6 +216,145 @@ func TestRunInit_ConfigContent(t *testing.T) {
 			hasSources := cfg.Sources.Googleapis != nil
 			if hasSources != test.wantHasSources {
 				t.Errorf("has sources = %v, want %v", hasSources, test.wantHasSources)
+			}
+		})
+	}
+}
+
+func TestRunSet(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runSet("release.tag_format", "{id}/v{version}"); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := config.Read("librarian.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if cfg.Release == nil {
+		t.Fatal("Release is nil")
+	}
+	if cfg.Release.TagFormat != "{id}/v{version}" {
+		t.Errorf("got %q, want %q", cfg.Release.TagFormat, "{id}/v{version}")
+	}
+}
+
+func TestRunSet_ConfigNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	err := runSet("language", "go")
+	if err == nil {
+		t.Error("runSet() should fail when librarian.yaml does not exist")
+	} else if !errors.Is(err, errConfigNotFound) {
+		t.Errorf("want %v; got %v", errConfigNotFound, err)
+	}
+}
+
+func TestRunSet_InvalidField(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		field string
+	}{
+		{
+			name:  "invalid field",
+			field: "invalid.field",
+		},
+		{
+			name:  "language field",
+			field: "language",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Chdir(tmpDir)
+
+			if err := runInit("", nil); err != nil {
+				t.Fatal(err)
+			}
+
+			err := runSet(test.field, "value")
+			if err == nil {
+				t.Error("runSet() should fail with invalid key")
+			} else if !errors.Is(err, errInvalidKey) {
+				t.Errorf("want %v; got %v", errInvalidKey, err)
+			}
+		})
+	}
+}
+
+func TestRunUnset(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runSet("release.tag_format", "test-value"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runUnset("release.tag_format"); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := config.Read("librarian.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if cfg.Release != nil && cfg.Release.TagFormat != "" {
+		t.Errorf("got %q, want empty string", cfg.Release.TagFormat)
+	}
+}
+
+func TestRunUnset_ConfigNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	err := runUnset("language")
+	if err == nil {
+		t.Error("runUnset() should fail when librarian.yaml does not exist")
+	} else if !errors.Is(err, errConfigNotFound) {
+		t.Errorf("want %v; got %v", errConfigNotFound, err)
+	}
+}
+
+func TestRunUnset_InvalidField(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		field string
+	}{
+		{
+			name:  "invalid field",
+			field: "invalid.field",
+		},
+		{
+			name:  "language field",
+			field: "language",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			tmpDir := t.TempDir()
+			t.Chdir(tmpDir)
+
+			if err := runInit("", nil); err != nil {
+				t.Fatal(err)
+			}
+
+			err := runUnset(test.field)
+			if err == nil {
+				t.Error("runUnset() should fail with invalid key")
+			} else if !errors.Is(err, errInvalidKey) {
+				t.Errorf("want %v; got %v", errInvalidKey, err)
 			}
 		})
 	}
