@@ -21,8 +21,8 @@ import (
 	"log/slog"
 	"path/filepath"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/execv"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/execv"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // Test substitution vars.

@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // saveResponse marshals a Library struct, and writes it to configure-response.json file.

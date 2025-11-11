@@ -19,7 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // ConfigProvider is an interface that describes the configuration needed

@@ -25,7 +25,7 @@ import (
 	"testing"
 	"time"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/config"
+	"github.com/googleapis/librarian/internal/generate/golang/config"
 )
 
 func setupTestDirs(t *testing.T, initialRepoContent map[string]string, requestJSON string) (librarianDir, repoDir, outputDir string) {

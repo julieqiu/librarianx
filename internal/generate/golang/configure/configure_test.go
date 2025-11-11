@@ -23,9 +23,9 @@ import (
 	"strings"
 	"testing"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/execv"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
 	"github.com/google/go-cmp/cmp"
+	"github.com/googleapis/librarian/internal/generate/golang/execv"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // testEnv encapsulates a temporary test environment.

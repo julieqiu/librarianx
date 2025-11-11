@@ -21,8 +21,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/config"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // testEnv encapsulates a temporary test environment.

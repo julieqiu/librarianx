@@ -20,11 +20,11 @@ import (
 	"fmt"
 	"log/slog"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/config"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/configure"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/execv"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/module"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/generate/golang/configure"
+	"github.com/googleapis/librarian/internal/generate/golang/execv"
+	"github.com/googleapis/librarian/internal/generate/golang/module"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // Test substitution vars.

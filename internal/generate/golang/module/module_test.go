@@ -22,9 +22,9 @@ import (
 	"path/filepath"
 	"testing"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/config"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
 	"github.com/google/go-cmp/cmp"
+	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 func TestGenerateInternalVersionFile(t *testing.T) {

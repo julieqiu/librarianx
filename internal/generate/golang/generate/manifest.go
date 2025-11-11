@@ -23,9 +23,9 @@ import (
 	"path/filepath"
 	"strings"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/bazel"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/config"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/bazel"
+	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 	"gopkg.in/yaml.v3"
 )
 

@@ -23,10 +23,10 @@ import (
 	"os"
 	"strings"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/build"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/configure"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/generate"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/release"
+	"github.com/googleapis/librarian/internal/generate/golang/build"
+	"github.com/googleapis/librarian/internal/generate/golang/configure"
+	"github.com/googleapis/librarian/internal/generate/golang/generate"
+	"github.com/googleapis/librarian/internal/generate/golang/release"
 )
 
 const version = "0.1.0"

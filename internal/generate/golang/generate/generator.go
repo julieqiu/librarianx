@@ -24,12 +24,12 @@ import (
 	"path/filepath"
 	"strings"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/bazel"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/config"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/execv"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/postprocessor"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/protoc"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/bazel"
+	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/generate/golang/execv"
+	"github.com/googleapis/librarian/internal/generate/golang/postprocessor"
+	"github.com/googleapis/librarian/internal/generate/golang/protoc"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // Test substitution vars.

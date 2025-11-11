@@ -24,9 +24,9 @@ import (
 	"strings"
 	"testing"
 
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/config"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/configure"
-	"cloud.google.com/go/internal/postprocessor/librarian/librariangen/request"
+	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/generate/golang/configure"
+	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 func TestPostProcess(t *testing.T) {
