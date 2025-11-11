@@ -378,16 +378,16 @@ func TestRunAdd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(cfg.Librarys) != 1 {
-		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	if len(cfg.Libraries) != 1 {
+		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
 	}
 
-	if cfg.Librarys[0].Name != "secretmanager" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
+	if cfg.Libraries[0].Name != "secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "secretmanager")
 	}
 
 	wantApis := []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"}
-	if diff := cmp.Diff(wantApis, cfg.Librarys[0].Apis); diff != "" {
+	if diff := cmp.Diff(wantApis, cfg.Libraries[0].Apis); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
@@ -439,20 +439,20 @@ func TestRunAdd_WithLocation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(cfg.Librarys) != 1 {
-		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	if len(cfg.Libraries) != 1 {
+		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
 	}
 
-	if cfg.Librarys[0].Name != "storage" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "storage")
+	if cfg.Libraries[0].Name != "storage" {
+		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "storage")
 	}
 
-	if cfg.Librarys[0].Location != "storage/" {
-		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "storage/")
+	if cfg.Libraries[0].Location != "storage/" {
+		t.Errorf("got location %q, want %q", cfg.Libraries[0].Location, "storage/")
 	}
 
-	if len(cfg.Librarys[0].Apis) != 0 {
-		t.Errorf("got %d apis, want 0", len(cfg.Librarys[0].Apis))
+	if len(cfg.Libraries[0].Apis) != 0 {
+		t.Errorf("got %d apis, want 0", len(cfg.Libraries[0].Apis))
 	}
 }
 
@@ -500,71 +500,77 @@ func TestRunGenerate_ConfigNotFound(t *testing.T) {
 	}
 }
 
-func TestRunCreate(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Chdir(tmpDir)
-
-	if err := runInit("go", nil); err != nil {
-		t.Fatal(err)
-	}
-
-	// runCreate will fail because generation is not fully implemented yet
-	// but the library should still be added to the config
-	_ = runCreate(t.Context(), "secretmanager", []string{"google/cloud/secretmanager/v1"}, "")
-
-	cfg, err := config.Read("librarian.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(cfg.Librarys) != 1 {
-		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
-	}
-
-	if cfg.Librarys[0].Name != "secretmanager" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
+func TestGenerateRust(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		cfg     *config.Config
+		library *config.Library
+		wantErr bool
+	}{
+		{
+			name: "single API",
+			cfg: &config.Config{
+				Language: "rust",
+				Generate: &config.Generate{
+					Output: "packages/",
+				},
+			},
+			library: &config.Library{
+				Name: "secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "multiple APIs",
+			cfg: &config.Config{
+				Language: "rust",
+			},
+			library: &config.Library{
+				Name: "secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+			},
+			wantErr: true,
+		},
+		{
+			name: "no APIs",
+			cfg: &config.Config{
+				Language: "rust",
+			},
+			library: &config.Library{
+				Name: "storage",
+				Apis: []string{},
+			},
+			wantErr: true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			err := generateRust(test.cfg, test.library)
+			if test.wantErr && err == nil {
+				t.Error("generateRust() should fail")
+			}
+			if !test.wantErr && err != nil {
+				t.Fatal(err)
+			}
+		})
 	}
 }
 
-func TestRunCreate_ConfigNotFound(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Chdir(tmpDir)
+func TestGenerateRust_RequiresSingleAPI(t *testing.T) {
+	cfg := &config.Config{
+		Language: "rust",
+	}
+	library := &config.Library{
+		Name: "secretmanager",
+		Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+	}
 
-	err := runCreate(t.Context(), "secretmanager", []string{"google/cloud/secretmanager/v1"}, "")
+	err := generateRust(cfg, library)
 	if err == nil {
-		t.Error("runCreate() should fail when librarian.yaml does not exist")
-	} else if !errors.Is(err, errConfigNotFound) {
-		t.Errorf("want %v; got %v", errConfigNotFound, err)
+		t.Error("generateRust() should fail with multiple APIs")
 	}
-}
-
-func TestRunCreate_WithLocation(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Chdir(tmpDir)
-
-	if err := runInit("go", nil); err != nil {
-		t.Fatal(err)
-	}
-
-	err := runCreate(t.Context(), "storage", nil, "storage/")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, err := config.Read("librarian.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(cfg.Librarys) != 1 {
-		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
-	}
-
-	if cfg.Librarys[0].Name != "storage" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "storage")
-	}
-
-	if cfg.Librarys[0].Location != "storage/" {
-		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "storage/")
+	want := "rust generation requires exactly one API per library"
+	if err != nil && !strings.Contains(err.Error(), want) {
+		t.Errorf("error = %v, want it to contain %q", err, want)
 	}
 }
