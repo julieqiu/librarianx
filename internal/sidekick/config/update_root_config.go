@@ -175,7 +175,8 @@ func updateRootConfigContents(rootName string, contents []byte, endpoints *githu
 	return []byte(newContents), nil
 }
 
-func getSha256(query string) (string, error) {
+// GetSha256 downloads the content from the URL and computes its SHA256 checksum.
+func GetSha256(query string) (string, error) {
 	response, err := http.Get(query)
 	if err != nil {
 		return "", err
@@ -193,7 +194,12 @@ func getSha256(query string) (string, error) {
 	return got, nil
 }
 
-func getLatestSha(query string) (string, error) {
+func getSha256(query string) (string, error) {
+	return GetSha256(query)
+}
+
+// GetLatestSha fetches the latest commit SHA from GitHub API.
+func GetLatestSha(query string) (string, error) {
 	client := &http.Client{}
 	request, err := http.NewRequest(http.MethodGet, query, nil)
 	if err != nil {
@@ -213,4 +219,8 @@ func getLatestSha(query string) (string, error) {
 		return "", err
 	}
 	return string(contents), nil
+}
+
+func getLatestSha(query string) (string, error) {
+	return GetLatestSha(query)
 }
