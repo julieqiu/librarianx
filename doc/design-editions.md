@@ -1,21 +1,10 @@
-# TODO List
+# Design Resolution: Library paths and locations
 
-- [x] Add set / unset for `tag_format`, `generate.output`, etc.
-- [x] Add librarian add <library> <api>...
-- [x] Implement template expansion for `generate.output` with `{name}` and `{api.path}`
-- [] Add librarian update googleapis
-- [] Add librarian update --all
-- [] Add librarian generate <library>
-- [] Add librarian release <library>
-- [] Add librarian publish <library>
-
-## Design Resolution: Library paths and locations
-
-### Resolution (2025-11-11)
+## Resolution (2025-11-11)
 
 **Final Design Implemented:**
 
-#### Library struct:
+### Library struct:
 ```go
 type Library struct {
     Name     string   `yaml:"name"`               // Library name
@@ -24,11 +13,11 @@ type Library struct {
 }
 ```
 
-#### Template expansion in `generate.output`:
+### Template expansion in `generate.output`:
 - **`{name}`** - Library name (works with any number of APIs)
 - **`{api.path}`** - API path (requires exactly 1 API, fails otherwise)
 
-#### Language-specific patterns:
+### Language-specific patterns:
 
 **Go:**
 ```yaml
@@ -78,7 +67,7 @@ librarys:
 # No apis field = handwritten, uses explicit location
 ```
 
-### Original Problem
+## Original Problem
 
 Need to support two types of librarys:
 
@@ -92,7 +81,7 @@ Need to support two types of librarys:
    - Code already exists at specific filesystem location
    - Example: `librarian add gcloud-mcp` (code at `packages/gcloud-mcp/`)
 
-### Language-Specific Conventions
+## Language-Specific Conventions
 
 **Go:**
 - Generated: `<generate.output>/<name>/` (e.g., `generated/secretmanager/`)
@@ -108,7 +97,7 @@ Need to support two types of librarys:
 - Generated: `packages/google-cloud-secretmanager/`
 - Handwritten: `packages/gcloud-mcp/`
 
-### Design Questions
+## Design Questions
 
 1. **Field naming confusion:**
    - Currently `path` means "googleapis path"
@@ -161,7 +150,7 @@ Need to support two types of librarys:
        location: packages/gcloud-mcp          # explicit for handwritten
    ```
 
-### Implementation Details
+## Implementation Details
 
 1. **`Library.ExpandTemplate(template string) (string, error)`**
    - Expands `{name}` and `{api.path}` keywords
