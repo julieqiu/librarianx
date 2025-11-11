@@ -1,13 +1,38 @@
-version: v0.5.0
+# Test data for Go libraries using the new, clearer format.
+version: v1
 language: go
 
 sources:
   googleapis:
-    url: https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz
-    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
+    url: https://github.com/googleapis/googleapis/archive/main.tar.gz
+    sha256: "..."
 
+# Default directory for newly generated libraries.
 generate:
-  output: '{name}/'
+  dir: ./
 
-release:
-  tag_format: '{name}/v{version}'
+libraries:
+  # --- Handwritten ---
+  # Defined by having a `name` and `path`, but no `generate` block.
+  - name: metadata
+    path: compute/metadata/
+
+  # --- Fully Generated ---
+  # Defined by having a `name`, `path`, and a `generate` block.
+  - name: accessapproval
+    path: accessapproval/
+    generate:
+      apis:
+        - path: google/cloud/accessapproval/v1
+
+  # --- Hybrid ---
+  # Defined by having `name`, `path`, `generate`, and `patch`.
+  - name: bigquery
+    path: bigquery/
+    generate:
+      apis:
+        - path: google/cloud/bigquery/storage/v1
+    patch:
+      - bigquery/client.go
+      - bigquery/samples/
+      - bigquery/storage/managedwriter/
