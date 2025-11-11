@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package protoc provides utilities for invoking the protoc compiler with GAPIC plugin.
 package protoc
 
 import (

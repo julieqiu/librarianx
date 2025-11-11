@@ -15,7 +15,6 @@
 package generate
 
 import (
-	"context"
 	"encoding/json"
 	"os"
 	"path/filepath"
@@ -39,10 +38,7 @@ func TestDocURL(t *testing.T) {
 	modulePath := "cloud.google.com/go/secretmanager"
 	importPath := "cloud.google.com/go/secretmanager/apiv1"
 	want := "https://cloud.google.com/go/docs/reference/cloud.google.com/go/secretmanager/latest/apiv1"
-	got, err := docURL(modulePath, importPath)
-	if err != nil {
-		t.Fatalf("docURL() unexpected error: %v", err)
-	}
+	got := docURL(modulePath, importPath)
 	if got != want {
 		t.Errorf("docURL() = %v, want %v", got, want)
 	}
@@ -86,10 +82,7 @@ func TestReleaseLevel(t *testing.T) {
 				importPath = "cloud.google.com/go/foo/apiv1beta"
 			}
 
-			got, err := releaseLevel(importPath, bazelConfig)
-			if err != nil {
-				t.Fatalf("releaseLevel() failed: %v", err)
-			}
+			got := releaseLevel(importPath, bazelConfig)
 			if got != tt.want {
 				t.Errorf("releaseLevel() = %q, want %q", got, tt.want)
 			}
@@ -147,9 +140,6 @@ func TestGenerateRepoMetadata(t *testing.T) {
 				SourceDir: sourceDir,
 				OutputDir: outputDir,
 			}
-			lib := &request.Library{
-				ID: "testlib",
-			}
 			api := &request.API{
 				Path:          "google/cloud/testlib/v1",
 				ServiceConfig: tc.serviceConfig,
@@ -162,7 +152,7 @@ func TestGenerateRepoMetadata(t *testing.T) {
 				t.Fatalf("bazel.Parse() failed: %v", err)
 			}
 
-			if err := generateRepoMetadata(context.Background(), cfg, lib, api, moduleConfig, bazelConfig); err != nil {
+			if err := generateRepoMetadata(cfg, api, moduleConfig, bazelConfig); err != nil {
 				t.Fatalf("generateRepoMetadata() failed: %v", err)
 			}
 

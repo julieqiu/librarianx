@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package execv provides utilities for executing external commands with logging support.
 package execv
 
 import (

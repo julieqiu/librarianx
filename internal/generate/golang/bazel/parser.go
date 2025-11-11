@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package bazel provides utilities for parsing Bazel BUILD files to extract API metadata.
 package bazel
 
 import (
@@ -65,16 +66,16 @@ func (c *Config) DisableGAPIC() {
 
 // GAPICImportPath is importpath in the go_gapic_library rule.
 // The Go package name is typically appended to the end, separated by a `;`.
-// E.g., cloud.google.com/go/asset/apiv1;asset
+// E.g., cloud.google.com/go/asset/apiv1;asset.
 func (c *Config) GAPICImportPath() string { return c.gapicImportPath }
 
 // ServiceYAML is the client config file in the API version directory in googleapis.
 // This is a required input to the GAPIC generator.
-// E.g., googleapis/google/cloud/asset/v1/cloudasset_v1.yaml
+// E.g., googleapis/google/cloud/asset/v1/cloudasset_v1.yaml.
 func (c *Config) ServiceYAML() string { return c.serviceYAML }
 
 // GRPCServiceConfig is name of the gRPC service config JSON file.
-// E.g., cloudasset_grpc_service_config.json
+// E.g., cloudasset_grpc_service_config.json.
 func (c *Config) GRPCServiceConfig() string { return c.grpcServiceConfig }
 
 // Transport is typically one of "grpc", "rest" or "grpc+rest".

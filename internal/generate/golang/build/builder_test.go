@@ -124,10 +124,7 @@ func (e *testEnv) writeRequestFile(t *testing.T, content string) {
 // newTestEnv creates a new test environment.
 func newTestEnv(t *testing.T) *testEnv {
 	t.Helper()
-	tmpDir, err := os.MkdirTemp("", "builder-test")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
+	tmpDir := t.TempDir()
 	e := &testEnv{tmpDir: tmpDir}
 	e.librarianDir = filepath.Join(tmpDir, "librarian")
 	e.repoDir = filepath.Join(tmpDir, "repo")

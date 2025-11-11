@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package postprocessor provides post-processing functionality for generated code.
 package postprocessor
 
 import (

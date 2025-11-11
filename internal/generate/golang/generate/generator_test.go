@@ -36,10 +36,7 @@ type testEnv struct {
 // newTestEnv creates a new test environment.
 func newTestEnv(t *testing.T) *testEnv {
 	t.Helper()
-	tmpDir, err := os.MkdirTemp("", "generator-test")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
+	tmpDir := t.TempDir()
 	e := &testEnv{tmpDir: tmpDir}
 	e.librarianDir = filepath.Join(tmpDir, "librarian")
 	e.sourceDir = filepath.Join(tmpDir, "source")
@@ -54,8 +51,7 @@ func newTestEnv(t *testing.T) *testEnv {
 	// An empty config file is valid, and any modules that are requested will
 	// just get default values.
 	configFile := filepath.Join(generatorInputDir, config.RepoConfigFile)
-	err = os.WriteFile(configFile, make([]byte, 0), 0644)
-	if err != nil {
+	if err := os.WriteFile(configFile, make([]byte, 0), 0644); err != nil {
 		t.Fatalf("failed to create file %s: %v", configFile, err)
 	}
 
@@ -244,11 +240,7 @@ go_gapic_library(
 
 func TestFixPermissions(t *testing.T) {
 	// Create a temporary directory for the test.
-	tmpDir, err := os.MkdirTemp("", "permissions-test")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
 
 	// Create a subdirectory to test recursive behavior.
 	subDir := filepath.Join(tmpDir, "subdir")
@@ -299,11 +291,7 @@ func TestFixPermissions(t *testing.T) {
 
 func TestFlattenOutput(t *testing.T) {
 	// Create a temporary directory for the test.
-	tmpDir, err := os.MkdirTemp("", "flatten-test")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(tmpDir)
+	tmpDir := t.TempDir()
 
 	// Create the nested directory structure.
 	goDir := filepath.Join(tmpDir, "cloud.google.com", "go")
@@ -444,11 +432,7 @@ func TestApplyModuleVersion(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tmpDir, err := os.MkdirTemp("", "apply-module-version-test")
-			if err != nil {
-				t.Fatalf("failed to create temp dir: %v", err)
-			}
-			defer os.RemoveAll(tmpDir)
+			tmpDir := t.TempDir()
 
 			for _, file := range tt.setupFiles {
 				fullFile := filepath.Join(tmpDir, file)
@@ -475,10 +459,7 @@ func TestApplyModuleVersion(t *testing.T) {
 }
 
 func TestDeleteOutputPaths(t *testing.T) {
-	tmpDir, err := os.MkdirTemp("", "apply-module-version-test")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
+	tmpDir := t.TempDir()
 	// We create file1, file2 and dir1/file3, then delete
 	// file1 and dir1; only file2 should be left.
 	if err := os.MkdirAll(filepath.Join(tmpDir, "dir1"), 0755); err != nil {

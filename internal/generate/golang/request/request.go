@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package request provides types and functions for parsing librarian tool requests.
 package request
 
 import (

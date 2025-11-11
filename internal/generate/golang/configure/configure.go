@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package configure provides configuration generation for API client libraries.
 package configure
 
 import (
@@ -315,7 +316,7 @@ func generateClientVersionFile(cfg *Config, moduleConfig *config.ModuleConfig, a
 // goModEditReplaceInSnippets copies internal/generated/snippets/go.mod from
 // cfg.RepoDir to cfg.OutputDir, then runs go mod edit to replace the specified
 // modulePath with relativeDir which is expected to the location of the module
-// relative to internal/generated/snippets
+// relative to internal/generated/snippets.
 func goModEditReplaceInSnippets(ctx context.Context, cfg *Config, modulePath, relativeDir string) error {
 	outputSnippetsDir := filepath.Join(cfg.OutputDir, "internal", "generated", "snippets")
 	if err := os.MkdirAll(outputSnippetsDir, 0755); err != nil {

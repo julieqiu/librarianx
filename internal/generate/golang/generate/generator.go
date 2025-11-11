@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package generate provides the core generation logic for creating Go client libraries from API definitions.
 package generate
 
 import (
@@ -163,7 +164,7 @@ func invokeProtoc(ctx context.Context, cfg *Config, generateReq *request.Library
 			return fmt.Errorf("librariangen: protoc failed for api %q in library %q: %w", api.Path, generateReq.ID, err)
 		}
 		// Generate the .repo-metadata.json file for this API.
-		if err := generateRepoMetadata(ctx, cfg, generateReq, &api, moduleConfig, bazelConfig); err != nil {
+		if err := generateRepoMetadata(cfg, &api, moduleConfig, bazelConfig); err != nil {
 			return fmt.Errorf("librariangen: failed to generate .repo-metadata.json for api %q in library %q: %w", api.Path, generateReq.ID, err)
 		}
 	}

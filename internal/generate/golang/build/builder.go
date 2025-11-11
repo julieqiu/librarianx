@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package build provides functionality for building and testing generated Go code.
 package build
 
 import (
@@ -71,7 +72,7 @@ func Build(ctx context.Context, cfg *Config) error {
 	return nil
 }
 
-// goBuild builds all the code under the specified directory
+// goBuild builds all the code under the specified directory.
 func goBuild(ctx context.Context, dir, module string) error {
 	slog.Info("librariangen: building", "module", module)
 	args := []string{"go", "build", "./..."}

@@ -41,10 +41,7 @@ type testEnv struct {
 // newTestEnv creates a new test environment.
 func newTestEnv(t *testing.T) *testEnv {
 	t.Helper()
-	tmpDir, err := os.MkdirTemp("", "configure-test")
-	if err != nil {
-		t.Fatalf("failed to create temp dir: %v", err)
-	}
+	tmpDir := t.TempDir()
 	e := &testEnv{tmpDir: tmpDir}
 	e.librarianDir = filepath.Join(tmpDir, "librarian")
 	e.inputDir = filepath.Join(tmpDir, "input")
