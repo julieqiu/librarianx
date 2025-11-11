@@ -268,12 +268,12 @@ func runCreate(ctx context.Context, name string, apis []string, location string)
 
 // configureLibrary performs language-specific library configuration.
 // This creates initial files like go.mod, README.md, CHANGES.md, etc.
-func configureLibrary(ctx context.Context, cfg *config.Config, libraryName string) error {
+func configureLibrary(cfg *config.Config, libraryName string) error {
 	// Find the library
 	var library *config.Library
-	for i := range cfg.Librarys {
-		if cfg.Librarys[i].Name == libraryName {
-			library = &cfg.Librarys[i]
+	for i := range cfg.Libraries {
+		if cfg.Libraries[i].Name == libraryName {
+			library = &cfg.Libraries[i]
 			break
 		}
 	}
@@ -284,17 +284,17 @@ func configureLibrary(ctx context.Context, cfg *config.Config, libraryName strin
 	// Dispatch to language-specific configurator
 	switch cfg.Language {
 	case "go":
-		return configureGo(ctx, cfg, library)
+		return configureGo(cfg, library)
 	case "rust":
-		return configureRust(ctx, cfg, library)
+		return configureRust(cfg, library)
 	case "python":
-		return configurePython(ctx, cfg, library)
+		return configurePython(cfg, library)
 	default:
 		return fmt.Errorf("unsupported language: %s", cfg.Language)
 	}
 }
 
-func configureGo(ctx context.Context, cfg *config.Config, library *config.Library) error {
+func configureGo(cfg *config.Config, library *config.Library) error {
 	// Get the library's output location
 	var outputDir string
 	if cfg.Generate != nil && cfg.Generate.Output != "" {
@@ -318,7 +318,7 @@ func configureGo(ctx context.Context, cfg *config.Config, library *config.Librar
 	return nil
 }
 
-func configureRust(ctx context.Context, cfg *config.Config, library *config.Library) error {
+func configureRust(cfg *config.Config, library *config.Library) error {
 	// Get the library's output location
 	var outputDir string
 	if cfg.Generate != nil && cfg.Generate.Output != "" {
@@ -342,7 +342,7 @@ func configureRust(ctx context.Context, cfg *config.Config, library *config.Libr
 	return nil
 }
 
-func configurePython(ctx context.Context, cfg *config.Config, library *config.Library) error {
+func configurePython(cfg *config.Config, library *config.Library) error {
 	// Get the library's output location
 	var outputDir string
 	if cfg.Generate != nil && cfg.Generate.Output != "" {
@@ -651,7 +651,7 @@ func runGenerate(ctx context.Context, libraryName string) error {
 
 	// Configure the library if not already configured
 	// This creates the directory and initial files (go.mod, README.md, etc.)
-	if err := configureLibrary(ctx, cfg, libraryName); err != nil {
+	if err := configureLibrary(cfg, libraryName); err != nil {
 		return fmt.Errorf("failed to configure library: %w", err)
 	}
 
