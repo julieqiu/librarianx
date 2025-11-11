@@ -43,6 +43,7 @@ func Run(ctx context.Context, args []string) error {
 		Commands: []*cli.Command{
 			addCommand(),
 			configCommand(),
+			generateCommand(),
 			initCommand(),
 			versionCommand(),
 		},
@@ -303,4 +304,76 @@ func runUnset(key string) error {
 
 	fmt.Printf("Unset %s\n", key)
 	return nil
+}
+
+// generateCommand generates code for librarys.
+func generateCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "generate",
+		Usage:     "generate code for an library",
+		UsageText: "librarian generate <library>",
+		Description: `Generate code for an library from API definitions.
+
+This command generates client library code from googleapis API definitions
+based on the configuration in librarian.yaml.
+
+Example:
+  librarian generate secretmanager`,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 1 {
+				return errors.New("generate requires an library name")
+			}
+			library := cmd.Args().Get(0)
+			return runGenerate(ctx, library)
+		},
+	}
+}
+
+func runGenerate(ctx context.Context, libraryName string) error {
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err != nil {
+		return errConfigNotFound
+	}
+
+	cfg, err := config.Read(configPath)
+	if err != nil {
+		return err
+	}
+
+	// Find the library
+	var library *config.Library
+	for i := range cfg.Librarys {
+		if cfg.Librarys[i].Name == libraryName {
+			library = &cfg.Librarys[i]
+			break
+		}
+	}
+	if library == nil {
+		return fmt.Errorf("library %q not found in librarian.yaml", libraryName)
+	}
+
+	// Check if this is a handwritten library (no APIs)
+	if len(library.Apis) == 0 {
+		return fmt.Errorf("library %q is handwritten (no apis field), nothing to generate", libraryName)
+	}
+
+	// Dispatch to language-specific generator
+	switch cfg.Language {
+	case "go":
+		return generateGo(ctx, cfg, library)
+	case "rust":
+		return generateRust(ctx, cfg, library)
+	case "python":
+		return fmt.Errorf("python generation not yet implemented")
+	default:
+		return fmt.Errorf("unsupported language: %s", cfg.Language)
+	}
+}
+
+func generateGo(ctx context.Context, cfg *config.Config, library *config.Library) error {
+	return fmt.Errorf("Go generation not yet fully implemented - needs integration with internal/generate/golang")
+}
+
+func generateRust(ctx context.Context, cfg *config.Config, library *config.Library) error {
+	return fmt.Errorf("Rust generation not yet fully implemented - needs integration with internal/sidekick/sidekick")
 }

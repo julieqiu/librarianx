@@ -455,3 +455,47 @@ func TestRunAdd_WithLocation(t *testing.T) {
 		t.Errorf("got %d apis, want 0", len(cfg.Librarys[0].Apis))
 	}
 }
+
+func TestRunGenerate_LibraryNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runGenerate(t.Context(), "nonexistent")
+	if err == nil {
+		t.Error("runGenerate() should fail when library does not exist")
+	}
+}
+
+func TestRunGenerate_HandwrittenLibrary(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runAdd("storage", nil, "storage/"); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runGenerate(t.Context(), "storage")
+	if err == nil {
+		t.Error("runGenerate() should fail for handwritten librarys")
+	}
+}
+
+func TestRunGenerate_ConfigNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	err := runGenerate(t.Context(), "secretmanager")
+	if err == nil {
+		t.Error("runGenerate() should fail when librarian.yaml does not exist")
+	} else if !errors.Is(err, errConfigNotFound) {
+		t.Errorf("want %v; got %v", errConfigNotFound, err)
+	}
+}
