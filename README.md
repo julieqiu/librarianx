@@ -453,47 +453,94 @@ Done!
 
 ## Working with Handwritten Code
 
-Not all code needs to be generated. You can use librarianx just for release
-management.
+Not all code needs to be generated. You can use librarian just for release
+management of handwritten code.
 
-Go back to the Go repository and create a handwritten library:
+Go back to the Go repository and create some handwritten librarys:
 
 ```
 $ cd ../google-cloud-go
-$ mkdir custom-tool
-$ echo "package customtool\n\nfunc Hello() { println(\"hello\") }" > custom-tool/tool.go
+$ mkdir -p storage
+$ mkdir -p pubsub
+$ echo "package storage\n\nfunc NewClient() {}" > storage/client.go
+$ echo "package pubsub\n\nfunc NewClient() {}" > pubsub/client.go
 ```
 
-Add it to librarian:
+Add them to librarian with the `--location` flag to specify where the code lives:
 
 ```
-$ librarianx new custom-tool
-Created library entry in librarian.yaml
+$ librarian add storage --location storage/
+Added handwritten library "storage" at storage/
+
+$ librarian add pubsub --location pubsub/
+Added handwritten library "pubsub" at pubsub/
 ```
 
-This created an library entry without a `generate` section (handwritten library):
+This creates library entries with explicit locations (handwritten librarys):
 
 ```
-$ grep -A2 "name: custom-tool" librarian.yaml
-  - name: custom-tool
-    version: null
+$ grep -A2 "name: storage" librarian.yaml
+  - name: storage
+    location: storage/
+
+$ grep -A2 "name: pubsub" librarian.yaml
+  - name: pubsub
+    location: pubsub/
 ```
 
-Now you can release it like any other library:
+Notice there's no `apis` field - this tells librarian the code is handwritten
+and doesn't need generation. The `location` field tells librarian where to
+find the code for release purposes.
+
+Now you can release them like any other library:
 
 ```
 $ git add .
-$ git commit -m "feat(custom-tool): add custom tool"
-$ librarianx release custom-tool --execute
-Releasing custom-tool...
+$ git commit -m "feat: add storage and pubsub"
+$ librarian release storage --execute
+Releasing storage...
 
 ✓ Updated version to 0.1.0
 ✓ Created CHANGELOG.md
-✓ Created commit: chore(release): custom-tool v0.1.0
-✓ Created tag: custom-tool/v0.1.0
+✓ Created commit: chore(release): storage v0.1.0
+✓ Created tag: storage/v0.1.0
 ✓ Pushed tag to origin
 
 Release complete!
+
+$ librarian release pubsub --execute
+Releasing pubsub...
+
+✓ Updated version to 0.1.0
+✓ Created CHANGELOG.md
+✓ Created commit: chore(release): pubsub v0.1.0
+✓ Created tag: pubsub/v0.1.0
+✓ Pushed tag to origin
+
+Release complete!
+```
+
+## Language and Workflow Flexibility
+
+Each `librarian.yaml` file is configured for a single language (Go, Python, or Rust).
+However, you can use librarian for different workflows:
+
+- **Generation + Release**: Generate code from APIs and manage releases (most common)
+- **Release-only**: Manage releases of handwritten code without generation
+- **Mixed**: Manage both generated and handwritten librarys in the same repository
+
+For example, a Go repository might have:
+- Generated librarys from googleapis APIs (with `apis` field)
+- Handwritten tools or utilities (with `location` field)
+- All released and versioned consistently
+
+If you need to work with multiple languages, create separate repositories with
+their own `librarian.yaml` files:
+
+```
+google-cloud-go/librarian.yaml      # language: go
+google-cloud-python/librarian.yaml  # language: python
+google-cloud-rust/librarian.yaml    # language: rust
 ```
 
 ## Summary

@@ -62,8 +62,8 @@ librarys:
 **Handwritten librarys:**
 ```yaml
 librarys:
-  - name: gcloud-mcp
-    location: packages/gcloud-mcp/
+  - name: storage
+    location: storage/
 # No apis field = handwritten, uses explicit location
 ```
 
@@ -79,13 +79,13 @@ Need to support two types of librarys:
 2. **Handwritten/release-only librarys**
    - No googleapis path (no generation needed)
    - Code already exists at specific filesystem location
-   - Example: `librarian add gcloud-mcp` (code at `packages/gcloud-mcp/`)
+   - Example: `librarian add storage --location storage/`
 
 ## Language-Specific Conventions
 
 **Go:**
 - Generated: `<generate.output>/<name>/` (e.g., `generated/secretmanager/`)
-- Handwritten: `<root>/<name>/` (e.g., `gcloud-mcp/`)
+- Handwritten: `<root>/<name>/` (e.g., `storage/`)
 - Both at top-level, whether generated or handwritten
 
 **Rust:**
@@ -95,7 +95,7 @@ Need to support two types of librarys:
 
 **Python:**
 - Generated: `packages/google-cloud-secretmanager/`
-- Handwritten: `packages/gcloud-mcp/`
+- Handwritten: `packages/storage/`
 
 ## Design Questions
 
@@ -118,11 +118,11 @@ Need to support two types of librarys:
    librarian add secretmanager google/cloud/secretmanager/v1
 
    # Handwritten librarys - how to specify filesystem path?
-   librarian add gcloud-mcp --path packages/gcloud-mcp
+   librarian add storage --location storage/
    # OR
-   librarian add gcloud-mcp packages/gcloud-mcp
+   librarian add storage storage/
    # OR
-   librarian add gcloud-mcp  # infers path as <generate.output>/gcloud-mcp
+   librarian add storage  # infers path as <generate.output>/storage
    ```
 
 4. **Example YAML structures:**
@@ -134,8 +134,8 @@ Need to support two types of librarys:
        googleapis: google/cloud/secretmanager/v1
        # path inferred: <generate.output>/<name>
 
-     - name: gcloud-mcp
-       path: packages/gcloud-mcp
+     - name: storage
+       path: storage/
        # no googleapis = handwritten
    ```
 
@@ -146,8 +146,8 @@ Need to support two types of librarys:
        source: google/cloud/secretmanager/v1  # googleapis
        location: generated/secretmanager       # optional, inferred if not set
 
-     - name: gcloud-mcp
-       location: packages/gcloud-mcp          # explicit for handwritten
+     - name: storage
+       location: storage/          # explicit for handwritten
    ```
 
 ## Implementation Details

@@ -245,7 +245,7 @@ func TestConfig_Add_EmptyApis(t *testing.T) {
 func TestConfig_Add_WithLocation(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("gcloud-mcp", nil, "packages/gcloud-mcp/"); err != nil {
+	if err := cfg.Add("storage", nil, "storage/"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -253,12 +253,12 @@ func TestConfig_Add_WithLocation(t *testing.T) {
 		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
 	}
 
-	if cfg.Librarys[0].Name != "gcloud-mcp" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "gcloud-mcp")
+	if cfg.Librarys[0].Name != "storage" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "storage")
 	}
 
-	if cfg.Librarys[0].Location != "packages/gcloud-mcp/" {
-		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "packages/gcloud-mcp/")
+	if cfg.Librarys[0].Location != "storage/" {
+		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "storage/")
 	}
 
 	if len(cfg.Librarys[0].Apis) != 0 {
@@ -349,11 +349,11 @@ func TestLibrary_GeneratedLocation(t *testing.T) {
 		{
 			name: "explicit_location",
 			library: Library{
-				Name:     "gcloud-mcp",
-				Location: "packages/gcloud-mcp/",
+				Name:     "storage",
+				Location: "storage/",
 			},
 			generateOutput: "{name}/",
-			want:           "packages/gcloud-mcp/",
+			want:           "storage/",
 		},
 		{
 			name: "computed_from_template_name",

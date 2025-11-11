@@ -430,7 +430,7 @@ func TestRunAdd_WithLocation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := runAdd("gcloud-mcp", nil, "packages/gcloud-mcp/"); err != nil {
+	if err := runAdd("storage", nil, "storage/"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -443,12 +443,12 @@ func TestRunAdd_WithLocation(t *testing.T) {
 		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
 	}
 
-	if cfg.Librarys[0].Name != "gcloud-mcp" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "gcloud-mcp")
+	if cfg.Librarys[0].Name != "storage" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "storage")
 	}
 
-	if cfg.Librarys[0].Location != "packages/gcloud-mcp/" {
-		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "packages/gcloud-mcp/")
+	if cfg.Librarys[0].Location != "storage/" {
+		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "storage/")
 	}
 
 	if len(cfg.Librarys[0].Apis) != 0 {
