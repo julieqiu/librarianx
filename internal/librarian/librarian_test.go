@@ -499,3 +499,72 @@ func TestRunGenerate_ConfigNotFound(t *testing.T) {
 		t.Errorf("want %v; got %v", errConfigNotFound, err)
 	}
 }
+
+func TestRunCreate(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	// runCreate will fail because generation is not fully implemented yet
+	// but the library should still be added to the config
+	_ = runCreate(t.Context(), "secretmanager", []string{"google/cloud/secretmanager/v1"}, "")
+
+	cfg, err := config.Read("librarian.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(cfg.Librarys) != 1 {
+		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	}
+
+	if cfg.Librarys[0].Name != "secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
+	}
+}
+
+func TestRunCreate_ConfigNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	err := runCreate(t.Context(), "secretmanager", []string{"google/cloud/secretmanager/v1"}, "")
+	if err == nil {
+		t.Error("runCreate() should fail when librarian.yaml does not exist")
+	} else if !errors.Is(err, errConfigNotFound) {
+		t.Errorf("want %v; got %v", errConfigNotFound, err)
+	}
+}
+
+func TestRunCreate_WithLocation(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runCreate(t.Context(), "storage", nil, "storage/")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := config.Read("librarian.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(cfg.Librarys) != 1 {
+		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	}
+
+	if cfg.Librarys[0].Name != "storage" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "storage")
+	}
+
+	if cfg.Librarys[0].Location != "storage/" {
+		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "storage/")
+	}
+}

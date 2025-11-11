@@ -43,6 +43,7 @@ func Run(ctx context.Context, args []string) error {
 		Commands: []*cli.Command{
 			addCommand(),
 			configCommand(),
+			createCommand(),
 			generateCommand(),
 			initCommand(),
 			versionCommand(),
@@ -191,6 +192,169 @@ func runAdd(name string, apis []string, location string) error {
 	} else {
 		fmt.Printf("Added library %q with %d API(s)\n", name, len(apis))
 	}
+	return nil
+}
+
+// createCommand creates a new library with configuration and generation.
+func createCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "create",
+		Usage:     "create and configure a new library",
+		UsageText: "librarian create <name> [<api>...] [--location <path>]",
+		Description: `Create a new library with configuration and generation.
+
+This command combines two steps into one:
+1. Add the library to librarian.yaml (librarian add)
+2. Generate client code from API definitions (librarian generate)
+
+For generated libraries, provide API paths:
+  librarian create secretmanager google/cloud/secretmanager/v1
+
+For handwritten libraries, use --location:
+  librarian create storage --location storage/`,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "location",
+				Usage: "explicit filesystem path for handwritten libraries",
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 1 {
+				return errors.New("create requires a library name")
+			}
+			name := cmd.Args().Get(0)
+			location := cmd.String("location")
+
+			var apis []string
+			if location == "" {
+				if cmd.NArg() < 2 {
+					return errors.New("create requires at least one API path or --location flag")
+				}
+				apis = cmd.Args().Slice()[1:]
+			}
+
+			return runCreate(ctx, name, apis, location)
+		},
+	}
+}
+
+func runCreate(ctx context.Context, name string, apis []string, location string) error {
+	// Step 1: Add the library to config
+	if err := runAdd(name, apis, location); err != nil {
+		return err
+	}
+
+	// Handwritten libraries don't need generation
+	if location != "" {
+		return nil
+	}
+
+	// Step 2: Generate the library code (which includes configuration)
+	if err := runGenerate(ctx, name); err != nil {
+		return fmt.Errorf("failed to generate library: %w", err)
+	}
+
+	fmt.Printf("Successfully created library %q\n", name)
+	return nil
+}
+
+// configureLibrary performs language-specific library configuration.
+// This creates initial files like go.mod, README.md, CHANGES.md, etc.
+func configureLibrary(ctx context.Context, cfg *config.Config, libraryName string) error {
+	// Find the library
+	var library *config.Library
+	for i := range cfg.Librarys {
+		if cfg.Librarys[i].Name == libraryName {
+			library = &cfg.Librarys[i]
+			break
+		}
+	}
+	if library == nil {
+		return fmt.Errorf("library %q not found in librarian.yaml", libraryName)
+	}
+
+	// Dispatch to language-specific configurator
+	switch cfg.Language {
+	case "go":
+		return configureGo(ctx, cfg, library)
+	case "rust":
+		return configureRust(ctx, cfg, library)
+	case "python":
+		return configurePython(ctx, cfg, library)
+	default:
+		return fmt.Errorf("unsupported language: %s", cfg.Language)
+	}
+}
+
+func configureGo(ctx context.Context, cfg *config.Config, library *config.Library) error {
+	// Get the library's output location
+	var outputDir string
+	if cfg.Generate != nil && cfg.Generate.Output != "" {
+		var err error
+		outputDir, err = library.GeneratedLocation(cfg.Generate.Output)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Default output location if generate.output is not set
+		outputDir = library.Name + "/"
+	}
+
+	// Create the library directory
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", outputDir, err)
+	}
+
+	fmt.Printf("Configured Go library at %s\n", outputDir)
+	// TODO(https://github.com/googleapis/librarian/issues/XXX): Create go.mod, README.md, CHANGES.md
+	return nil
+}
+
+func configureRust(ctx context.Context, cfg *config.Config, library *config.Library) error {
+	// Get the library's output location
+	var outputDir string
+	if cfg.Generate != nil && cfg.Generate.Output != "" {
+		var err error
+		outputDir, err = library.GeneratedLocation(cfg.Generate.Output)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Default output location if generate.output is not set
+		outputDir = library.Name + "/"
+	}
+
+	// Create the library directory
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", outputDir, err)
+	}
+
+	fmt.Printf("Configured Rust library at %s\n", outputDir)
+	// TODO(https://github.com/googleapis/librarian/issues/XXX): Create Cargo.toml, README.md
+	return nil
+}
+
+func configurePython(ctx context.Context, cfg *config.Config, library *config.Library) error {
+	// Get the library's output location
+	var outputDir string
+	if cfg.Generate != nil && cfg.Generate.Output != "" {
+		var err error
+		outputDir, err = library.GeneratedLocation(cfg.Generate.Output)
+		if err != nil {
+			return err
+		}
+	} else {
+		// Default output location if generate.output is not set
+		outputDir = library.Name + "/"
+	}
+
+	// Create the library directory
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create directory %s: %w", outputDir, err)
+	}
+
+	fmt.Printf("Configured Python library at %s\n", outputDir)
+	// TODO(https://github.com/googleapis/librarian/issues/XXX): Create setup.py, README.md
 	return nil
 }
 
@@ -355,6 +519,12 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	// Check if this is a handwritten library (no APIs)
 	if len(library.Apis) == 0 {
 		return fmt.Errorf("library %q is handwritten (no apis field), nothing to generate", libraryName)
+	}
+
+	// Configure the library if not already configured
+	// This creates the directory and initial files (go.mod, README.md, etc.)
+	if err := configureLibrary(ctx, cfg, libraryName); err != nil {
+		return fmt.Errorf("failed to configure library: %w", err)
 	}
 
 	// Dispatch to language-specific generator
