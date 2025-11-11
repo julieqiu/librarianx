@@ -176,13 +176,32 @@ func New(version, language string, source *Source) *Config {
 }
 
 // Add adds an library to the config.
-func (c *Config) Add(name string, apis []string) error {
+// If location is provided, creates a handwritten library with explicit location.
+// Otherwise, creates a generated library with the given APIs.
+func (c *Config) Add(name string, apis []string, location string) error {
 	if name == "" {
 		return fmt.Errorf("library name cannot be empty")
 	}
 
+	// Handwritten library with explicit location
+	if location != "" {
+		// Check if library with same name already exists
+		for _, ed := range c.Librarys {
+			if ed.Name == name {
+				return fmt.Errorf("library %q already exists", name)
+			}
+		}
+
+		c.Librarys = append(c.Librarys, Library{
+			Name:     name,
+			Location: location,
+		})
+		return nil
+	}
+
+	// Generated library with APIs
 	if len(apis) == 0 {
-		return fmt.Errorf("library must have at least one API")
+		return fmt.Errorf("library must have at least one API or a location")
 	}
 
 	// Check if library with same name and apis already exists

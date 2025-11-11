@@ -369,7 +369,7 @@ func TestRunAdd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"}); err != nil {
+	if err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"}, ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -396,7 +396,7 @@ func TestRunAdd_ConfigNotFound(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"})
+	err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"}, "")
 	if err == nil {
 		t.Error("runAdd() should fail when librarian.yaml does not exist")
 	} else if !errors.Is(err, errConfigNotFound) {
@@ -412,12 +412,46 @@ func TestRunAdd_Duplicate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
+	if err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"}, ""); err != nil {
 		t.Fatal(err)
 	}
 
-	err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"})
+	err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"}, "")
 	if err == nil {
 		t.Error("runAdd() should fail when library already exists")
+	}
+}
+
+func TestRunAdd_WithLocation(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runAdd("gcloud-mcp", nil, "packages/gcloud-mcp/"); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := config.Read("librarian.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(cfg.Librarys) != 1 {
+		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	}
+
+	if cfg.Librarys[0].Name != "gcloud-mcp" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "gcloud-mcp")
+	}
+
+	if cfg.Librarys[0].Location != "packages/gcloud-mcp/" {
+		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "packages/gcloud-mcp/")
+	}
+
+	if len(cfg.Librarys[0].Apis) != 0 {
+		t.Errorf("got %d apis, want 0", len(cfg.Librarys[0].Apis))
 	}
 }

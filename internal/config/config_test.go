@@ -177,7 +177,7 @@ func TestConfig_Unset_InvalidField(t *testing.T) {
 func TestConfig_Add(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -198,11 +198,11 @@ func TestConfig_Add(t *testing.T) {
 func TestConfig_Add_Duplicate(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, ""); err != nil {
 		t.Fatal(err)
 	}
 
-	err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"})
+	err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, "")
 	if err == nil {
 		t.Error("Add() should fail when library with same name and apis already exists")
 	}
@@ -211,11 +211,11 @@ func TestConfig_Add_Duplicate(t *testing.T) {
 func TestConfig_Add_SameNameDifferentApis(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, ""); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1beta2"}); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1beta2"}, ""); err != nil {
 		t.Fatal(err)
 	}
 
@@ -227,7 +227,7 @@ func TestConfig_Add_SameNameDifferentApis(t *testing.T) {
 func TestConfig_Add_EmptyName(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	err := cfg.Add("", []string{"google/cloud/secretmanager/v1"})
+	err := cfg.Add("", []string{"google/cloud/secretmanager/v1"}, "")
 	if err == nil {
 		t.Error("Add() should fail when name is empty")
 	}
@@ -236,9 +236,33 @@ func TestConfig_Add_EmptyName(t *testing.T) {
 func TestConfig_Add_EmptyApis(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	err := cfg.Add("secretmanager", []string{})
+	err := cfg.Add("secretmanager", []string{}, "")
 	if err == nil {
-		t.Error("Add() should fail when apis is empty")
+		t.Error("Add() should fail when apis is empty and no location provided")
+	}
+}
+
+func TestConfig_Add_WithLocation(t *testing.T) {
+	cfg := New("v0.5.0", "go", nil)
+
+	if err := cfg.Add("gcloud-mcp", nil, "packages/gcloud-mcp/"); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(cfg.Librarys) != 1 {
+		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	}
+
+	if cfg.Librarys[0].Name != "gcloud-mcp" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "gcloud-mcp")
+	}
+
+	if cfg.Librarys[0].Location != "packages/gcloud-mcp/" {
+		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "packages/gcloud-mcp/")
+	}
+
+	if len(cfg.Librarys[0].Apis) != 0 {
+		t.Errorf("got %d apis, want 0", len(cfg.Librarys[0].Apis))
 	}
 }
 

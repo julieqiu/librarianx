@@ -127,23 +127,46 @@ func addCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "add",
 		Usage:     "add an library to the configuration",
-		UsageText: "librarian add <name> <path>...",
+		UsageText: "librarian add <name> [<api>...] [--location <path>]",
 		Description: `Add an library to librarian.yaml.
 
-Example:
-  librarian add secretmanager google/cloud/secretmanager/v1 google/cloud/secretmanager/v1beta2`,
+For generated librarys, provide API paths:
+  librarian add secretmanager google/cloud/secretmanager/v1 google/cloud/secretmanager/v1beta2
+
+For handwritten librarys, use --location:
+  librarian add gcloud-mcp --location packages/gcloud-mcp/`,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:  "location",
+				Usage: "explicit filesystem path for handwritten librarys",
+			},
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			if cmd.NArg() < 2 {
-				return errors.New("add requires an library name and at least one path")
+			if cmd.NArg() < 1 {
+				return errors.New("add requires an library name")
 			}
 			name := cmd.Args().Get(0)
-			paths := cmd.Args().Slice()[1:]
-			return runAdd(name, paths)
+			location := cmd.String("location")
+
+			// If location is provided, this is a handwritten library
+			if location != "" {
+				if cmd.NArg() > 1 {
+					return errors.New("cannot specify both --location and API paths")
+				}
+				return runAdd(name, nil, location)
+			}
+
+			// Otherwise, this is a generated library with APIs
+			if cmd.NArg() < 2 {
+				return errors.New("add requires at least one API path or --location flag")
+			}
+			apis := cmd.Args().Slice()[1:]
+			return runAdd(name, apis, "")
 		},
 	}
 }
 
-func runAdd(name string, apis []string) error {
+func runAdd(name string, apis []string, location string) error {
 	const configPath = "librarian.yaml"
 	if _, err := os.Stat(configPath); err != nil {
 		return errConfigNotFound
@@ -154,7 +177,7 @@ func runAdd(name string, apis []string) error {
 		return err
 	}
 
-	if err := cfg.Add(name, apis); err != nil {
+	if err := cfg.Add(name, apis, location); err != nil {
 		return err
 	}
 
@@ -162,7 +185,11 @@ func runAdd(name string, apis []string) error {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
-	fmt.Printf("Added library %q with %d API(s)\n", name, len(apis))
+	if location != "" {
+		fmt.Printf("Added handwritten library %q at %s\n", name, location)
+	} else {
+		fmt.Printf("Added library %q with %d API(s)\n", name, len(apis))
+	}
 	return nil
 }
 
