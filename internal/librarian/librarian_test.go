@@ -359,3 +359,71 @@ func TestRunUnset_InvalidField(t *testing.T) {
 		})
 	}
 }
+
+func TestRunAdd(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"}); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := config.Read("librarian.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if len(cfg.Librarys) != 2 {
+		t.Errorf("got %d librarys, want 2", len(cfg.Librarys))
+	}
+
+	if cfg.Librarys[0].Name != "secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
+	}
+
+	if cfg.Librarys[0].Path != "google/cloud/secretmanager/v1" {
+		t.Errorf("got path %q, want %q", cfg.Librarys[0].Path, "google/cloud/secretmanager/v1")
+	}
+
+	if cfg.Librarys[1].Name != "secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[1].Name, "secretmanager")
+	}
+
+	if cfg.Librarys[1].Path != "google/cloud/secretmanager/v1beta2" {
+		t.Errorf("got path %q, want %q", cfg.Librarys[1].Path, "google/cloud/secretmanager/v1beta2")
+	}
+}
+
+func TestRunAdd_ConfigNotFound(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"})
+	if err == nil {
+		t.Error("runAdd() should fail when librarian.yaml does not exist")
+	} else if !errors.Is(err, errConfigNotFound) {
+		t.Errorf("want %v; got %v", errConfigNotFound, err)
+	}
+}
+
+func TestRunAdd_Duplicate(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runAdd("secretmanager", []string{"google/cloud/secretmanager/v1"})
+	if err == nil {
+		t.Error("runAdd() should fail when library already exists")
+	}
+}

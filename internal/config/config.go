@@ -37,6 +37,9 @@ type Config struct {
 
 	// Release contains release configuration.
 	Release *Release `yaml:"release,omitempty"`
+
+	// Librarys contains the list of library librarys.
+	Librarys []Library `yaml:"librarys,omitempty"`
 }
 
 // Sources contains references to external source repositories.
@@ -65,6 +68,15 @@ type Release struct {
 	// TagFormat is the template for git tags (e.g., '{id}/v{version}').
 	// Supported placeholders: {id}, {name}, {version}
 	TagFormat string `yaml:"tag_format,omitempty"`
+}
+
+// Library represents an library.
+type Library struct {
+	// Name is the library name (e.g., "secretmanager").
+	Name string `yaml:"name"`
+
+	// Path is the path to the service definition (e.g., "google/cloud/secretmanager/v1").
+	Path string `yaml:"path"`
 }
 
 // Read reads the configuration from a file.
@@ -156,4 +168,29 @@ func New(version, language string, source *Source) *Config {
 	}
 
 	return cfg
+}
+
+// Add adds an library to the config.
+func (c *Config) Add(name, path string) error {
+	if name == "" {
+		return fmt.Errorf("library name cannot be empty")
+	}
+
+	if path == "" {
+		return fmt.Errorf("library path cannot be empty")
+	}
+
+	// Check if library with same name and path already exists
+	for _, ed := range c.Librarys {
+		if ed.Name == name && ed.Path == path {
+			return fmt.Errorf("library %q with path %q already exists", name, path)
+		}
+	}
+
+	c.Librarys = append(c.Librarys, Library{
+		Name: name,
+		Path: path,
+	})
+
+	return nil
 }

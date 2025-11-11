@@ -41,6 +41,7 @@ func Run(ctx context.Context, args []string) error {
 		UsageText: "librarian [command]",
 		Version:   Version(),
 		Commands: []*cli.Command{
+			addCommand(),
 			configCommand(),
 			initCommand(),
 			versionCommand(),
@@ -118,6 +119,52 @@ func runInit(language string, source *config.Source) error {
 	}
 
 	fmt.Printf("Created librarian.yaml\n")
+	return nil
+}
+
+// addCommand adds an library to the configuration.
+func addCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "add",
+		Usage:     "add an library to the configuration",
+		UsageText: "librarian add <name> <path>...",
+		Description: `Add an library to librarian.yaml.
+
+Example:
+  librarian add secretmanager google/cloud/secretmanager/v1 google/cloud/secretmanager/v1beta2`,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 2 {
+				return errors.New("add requires an library name and at least one path")
+			}
+			name := cmd.Args().Get(0)
+			paths := cmd.Args().Slice()[1:]
+			return runAdd(name, paths)
+		},
+	}
+}
+
+func runAdd(name string, paths []string) error {
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err != nil {
+		return errConfigNotFound
+	}
+
+	cfg, err := config.Read(configPath)
+	if err != nil {
+		return err
+	}
+
+	for _, path := range paths {
+		if err := cfg.Add(name, path); err != nil {
+			return err
+		}
+	}
+
+	if err := cfg.Write(configPath); err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
+	}
+
+	fmt.Printf("Added library %q\n", name)
 	return nil
 }
 

@@ -173,3 +173,70 @@ func TestConfig_Unset_InvalidField(t *testing.T) {
 		t.Error("Unset() should fail with invalid field")
 	}
 }
+
+func TestConfig_Add(t *testing.T) {
+	cfg := New("v0.5.0", "go", nil)
+
+	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1"); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(cfg.Librarys) != 1 {
+		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	}
+
+	if cfg.Librarys[0].Name != "secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
+	}
+
+	if cfg.Librarys[0].Path != "google/cloud/secretmanager/v1" {
+		t.Errorf("got path %q, want %q", cfg.Librarys[0].Path, "google/cloud/secretmanager/v1")
+	}
+}
+
+func TestConfig_Add_Duplicate(t *testing.T) {
+	cfg := New("v0.5.0", "go", nil)
+
+	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1"); err != nil {
+		t.Fatal(err)
+	}
+
+	err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1")
+	if err == nil {
+		t.Error("Add() should fail when library with same name and path already exists")
+	}
+}
+
+func TestConfig_Add_SameNameDifferentPath(t *testing.T) {
+	cfg := New("v0.5.0", "go", nil)
+
+	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1"); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1beta2"); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(cfg.Librarys) != 2 {
+		t.Errorf("got %d librarys, want 2", len(cfg.Librarys))
+	}
+}
+
+func TestConfig_Add_EmptyName(t *testing.T) {
+	cfg := New("v0.5.0", "go", nil)
+
+	err := cfg.Add("", "google/cloud/secretmanager/v1")
+	if err == nil {
+		t.Error("Add() should fail when name is empty")
+	}
+}
+
+func TestConfig_Add_EmptyPath(t *testing.T) {
+	cfg := New("v0.5.0", "go", nil)
+
+	err := cfg.Add("secretmanager", "")
+	if err == nil {
+		t.Error("Add() should fail when path is empty")
+	}
+}
