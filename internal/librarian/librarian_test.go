@@ -21,6 +21,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/librarian/internal/config"
 )
 
@@ -377,24 +378,17 @@ func TestRunAdd(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(cfg.Librarys) != 2 {
-		t.Errorf("got %d librarys, want 2", len(cfg.Librarys))
+	if len(cfg.Librarys) != 1 {
+		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
 	}
 
 	if cfg.Librarys[0].Name != "secretmanager" {
 		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
 	}
 
-	if cfg.Librarys[0].Path != "google/cloud/secretmanager/v1" {
-		t.Errorf("got path %q, want %q", cfg.Librarys[0].Path, "google/cloud/secretmanager/v1")
-	}
-
-	if cfg.Librarys[1].Name != "secretmanager" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[1].Name, "secretmanager")
-	}
-
-	if cfg.Librarys[1].Path != "google/cloud/secretmanager/v1beta2" {
-		t.Errorf("got path %q, want %q", cfg.Librarys[1].Path, "google/cloud/secretmanager/v1beta2")
+	wantApis := []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"}
+	if diff := cmp.Diff(wantApis, cfg.Librarys[0].Apis); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
 

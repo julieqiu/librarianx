@@ -143,7 +143,7 @@ Example:
 	}
 }
 
-func runAdd(name string, paths []string) error {
+func runAdd(name string, apis []string) error {
 	const configPath = "librarian.yaml"
 	if _, err := os.Stat(configPath); err != nil {
 		return errConfigNotFound
@@ -154,17 +154,15 @@ func runAdd(name string, paths []string) error {
 		return err
 	}
 
-	for _, path := range paths {
-		if err := cfg.Add(name, path); err != nil {
-			return err
-		}
+	if err := cfg.Add(name, apis); err != nil {
+		return err
 	}
 
 	if err := cfg.Write(configPath); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
 	}
 
-	fmt.Printf("Added library %q\n", name)
+	fmt.Printf("Added library %q with %d API(s)\n", name, len(apis))
 	return nil
 }
 

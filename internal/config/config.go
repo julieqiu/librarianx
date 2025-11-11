@@ -17,6 +17,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -75,8 +76,12 @@ type Library struct {
 	// Name is the library name (e.g., "secretmanager").
 	Name string `yaml:"name"`
 
-	// Path is the path to the service definition (e.g., "google/cloud/secretmanager/v1").
-	Path string `yaml:"path"`
+	// Apis is the list of googleapis paths for generated librarys.
+	Apis []string `yaml:"apis,omitempty"`
+
+	// Location is the explicit filesystem path (optional).
+	// If not set and apis is present, computed from generate.output template.
+	Location string `yaml:"location,omitempty"`
 }
 
 // Read reads the configuration from a file.
@@ -171,26 +176,73 @@ func New(version, language string, source *Source) *Config {
 }
 
 // Add adds an library to the config.
-func (c *Config) Add(name, path string) error {
+func (c *Config) Add(name string, apis []string) error {
 	if name == "" {
 		return fmt.Errorf("library name cannot be empty")
 	}
 
-	if path == "" {
-		return fmt.Errorf("library path cannot be empty")
+	if len(apis) == 0 {
+		return fmt.Errorf("library must have at least one API")
 	}
 
-	// Check if library with same name and path already exists
+	// Check if library with same name and apis already exists
 	for _, ed := range c.Librarys {
-		if ed.Name == name && ed.Path == path {
-			return fmt.Errorf("library %q with path %q already exists", name, path)
+		if ed.Name == name && stringSliceEqual(ed.Apis, apis) {
+			return fmt.Errorf("library %q with apis %v already exists", name, apis)
 		}
 	}
 
 	c.Librarys = append(c.Librarys, Library{
 		Name: name,
-		Path: path,
+		Apis: apis,
 	})
 
 	return nil
+}
+
+// stringSliceEqual checks if two string slices are equal.
+func stringSliceEqual(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// ExpandTemplate expands template keywords in a string.
+// Supported keywords:
+//   - {name} - The library name
+//   - {api.path} - The API path (requires exactly one API in the library)
+//
+// Returns the expanded template string and an error if validation fails.
+func (e *Library) ExpandTemplate(template string) (string, error) {
+	result := template
+
+	// Replace {name} with library name
+	result = strings.ReplaceAll(result, "{name}", e.Name)
+
+	// Replace {api.path} with API path (requires exactly one API)
+	if strings.Contains(result, "{api.path}") {
+		if len(e.Apis) != 1 {
+			return "", fmt.Errorf("template uses {api.path} but library %q has %d APIs (expected exactly 1)", e.Name, len(e.Apis))
+		}
+		result = strings.ReplaceAll(result, "{api.path}", e.Apis[0])
+	}
+
+	return result, nil
+}
+
+// GeneratedLocation returns the filesystem location where generated code should be written.
+// If Location is explicitly set, returns that.
+// Otherwise, expands the generate.output template with library data.
+// Returns an error if template expansion fails validation.
+func (e *Library) GeneratedLocation(generateOutput string) (string, error) {
+	if e.Location != "" {
+		return e.Location, nil
+	}
+	return e.ExpandTemplate(generateOutput)
 }

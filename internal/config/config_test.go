@@ -86,7 +86,7 @@ func TestConfig_Set(t *testing.T) {
 			},
 			sets: map[string]string{
 				"release.tag_format": "{id}-v{version}",
-				"generate.output":    "packages/",
+				"generate.output":    "packages/{name}/",
 			},
 			testdata: "testdata/python.yaml",
 		},
@@ -99,7 +99,7 @@ func TestConfig_Set(t *testing.T) {
 				SHA256: "81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98",
 			},
 			sets: map[string]string{
-				"generate.output": "generated/",
+				"generate.output": "src/generated/{api.path}/",
 			},
 			testdata: "testdata/rust.yaml",
 		},
@@ -144,7 +144,7 @@ func TestConfig_Unset(t *testing.T) {
 	if err := cfg.Set("release.tag_format", "{id}-v{version}"); err != nil {
 		t.Fatal(err)
 	}
-	if err := cfg.Set("generate.output", "packages/"); err != nil {
+	if err := cfg.Set("generate.output", "packages/{name}/"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -177,7 +177,7 @@ func TestConfig_Unset_InvalidField(t *testing.T) {
 func TestConfig_Add(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1"); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -189,32 +189,33 @@ func TestConfig_Add(t *testing.T) {
 		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
 	}
 
-	if cfg.Librarys[0].Path != "google/cloud/secretmanager/v1" {
-		t.Errorf("got path %q, want %q", cfg.Librarys[0].Path, "google/cloud/secretmanager/v1")
+	wantApis := []string{"google/cloud/secretmanager/v1"}
+	if diff := cmp.Diff(wantApis, cfg.Librarys[0].Apis); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
 
 func TestConfig_Add_Duplicate(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1"); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
 		t.Fatal(err)
 	}
 
-	err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1")
+	err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"})
 	if err == nil {
-		t.Error("Add() should fail when library with same name and path already exists")
+		t.Error("Add() should fail when library with same name and apis already exists")
 	}
 }
 
-func TestConfig_Add_SameNameDifferentPath(t *testing.T) {
+func TestConfig_Add_SameNameDifferentApis(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1"); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := cfg.Add("secretmanager", "google/cloud/secretmanager/v1beta2"); err != nil {
+	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1beta2"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -226,17 +227,152 @@ func TestConfig_Add_SameNameDifferentPath(t *testing.T) {
 func TestConfig_Add_EmptyName(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	err := cfg.Add("", "google/cloud/secretmanager/v1")
+	err := cfg.Add("", []string{"google/cloud/secretmanager/v1"})
 	if err == nil {
 		t.Error("Add() should fail when name is empty")
 	}
 }
 
-func TestConfig_Add_EmptyPath(t *testing.T) {
+func TestConfig_Add_EmptyApis(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	err := cfg.Add("secretmanager", "")
+	err := cfg.Add("secretmanager", []string{})
 	if err == nil {
-		t.Error("Add() should fail when path is empty")
+		t.Error("Add() should fail when apis is empty")
+	}
+}
+
+func TestLibrary_ExpandTemplate(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		library  Library
+		template string
+		want     string
+		wantErr  bool
+	}{
+		{
+			name: "name_only",
+			library: Library{
+				Name: "secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1"},
+			},
+			template: "{name}/",
+			want:     "secretmanager/",
+		},
+		{
+			name: "api_path_single_api",
+			library: Library{
+				Name: "google-cloud-secretmanager-v1",
+				Apis: []string{"google/cloud/secretmanager/v1"},
+			},
+			template: "src/generated/{api.path}/",
+			want:     "src/generated/google/cloud/secretmanager/v1/",
+		},
+		{
+			name: "api_path_multiple_apis_fails",
+			library: Library{
+				Name: "secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+			},
+			template: "src/generated/{api.path}/",
+			wantErr:  true,
+		},
+		{
+			name: "packages_with_name",
+			library: Library{
+				Name: "google-cloud-secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+			},
+			template: "packages/{name}/",
+			want:     "packages/google-cloud-secretmanager/",
+		},
+		{
+			name: "no_keywords",
+			library: Library{
+				Name: "secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1"},
+			},
+			template: "generated/",
+			want:     "generated/",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := test.library.ExpandTemplate(test.template)
+			if test.wantErr {
+				if err == nil {
+					t.Error("ExpandTemplate() should fail")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != test.want {
+				t.Errorf("got %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+func TestLibrary_GeneratedLocation(t *testing.T) {
+	for _, test := range []struct {
+		name           string
+		library        Library
+		generateOutput string
+		want           string
+		wantErr        bool
+	}{
+		{
+			name: "explicit_location",
+			library: Library{
+				Name:     "gcloud-mcp",
+				Location: "packages/gcloud-mcp/",
+			},
+			generateOutput: "{name}/",
+			want:           "packages/gcloud-mcp/",
+		},
+		{
+			name: "computed_from_template_name",
+			library: Library{
+				Name: "secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1"},
+			},
+			generateOutput: "{name}/",
+			want:           "secretmanager/",
+		},
+		{
+			name: "computed_from_template_api",
+			library: Library{
+				Name: "google-cloud-secretmanager-v1",
+				Apis: []string{"google/cloud/secretmanager/v1"},
+			},
+			generateOutput: "src/generated/{api.path}/",
+			want:           "src/generated/google/cloud/secretmanager/v1/",
+		},
+		{
+			name: "api_path_multiple_apis_fails",
+			library: Library{
+				Name: "secretmanager",
+				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+			},
+			generateOutput: "src/generated/{api.path}/",
+			wantErr:        true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := test.library.GeneratedLocation(test.generateOutput)
+			if test.wantErr {
+				if err == nil {
+					t.Error("GeneratedLocation() should fail")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if got != test.want {
+				t.Errorf("got %q, want %q", got, test.want)
+			}
+		})
 	}
 }
