@@ -87,7 +87,7 @@ Create the Secret Manager library:
 ```
 $ librarianx new secretmanager google/cloud/secretmanager/v1
 Parsing googleapis BUILD.bazel files...
-Created edition entry in librarian.yaml
+Created library entry in librarian.yaml
 Downloading googleapis...
 Running generator container...
 Generated secretmanager/
@@ -96,7 +96,7 @@ Generated secretmanager/
 This command:
 1. Downloads googleapis (if needed)
 2. Reads `google/cloud/secretmanager/v1/BUILD.bazel` to extract configuration
-3. Creates an edition entry in `librarian.yaml`
+3. Creates an library entry in `librarian.yaml`
 4. Generates the code immediately
 
 Notice that Go uses directory names without prefixes (secretmanager, not
@@ -108,7 +108,7 @@ Let's look at what was created in the configuration:
 $ cat librarian.yaml
 # ... (top-level config)
 
-editions:
+librarys:
   - name: secretmanager
     generate:
       apis:
@@ -121,7 +121,7 @@ editions:
           release_level: "stable"
 ```
 
-All the protoc configuration was extracted from BUILD.bazel and saved as an edition entry.
+All the protoc configuration was extracted from BUILD.bazel and saved as an library entry.
 
 Let's see what was created:
 
@@ -143,10 +143,10 @@ Secret Manager has a beta API. You can add it by manually editing the config or 
 
 ```
 $ nano librarian.yaml
-# Find the secretmanager edition and add google/cloud/secretmanager/v1beta2 to the apis list
+# Find the secretmanager library and add google/cloud/secretmanager/v1beta2 to the apis list
 ```
 
-The edition now has two APIs:
+The library now has two APIs:
 
 ```
 $ grep "path:" librarian.yaml | grep secretmanager
@@ -227,20 +227,20 @@ Track indexing: https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1
 For Go, publishing happens automatically when you push git tags. pkg.go.dev
 indexes the module automatically.
 
-## Adding More Editions
+## Adding More Librarys
 
 Let's add Access Approval to our Go repository:
 
 ```
 $ librarianx new accessapproval google/cloud/accessapproval/v1
-Created edition entry in librarian.yaml
+Created library entry in librarian.yaml
 Generated accessapproval/
 ```
 
 ### Updating Everything
 
 Time passes. You want to update to the latest googleapis and regenerate all
-editions. This is common when googleapis adds new methods or fixes bugs.
+librarys. This is common when googleapis adds new methods or fixes bugs.
 
 Update the googleapis source:
 
@@ -252,7 +252,7 @@ Updated librarian.yaml:
   sources.googleapis.sha256: 867048ec8f0850a4d77ad836319e4c0a0c624928611af8a900cd77e676164e8e
 ```
 
-Regenerate all editions:
+Regenerate all librarys:
 
 ```
 $ librarianx generate --all
@@ -271,13 +271,13 @@ Release everything that changed:
 
 ```
 $ librarianx release --all
-Analyzing all editions for release...
+Analyzing all librarys for release...
 
-Found 2 editions with pending releases:
+Found 2 librarys with pending releases:
   - secretmanager: 0.1.0 → 0.2.0 (minor - new features)
   - accessapproval: null → 0.1.0 (initial release)
 
-Would perform releases for both editions.
+Would perform releases for both librarys.
 To proceed, run:
   librarianx release --all --execute
 ```
@@ -286,7 +286,7 @@ Execute the release:
 
 ```
 $ librarianx release --all --execute
-Releasing 2 editions...
+Releasing 2 librarys...
 
 ✓ Released secretmanager v0.2.0
 ✓ Released accessapproval v0.1.0
@@ -294,7 +294,7 @@ Releasing 2 editions...
 Done!
 ```
 
-## Python Editions
+## Python Librarys
 
 Let's try Python. Python requires installing dependencies before generation.
 
@@ -311,7 +311,7 @@ $ librarianx init python
 Created librarian.yaml
 ```
 
-Python projects typically use a `packages/` directory for generated editions.
+Python projects typically use a `packages/` directory for generated librarys.
 Edit the config to set this:
 
 ```
@@ -327,11 +327,11 @@ Using Docker container for code generation
 Container image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/python-librarian-generator:latest
 ```
 
-Create Secret Manager edition:
+Create Secret Manager library:
 
 ```
 $ librarianx new google-cloud-secret-manager google/cloud/secretmanager/v1 google/cloud/secretmanager/v1beta2
-Created edition entry in librarian.yaml
+Created library entry in librarian.yaml
 Generated packages/google-cloud-secret-manager/
 ```
 
@@ -374,7 +374,7 @@ Release complete!
 Published: https://pypi.org/project/google-cloud-secret-manager/0.1.0/
 ```
 
-## Rust Editions
+## Rust Librarys
 
 Rust works similarly:
 
@@ -406,15 +406,15 @@ Using Docker container for code generation
 Container image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/rust-librarian-generator:latest
 ```
 
-Create editions:
+Create librarys:
 
 ```
 $ librarianx new secretmanager google/cloud/secretmanager/v1
-Created edition entry in librarian.yaml
+Created library entry in librarian.yaml
 Generated generated/google-cloud-secretmanager-v1/
 
 $ librarianx new accessapproval google/cloud/accessapproval/v1
-Created edition entry in librarian.yaml
+Created library entry in librarian.yaml
 Generated generated/google-cloud-accessapproval-v1/
 ```
 
@@ -434,9 +434,9 @@ Release workflow is similar, but publishes to crates.io:
 
 ```
 $ git add .
-$ git commit -m "feat: add Rust client editions"
+$ git commit -m "feat: add Rust client librarys"
 $ librarianx release --all --execute
-Releasing 2 editions...
+Releasing 2 librarys...
 
 ✓ Released google-cloud-secretmanager-v1 v0.1.0
   - Ran cargo semver-checks
@@ -456,7 +456,7 @@ Done!
 Not all code needs to be generated. You can use librarianx just for release
 management.
 
-Go back to the Go repository and create a handwritten edition:
+Go back to the Go repository and create a handwritten library:
 
 ```
 $ cd ../google-cloud-go
@@ -468,10 +468,10 @@ Add it to librarian:
 
 ```
 $ librarianx new custom-tool
-Created edition entry in librarian.yaml
+Created library entry in librarian.yaml
 ```
 
-This created an edition entry without a `generate` section (handwritten edition):
+This created an library entry without a `generate` section (handwritten library):
 
 ```
 $ grep -A2 "name: custom-tool" librarian.yaml
@@ -479,7 +479,7 @@ $ grep -A2 "name: custom-tool" librarian.yaml
     version: null
 ```
 
-Now you can release it like any other edition:
+Now you can release it like any other library:
 
 ```
 $ git add .
