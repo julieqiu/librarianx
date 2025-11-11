@@ -11,6 +11,7 @@ require (
 	github.com/iancoleman/strcase v0.3.0
 	github.com/pb33f/libopenapi v0.28.2
 	github.com/pelletier/go-toml/v2 v2.2.4
+	github.com/urfave/cli/v3 v3.6.0
 	github.com/walle/targz v0.0.0-20140417120357-57fe4206da5a
 	github.com/yuin/goldmark v1.7.13
 	google.golang.org/genproto v0.0.0-20251110190251-83f479183930

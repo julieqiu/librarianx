@@ -1,0 +1,4 @@
+version: (devel)
+
+release:
+  tag_format: '{name}/v{version}'
