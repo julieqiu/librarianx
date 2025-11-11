@@ -85,19 +85,23 @@ environments. You can omit it to install dependencies locally instead.
 Create the Secret Manager library:
 
 ```
-$ librarianx new secretmanager google/cloud/secretmanager/v1
-Parsing googleapis BUILD.bazel files...
-Created library entry in librarian.yaml
-Downloading googleapis...
-Running generator container...
+$ librarian create secretmanager google/cloud/secretmanager/v1
+Added library "secretmanager" with 1 API(s)
+Configured Go library at secretmanager/
 Generated secretmanager/
+Successfully created library "secretmanager"
 ```
 
 This command:
-1. Downloads googleapis (if needed)
-2. Reads `google/cloud/secretmanager/v1/BUILD.bazel` to extract configuration
-3. Creates an library entry in `librarian.yaml`
-4. Generates the code immediately
+1. Adds the library entry to `librarian.yaml`
+2. Configures the library directory and creates initial files (go.mod, README.md, etc.)
+3. Generates the client code from API definitions
+
+This is equivalent to running:
+```
+$ librarian add secretmanager google/cloud/secretmanager/v1
+$ librarian generate secretmanager
+```
 
 Notice that Go uses directory names without prefixes (secretmanager, not
 google-cloud-secretmanager). This matches Go module conventions.
@@ -232,9 +236,11 @@ indexes the module automatically.
 Let's add Access Approval to our Go repository:
 
 ```
-$ librarianx new accessapproval google/cloud/accessapproval/v1
-Created library entry in librarian.yaml
+$ librarian create accessapproval google/cloud/accessapproval/v1
+Added library "accessapproval" with 1 API(s)
+Configured Go library at accessapproval/
 Generated accessapproval/
+Successfully created library "accessapproval"
 ```
 
 ### Updating Everything
@@ -330,9 +336,11 @@ Container image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod
 Create Secret Manager library:
 
 ```
-$ librarianx new google-cloud-secret-manager google/cloud/secretmanager/v1 google/cloud/secretmanager/v1beta2
-Created library entry in librarian.yaml
+$ librarian create google-cloud-secret-manager google/cloud/secretmanager/v1 google/cloud/secretmanager/v1beta2
+Added library "google-cloud-secret-manager" with 2 API(s)
+Configured Python library at packages/google-cloud-secret-manager/
 Generated packages/google-cloud-secret-manager/
+Successfully created library "google-cloud-secret-manager"
 ```
 
 Notice Python uses package names with prefixes (google-cloud-secret-manager).
@@ -409,13 +417,17 @@ Container image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod
 Create librarys:
 
 ```
-$ librarianx new secretmanager google/cloud/secretmanager/v1
-Created library entry in librarian.yaml
-Generated generated/google-cloud-secretmanager-v1/
+$ librarian create secretmanager google/cloud/secretmanager/v1
+Added library "secretmanager" with 1 API(s)
+Configured Rust library at src/generated/google/cloud/secretmanager/v1/
+Generated src/generated/google/cloud/secretmanager/v1/
+Successfully created library "secretmanager"
 
-$ librarianx new accessapproval google/cloud/accessapproval/v1
-Created library entry in librarian.yaml
-Generated generated/google-cloud-accessapproval-v1/
+$ librarian create accessapproval google/cloud/accessapproval/v1
+Added library "accessapproval" with 1 API(s)
+Configured Rust library at src/generated/google/cloud/accessapproval/v1/
+Generated src/generated/google/cloud/accessapproval/v1/
+Successfully created library "accessapproval"
 ```
 
 Check the output:
@@ -545,15 +557,17 @@ google-cloud-rust/librarian.yaml    # language: rust
 
 ## Summary
 
-Librarianx provides a consistent workflow across languages:
+Librarian provides a consistent workflow across languages:
 
-1. **Initialize** - `librarianx init <language>`
-2. **Install** - `librarianx install <language> --use-container`
-3. **Create** - `librarianx new <name> <api-paths>` (creates and generates)
-4. **Regenerate** - `librarianx generate <name>` or `librarianx generate --all`
-5. **Test** - `librarianx test <name>` or `librarianx test --all`
-6. **Update Sources** - `librarianx update --googleapis` or `librarianx update --all`
-7. **Release** - `librarianx release <name>` (dry-run) or `librarianx release <name> --execute`
+1. **Initialize** - `librarian init <language>`
+2. **Create** - `librarian create <name> <api-paths>` (adds, configures, and generates)
+3. **Regenerate** - `librarian generate <name>` or `librarian generate --all`
+4. **Update Sources** - `librarian update --googleapis` or `librarian update --all`
+5. **Release** - `librarian release <name>` (dry-run) or `librarian release <name> --execute`
+
+Alternative workflow for more control:
+- **Add** - `librarian add <name> <api-paths>` (just updates librarian.yaml)
+- **Generate** - `librarian generate <name>` (configures and generates code)
 
 The same commands work for Go, Python, and Rust. Configuration lives in the
 `librarian.yaml` file, making everything transparent and version-controlled.
