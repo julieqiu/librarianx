@@ -254,6 +254,8 @@ Library metadata used to generate documentation and configure the package:
 - `keep` - Files/directories not overwritten during generation (array of patterns)
 - `remove` - Files/directories deleted after generation (array of patterns)
 
+**Automatic cleanup**: The generator automatically removes all `*_pb2.py` and `*_pb2.pyi` files after generation. These are protobuf-compiled files that should not be included in GAPIC-generated libraries. No configuration is needed for this behavior.
+
 **Note**: Library configuration does NOT store googleapis/discovery URLs or SHA256 hashes. These are stored in the top-level `sources` section to ensure all libraries use the same source versions. This design:
 - Prevents duplication across all library configs
 - Ensures consistency - all libraries generated from the same source versions
