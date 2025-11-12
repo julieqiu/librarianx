@@ -34,6 +34,15 @@ func BuildGapicCommand(apiPath, sourceDir, outputDir string, opts *GapicOptions)
 	apiDir := filepath.Join(sourceDir, apiPath)
 	protoPattern := filepath.Join(apiDir, "*.proto")
 
+	// Expand the glob pattern to get actual proto files
+	protoFiles, err := filepath.Glob(protoPattern)
+	if err != nil {
+		return nil, fmt.Errorf("failed to glob proto files: %w", err)
+	}
+	if len(protoFiles) == 0 {
+		return nil, fmt.Errorf("no proto files found in %s", apiDir)
+	}
+
 	args := []string{
 		"--proto_path=" + sourceDir,
 		"--python_gapic_out=" + outputDir,
@@ -70,7 +79,8 @@ func BuildGapicCommand(apiPath, sourceDir, outputDir string, opts *GapicOptions)
 		args = append(args, "--python_gapic_opt="+optsStr)
 	}
 
-	args = append(args, protoPattern)
+	// Add all proto files
+	args = append(args, protoFiles...)
 
 	return &ProtocCommand{
 		Command: "protoc",
@@ -87,12 +97,21 @@ func BuildProtoCommand(apiPath, sourceDir, outputDir string) (*ProtocCommand, er
 	apiDir := filepath.Join(sourceDir, apiPath)
 	protoPattern := filepath.Join(apiDir, "*.proto")
 
+	// Expand the glob pattern to get actual proto files
+	protoFiles, err := filepath.Glob(protoPattern)
+	if err != nil {
+		return nil, fmt.Errorf("failed to glob proto files: %w", err)
+	}
+	if len(protoFiles) == 0 {
+		return nil, fmt.Errorf("no proto files found in %s", apiDir)
+	}
+
 	args := []string{
 		"--proto_path=" + sourceDir,
 		"--python_out=" + outputDir,
 		"--pyi_out=" + outputDir,
-		protoPattern,
 	}
+	args = append(args, protoFiles...)
 
 	return &ProtocCommand{
 		Command: "protoc",

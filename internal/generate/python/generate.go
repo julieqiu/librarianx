@@ -43,10 +43,20 @@ var (
 func Generate(ctx context.Context, lib *config.Library, outputDir, sourceDir string, disablePostProcessor bool) error {
 	slog.Debug("python generate: started")
 
-	// Generate code for each API
-	for _, apiPath := range lib.Apis {
-		if err := generateAPI(ctx, sourceDir, outputDir, apiPath); err != nil {
-			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
+	// Use parsed API configurations if available, otherwise fall back to API paths
+	if lib.Generate != nil && len(lib.Generate.APIs) > 0 {
+		// Generate code using parsed API configurations
+		for _, apiConfig := range lib.Generate.APIs {
+			if err := generateAPIFromConfig(ctx, sourceDir, outputDir, &apiConfig); err != nil {
+				return fmt.Errorf("failed to generate API %s: %w", apiConfig.Path, err)
+			}
+		}
+	} else {
+		// Fallback: generate code from API paths without parsed config
+		for _, apiPath := range lib.Apis {
+			if err := generateAPI(ctx, sourceDir, outputDir, apiPath); err != nil {
+				return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
+			}
 		}
 	}
 
@@ -61,10 +71,63 @@ func Generate(ctx context.Context, lib *config.Library, outputDir, sourceDir str
 	return nil
 }
 
+// generateAPIFromConfig generates code for a single API using parsed configuration.
+func generateAPIFromConfig(ctx context.Context, sourceDir, outputDir string, apiConfig *config.API) error {
+	apiServiceDir := filepath.Join(sourceDir, apiConfig.Path)
+	slog.Info("processing api", "service_dir", apiServiceDir, "has_gapic", apiConfig.HasGAPIC)
+
+	// Convert output directory to absolute path to avoid issues with protoc working directory
+	absOutputDir, err := filepath.Abs(outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for output directory: %w", err)
+	}
+
+	var cmd *ProtocCommand
+
+	if apiConfig.HasGAPIC {
+		// Build GAPIC command using parsed configuration
+		opts := &GapicOptions{
+			GrpcServiceConfig: apiConfig.GRPCServiceConfig,
+			ServiceYAML:       apiConfig.ServiceYAML,
+			Transport:         apiConfig.Transport,
+			RestNumericEnums:  apiConfig.RestNumericEnums,
+		}
+		if apiConfig.Python != nil {
+			opts.OptArgs = apiConfig.Python.OptArgs
+		}
+		cmd, err = BuildGapicCommand(apiConfig.Path, sourceDir, absOutputDir, opts)
+	} else {
+		// Build proto-only command
+		cmd, err = BuildProtoCommand(apiConfig.Path, sourceDir, absOutputDir)
+	}
+
+	if err != nil {
+		return fmt.Errorf("failed to build protoc command: %w", err)
+	}
+
+	// Run protoc from current directory, not from output directory
+	args := append([]string{cmd.Command}, cmd.Args...)
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %w", err)
+	}
+	if err := execvRun(ctx, args, cwd); err != nil {
+		return fmt.Errorf("protoc failed: %w", err)
+	}
+
+	return nil
+}
+
 // generateAPI generates code for a single API.
 func generateAPI(ctx context.Context, sourceDir, outputDir, apiPath string) error {
 	apiServiceDir := filepath.Join(sourceDir, apiPath)
 	slog.Info("processing api", "service_dir", apiServiceDir)
+
+	// Convert output directory to absolute path to avoid issues with protoc working directory
+	absOutputDir, err := filepath.Abs(outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for output directory: %w", err)
+	}
 
 	// Determine if this is a GAPIC or proto-only library
 	// For now, assume all APIs are GAPIC libraries
@@ -72,7 +135,6 @@ func generateAPI(ctx context.Context, sourceDir, outputDir, apiPath string) erro
 	isGapic := true
 
 	var cmd *ProtocCommand
-	var err error
 
 	if isGapic {
 		// Build GAPIC command
@@ -80,19 +142,23 @@ func generateAPI(ctx context.Context, sourceDir, outputDir, apiPath string) erro
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,
 		}
-		cmd, err = BuildGapicCommand(apiPath, sourceDir, outputDir, opts)
+		cmd, err = BuildGapicCommand(apiPath, sourceDir, absOutputDir, opts)
 	} else {
 		// Build proto-only command
-		cmd, err = BuildProtoCommand(apiPath, sourceDir, outputDir)
+		cmd, err = BuildProtoCommand(apiPath, sourceDir, absOutputDir)
 	}
 
 	if err != nil {
 		return fmt.Errorf("failed to build protoc command: %w", err)
 	}
 
-	// Run protoc
+	// Run protoc from current directory, not from output directory
 	args := append([]string{cmd.Command}, cmd.Args...)
-	if err := execvRun(ctx, args, outputDir); err != nil {
+	cwd, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %w", err)
+	}
+	if err := execvRun(ctx, args, cwd); err != nil {
 		return fmt.Errorf("protoc failed: %w", err)
 	}
 

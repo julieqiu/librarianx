@@ -48,6 +48,15 @@ func TestGenerate(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Create test proto files
+	testProtos := []string{"language_service.proto", "language.proto"}
+	for _, proto := range testProtos {
+		protoPath := filepath.Join(apiDir, proto)
+		if err := os.WriteFile(protoPath, []byte("syntax = \"proto3\";"), 0644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
 	// Mock execvRun to avoid actually running protoc
 	oldExecvRun := execvRun
 	defer func() { execvRun = oldExecvRun }()
