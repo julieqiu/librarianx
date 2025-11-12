@@ -19,6 +19,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/googleapis/librarian/internal/bazel"
 	"gopkg.in/yaml.v3"
 )
 
@@ -139,6 +140,35 @@ type LibraryGenerate struct {
 type API struct {
 	// Path is the API path relative to googleapis root (e.g., "google/cloud/secretmanager/v1").
 	Path string `yaml:"path"`
+
+	// HasGAPIC indicates whether a GAPIC library rule was found.
+	// If false, this is a proto-only library.
+	HasGAPIC bool `yaml:"has_gapic,omitempty"`
+
+	// GRPCServiceConfig is the name of the gRPC service config JSON file.
+	GRPCServiceConfig string `yaml:"grpc_service_config,omitempty"`
+
+	// ServiceYAML is the client config file in the API version directory.
+	ServiceYAML string `yaml:"service_yaml,omitempty"`
+
+	// Transport is typically one of "grpc", "rest" or "grpc+rest".
+	Transport string `yaml:"transport,omitempty"`
+
+	// RestNumericEnums indicates whether to use numeric enums in REST.
+	RestNumericEnums bool `yaml:"rest_numeric_enums,omitempty"`
+
+	// ReleaseLevel is typically one of "beta", "" (same as beta) or "ga".
+	ReleaseLevel string `yaml:"release_level,omitempty"`
+
+	// Python contains Python-specific configuration.
+	Python *PythonAPI `yaml:"python,omitempty"`
+}
+
+// PythonAPI contains Python-specific API configuration.
+type PythonAPI struct {
+	// OptArgs contains additional options passed to the generator.
+	// E.g., ["warehouse-package-name=google-cloud-secret-manager"]
+	OptArgs []string `yaml:"opt_args,omitempty"`
 }
 
 // Read reads the configuration from a file.
@@ -235,7 +265,8 @@ func New(version, language string, source *Source) *Config {
 // Add adds an library to the config.
 // If location is provided, creates a handwritten library with explicit location.
 // Otherwise, creates a generated library with the given APIs.
-func (c *Config) Add(name string, apis []string, location string) error {
+// If googleapisRoot is provided, parses BUILD.bazel files to extract API configuration.
+func (c *Config) Add(name string, apis []string, location string, googleapisRoot string) error {
 	if name == "" {
 		return fmt.Errorf("library name cannot be empty")
 	}
@@ -268,10 +299,25 @@ func (c *Config) Add(name string, apis []string, location string) error {
 		}
 	}
 
-	c.Libraries = append(c.Libraries, Library{
+	library := Library{
 		Name: name,
 		Apis: apis,
-	})
+	}
+
+	// Parse BUILD.bazel files if googleapisRoot is provided
+	if googleapisRoot != "" && c.Language != "" {
+		apiConfigs, err := c.parseAPIs(apis, googleapisRoot)
+		if err != nil {
+			return fmt.Errorf("failed to parse API configurations: %w", err)
+		}
+
+		// Store parsed API configurations
+		library.Generate = &LibraryGenerate{
+			APIs: apiConfigs,
+		}
+	}
+
+	c.Libraries = append(c.Libraries, library)
 
 	return nil
 }
@@ -321,4 +367,39 @@ func (e *Library) GeneratedLocation(generateOutput string) (string, error) {
 		return e.Location, nil
 	}
 	return e.ExpandTemplate(generateOutput)
+}
+
+// parseAPIs parses BUILD.bazel files for the given API paths and returns API configurations.
+func (c *Config) parseAPIs(apiPaths []string, googleapisRoot string) ([]API, error) {
+	var apiConfigs []API
+
+	for _, apiPath := range apiPaths {
+		// Parse the BUILD.bazel file for this API
+		bazelCfg, err := bazel.ParseAPI(googleapisRoot, apiPath, c.Language)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse BUILD.bazel for %s: %w", apiPath, err)
+		}
+
+		// Convert bazel.APIConfig to config.API
+		apiConfig := API{
+			Path:              apiPath,
+			HasGAPIC:          bazelCfg.HasGAPIC,
+			GRPCServiceConfig: bazelCfg.GRPCServiceConfig,
+			ServiceYAML:       bazelCfg.ServiceYAML,
+			Transport:         bazelCfg.Transport,
+			RestNumericEnums:  bazelCfg.RestNumericEnums,
+			ReleaseLevel:      bazelCfg.ReleaseLevel,
+		}
+
+		// Add language-specific configuration
+		if c.Language == "python" && bazelCfg.Python != nil {
+			apiConfig.Python = &PythonAPI{
+				OptArgs: bazelCfg.Python.OptArgs,
+			}
+		}
+
+		apiConfigs = append(apiConfigs, apiConfig)
+	}
+
+	return apiConfigs, nil
 }

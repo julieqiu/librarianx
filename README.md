@@ -16,6 +16,49 @@ Start by installing librarian:
 $ go install github.com/julieqiu/librarian@latest
 ```
 
+### Prerequisites for Python Generation
+
+If you plan to generate Python libraries, you need to install the following tools:
+
+#### 1. Install pandoc
+
+Pandoc is required by the Python GAPIC generator for documentation processing:
+
+```bash
+# macOS (using Homebrew)
+$ brew install pandoc
+
+# Ubuntu/Debian
+$ sudo apt-get install pandoc
+
+# Other platforms: https://pandoc.org/installing.html
+```
+
+#### 2. Install the Python GAPIC generator
+
+```bash
+# Using pipx (recommended)
+$ pipx install gapic-generator
+
+# Or using pip with --user flag
+$ pip3 install --user gapic-generator
+```
+
+This installs the `protoc-gen-python_gapic` plugin that protoc uses to generate Python client libraries.
+
+#### 3. (Optional) Install synthtool for post-processing
+
+The Python generator can optionally run synthtool to post-process generated code. This is currently disabled by default. If you want to enable it:
+
+```bash
+# Install synthtool
+$ pip3 install --user --break-system-packages gcp-synthtool
+
+# Note: synthtool is an older package and may not work with all Python versions
+```
+
+The post-processor is disabled by default because synthtool is no longer actively maintained.
+
 ## Your First Library: Go Secret Manager
 
 Let's build a Go client library for Google Cloud Secret Manager. First,

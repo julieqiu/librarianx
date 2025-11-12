@@ -30,6 +30,7 @@ import (
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/fetch"
+	"github.com/googleapis/librarian/internal/generate/python"
 	"github.com/googleapis/librarian/internal/sidekick/sidekick"
 	"github.com/urfave/cli/v3"
 )
@@ -187,7 +188,21 @@ func runAdd(name string, apis []string, location string) error {
 		return err
 	}
 
-	if err := cfg.Add(name, apis, location); err != nil {
+	// Download googleapis if we have API paths to parse
+	var googleapisRoot string
+	if len(apis) > 0 && cfg.Sources.Googleapis != nil {
+		var err error
+		googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to download googleapis: %v\n", err)
+			fmt.Fprintf(os.Stderr, "Library will be added without parsed BUILD.bazel configuration\n")
+			googleapisRoot = ""
+		} else {
+			defer os.RemoveAll(filepath.Dir(googleapisRoot))
+		}
+	}
+
+	if err := cfg.Add(name, apis, location, googleapisRoot); err != nil {
 		return err
 	}
 
@@ -662,7 +677,7 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	case "rust":
 		return generateRust(cfg, library)
 	case "python":
-		return fmt.Errorf("python generation not yet implemented")
+		return generatePython(ctx, cfg, library)
 	default:
 		return fmt.Errorf("unsupported language: %s", cfg.Language)
 	}
@@ -670,6 +685,51 @@ func runGenerate(ctx context.Context, libraryName string) error {
 
 func generateGo(ctx context.Context, cfg *config.Config, library *config.Library) error {
 	return fmt.Errorf("go generation not yet fully implemented - needs integration with internal/generate/golang")
+}
+
+func generatePython(ctx context.Context, cfg *config.Config, library *config.Library) (err error) {
+	// Determine output directory
+	outputDir := "{name}/"
+	if cfg.Generate != nil && cfg.Generate.Output != "" {
+		outputDir = cfg.Generate.Output
+	}
+
+	location, err := library.GeneratedLocation(outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to determine output location: %w", err)
+	}
+
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(location, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Download googleapis if available
+	if cfg.Sources.Googleapis == nil {
+		return fmt.Errorf("googleapis source is not configured in librarian.yaml")
+	}
+
+	var googleapisRoot string
+	googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+	if err != nil {
+		err = fmt.Errorf("failed to download and extract googleapis: %w", err)
+		return
+	}
+	defer func() {
+		cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// Run Python generator (with post-processor disabled by default)
+	// TODO: Make post-processor configurable via librarian.yaml
+	if err := python.Generate(ctx, library, location, googleapisRoot, true); err != nil {
+		return fmt.Errorf("python generation failed: %w", err)
+	}
+
+	fmt.Printf("Generated Python library %q at %s\n", library.Name, location)
+	return nil
 }
 
 func generateRust(cfg *config.Config, library *config.Library) (err error) {
