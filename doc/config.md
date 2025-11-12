@@ -181,6 +181,35 @@ libraries:
         - temp.txt
 ```
 
+### Example: Disabled library
+
+When a library's generation is broken (e.g., due to BUILD.bazel issues, API changes, or generator bugs), you can temporarily disable it while preserving its configuration:
+
+```yaml
+libraries:
+  # Disabled: Generator failing on optional field handling
+  # See: https://github.com/googleapis/google-cloud-go/issues/12345
+  - name: aiplatform
+    version: 1.2.3
+    disabled: true
+    generate:
+      apis:
+        - path: google/cloud/aiplatform/v1
+          name_pretty: "Vertex AI"
+          product_documentation: "https://cloud.google.com/vertex-ai/docs"
+```
+
+**Behavior:**
+- `librarian generate --all` - Skips aiplatform with a warning
+- `librarian generate aiplatform` - Returns error: "aiplatform is disabled. See issue link in comment for details."
+- `librarian release aiplatform` - Still works (only generation is disabled)
+- Configuration is preserved for when the issue is resolved
+
+**Requirements:**
+- The `disabled` field MUST be accompanied by a comment with an issue link
+- The comment should explain why the library is disabled
+- This ensures the team can track and resolve the underlying issue
+
 ### Library Configuration Fields
 
 #### Library fields
@@ -188,6 +217,7 @@ libraries:
 - `name` - Name of the library
 - `path` - Directory path relative to repository root (optional, derived from name and generate.output_dir if empty)
 - `version` - Current released version (pointer, null if never released)
+- `disabled` - Skip this library during generation (optional, boolean). When set to `true`, generation is disabled. MUST include a comment with an issue link explaining why the library is disabled
 
 #### `generate` section (optional)
 

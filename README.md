@@ -228,5 +228,21 @@ The type of a library is determined by its structure in `librarian.yaml`:
 - **Generated**: `name` + `path` + `generate`
 - **Hybrid**: `name` + `path` + `generate` + `keep`
 
+### Disabling Broken Libraries
+
+If a library's generation is broken, you can temporarily disable it while preserving its configuration:
+
+```yaml
+# Disabled: Generator fails on proto field validation
+# See: https://github.com/org/repo/issues/123
+- name: aiplatform
+  disabled: true
+  generate:
+    apis:
+      - path: google/cloud/aiplatform/v1
+```
+
+When disabled, `librarian generate --all` skips the library, but you can still release it (only generation is disabled).
+
 This design gives you both convenience and full control over the location and
 content of your libraries.
