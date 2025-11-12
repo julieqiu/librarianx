@@ -1,0 +1,45 @@
+# Service config overrides for googleapis APIs
+#
+# This file contains exceptions where the service_yaml cannot be auto-discovered
+# using the standard pattern: *_<version>.yaml (excluding *_gapic.yaml files)
+#
+# Note: API directories may contain multiple YAML files:
+#   - Service config files (type: google.api.Service) - what we want
+#   - GAPIC config files (*_gapic.yaml) - generator configs, not service configs
+#
+# Auto-discovery algorithm:
+#   For path: google/chat/v1
+#   1. Find all files matching: <googleapis-root>/google/chat/v1/*_v1.yaml
+#   2. Exclude files matching: *_gapic.yaml
+#   3. If exactly 1 match found: use it
+#   4. Otherwise: check this overrides file
+#
+# Add entries here when:
+#   1. Path has no version (e.g., google/api, google/type)
+#   2. Service YAML doesn't include version suffix (e.g., monitoring.yaml not monitoring_v3.yaml)
+#   3. Service YAML is shared across multiple API paths
+#
+# Format:
+#   <api-path>: <service-yaml-filename>
+
+# Paths without version numbers
+google/cloud/audit: cloudaudit.yaml
+google/cloud/common: common.yaml
+google/api: serviceconfig.yaml
+google/type: type.yaml
+google/geo/type: type_geo.yaml
+google/rpc: rpc_publish.yaml
+
+# Cloud Location API (used by googleapis-common-protos)
+google/cloud/location: cloud.yaml
+
+# Service YAML files without version suffix
+google/monitoring/v3: monitoring.yaml
+google/monitoring/dashboard/v1: monitoring.yaml
+google/monitoring/metricsscope/v1: monitoring.yaml
+google/iam/admin/v1: iam.yaml
+google/iam/v1: iam_meta_api.yaml
+google/cloud/billing/budgets/v1: billingbudgets.yaml
+google/cloud/billing/budgets/v1beta1: billingbudgets.yaml
+google/api/servicecontrol/v1: servicecontrol.yaml
+google/api/servicecontrol/v2: servicecontrol.yaml
