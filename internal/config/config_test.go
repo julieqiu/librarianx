@@ -181,16 +181,16 @@ func TestConfig_Add(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(cfg.Librarys) != 1 {
-		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	if len(cfg.Libraries) != 1 {
+		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
 	}
 
-	if cfg.Librarys[0].Name != "secretmanager" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "secretmanager")
+	if cfg.Libraries[0].Name != "secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "secretmanager")
 	}
 
 	wantApis := []string{"google/cloud/secretmanager/v1"}
-	if diff := cmp.Diff(wantApis, cfg.Librarys[0].Apis); diff != "" {
+	if diff := cmp.Diff(wantApis, cfg.Libraries[0].Apis); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
@@ -219,8 +219,8 @@ func TestConfig_Add_SameNameDifferentApis(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(cfg.Librarys) != 2 {
-		t.Errorf("got %d librarys, want 2", len(cfg.Librarys))
+	if len(cfg.Libraries) != 2 {
+		t.Errorf("got %d libraries, want 2", len(cfg.Libraries))
 	}
 }
 
@@ -249,20 +249,20 @@ func TestConfig_Add_WithLocation(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if len(cfg.Librarys) != 1 {
-		t.Errorf("got %d librarys, want 1", len(cfg.Librarys))
+	if len(cfg.Libraries) != 1 {
+		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
 	}
 
-	if cfg.Librarys[0].Name != "storage" {
-		t.Errorf("got name %q, want %q", cfg.Librarys[0].Name, "storage")
+	if cfg.Libraries[0].Name != "storage" {
+		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "storage")
 	}
 
-	if cfg.Librarys[0].Location != "storage/" {
-		t.Errorf("got location %q, want %q", cfg.Librarys[0].Location, "storage/")
+	if cfg.Libraries[0].Location != "storage/" {
+		t.Errorf("got location %q, want %q", cfg.Libraries[0].Location, "storage/")
 	}
 
-	if len(cfg.Librarys[0].Apis) != 0 {
-		t.Errorf("got %d apis, want 0", len(cfg.Librarys[0].Apis))
+	if len(cfg.Libraries[0].Apis) != 0 {
+		t.Errorf("got %d apis, want 0", len(cfg.Libraries[0].Apis))
 	}
 }
 

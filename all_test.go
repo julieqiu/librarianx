@@ -78,39 +78,42 @@ var (
 )
 
 func TestHeaders(t *testing.T) {
-	sfs := os.DirFS(".")
-	err := fs.WalkDir(sfs, ".", func(path string, d fs.DirEntry, err error) error {
+	var walk func(string) error
+	walk = func(dir string) error {
+		entries, err := os.ReadDir(dir)
 		if err != nil {
 			return err
 		}
-
-		// Skip ignored files and directories.
-		if d.IsDir() {
-			if slices.Contains(ignoredDirs, d.Name()) {
-				return fs.SkipDir
+		for _, entry := range entries {
+			if slices.Contains(ignoredDirs, entry.Name()) {
+				continue
 			}
-			return nil
-		}
-		if slices.Contains(noHeaderRequiredFiles, filepath.Base(path)) || ignoredExts[filepath.Ext(path)] {
-			return nil
-		}
-
-		f, err := sfs.Open(path)
-		if err != nil {
-			return err
-		}
-		defer f.Close()
-
-		ok, err := hasValidHeader(path, f)
-		if err != nil {
-			return err
-		}
-		if !ok {
-			t.Errorf("%q: invalid header", path)
+			path := filepath.Join(dir, entry.Name())
+			if entry.IsDir() {
+				if err := walk(path); err != nil {
+					return err
+				}
+			} else {
+				if slices.Contains(noHeaderRequiredFiles, filepath.Base(path)) || ignoredExts[filepath.Ext(path)] {
+					continue
+				}
+				f, err := os.Open(path)
+				if err != nil {
+					return err
+				}
+				defer f.Close()
+				ok, err := hasValidHeader(path, f)
+				if err != nil {
+					return err
+				}
+				if !ok {
+					t.Errorf("%q: invalid header", path)
+				}
+			}
 		}
 		return nil
-	})
-	if err != nil {
+	}
+	if err := walk("."); err != nil {
 		t.Fatal(err)
 	}
 }

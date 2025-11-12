@@ -39,8 +39,8 @@ type Config struct {
 	// Release contains release configuration.
 	Release *Release `yaml:"release,omitempty"`
 
-	// Librarys contains the list of library librarys.
-	Librarys []Library `yaml:"librarys,omitempty"`
+	// Libraries contains the list of library libraries.
+	Libraries []Library `yaml:"libraries,omitempty"`
 }
 
 // Sources contains references to external source repositories.
@@ -75,6 +75,9 @@ type Release struct {
 type Library struct {
 	// Name is the library name (e.g., "secretmanager").
 	Name string `yaml:"name"`
+
+	// CopyrightYear is the copyright year for the library.
+	CopyrightYear int `yaml:"copyright_year,omitempty"`
 
 	// Apis is the list of googleapis paths for generated librarys.
 	Apis []string `yaml:"apis,omitempty"`
@@ -186,13 +189,13 @@ func (c *Config) Add(name string, apis []string, location string) error {
 	// Handwritten library with explicit location
 	if location != "" {
 		// Check if library with same name already exists
-		for _, ed := range c.Librarys {
+		for _, ed := range c.Libraries {
 			if ed.Name == name {
 				return fmt.Errorf("library %q already exists", name)
 			}
 		}
 
-		c.Librarys = append(c.Librarys, Library{
+		c.Libraries = append(c.Libraries, Library{
 			Name:     name,
 			Location: location,
 		})
@@ -205,13 +208,13 @@ func (c *Config) Add(name string, apis []string, location string) error {
 	}
 
 	// Check if library with same name and apis already exists
-	for _, ed := range c.Librarys {
+	for _, ed := range c.Libraries {
 		if ed.Name == name && stringSliceEqual(ed.Apis, apis) {
 			return fmt.Errorf("library %q with apis %v already exists", name, apis)
 		}
 	}
 
-	c.Librarys = append(c.Librarys, Library{
+	c.Libraries = append(c.Libraries, Library{
 		Name: name,
 		Apis: apis,
 	})
