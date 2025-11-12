@@ -218,7 +218,7 @@ go:
     source_roots:
         - secretmanager
         - internal/generated/snippets/secretmanager
-    tag_format: '{id}/v{version}'
+    tag_format: '{name}/v{version}'
     remove_regex:
         - ^internal/generated/snippets/secretmanager/
         - ^secretmanager/apiv1/[^/]*_client\.go$
