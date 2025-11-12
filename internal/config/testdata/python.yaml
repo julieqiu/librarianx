@@ -1,39 +1,13 @@
-# Test data for Python libraries using the new, clearer format.
-version: v1
+version: v0.5.0
 language: python
 
 sources:
   googleapis:
-    url: https://github.com/googleapis/googleapis/archive/main.tar.gz
-    sha256: "..."
+    url: https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz
+    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
 
-# Default directory for newly generated libraries.
 generate:
-  dir: packages/
+  output: packages/{name}/
 
-libraries:
-  # --- Handwritten ---
-  # Defined by having a `name` and `path`, but no `generate` block.
-  - name: google-cloud-storage
-    path: packages/google-cloud-storage/
-
-  # --- Fully Generated ---
-  # Defined by having a `name`, `path`, and a `generate` block.
-  - name: google-cloud-secret-manager
-    path: packages/google-cloud-secret-manager/
-    generate:
-      apis:
-        - path: google/cloud/secretmanager/v1
-        - path: google/cloud/secretmanager/v1beta2
-
-  # --- Hybrid ---
-  # Defined by having `name`, `path`, `generate`, and `keep`.
-  - name: google-cloud-bigquery
-    path: packages/google-cloud-bigquery/
-    generate:
-      apis:
-        - path: google/cloud/bigquery/v2
-    keep:
-      - google/cloud/bigquery/client.py
-      - google/cloud/bigquery/dataset.py
-      - tests/unit/
+release:
+  tag_format: '{id}-v{version}'

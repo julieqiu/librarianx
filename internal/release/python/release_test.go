@@ -15,7 +15,6 @@
 package python
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -24,60 +23,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
-
-func TestConfigValidate(t *testing.T) {
-	for _, test := range []struct {
-		name    string
-		cfg     *Config
-		wantErr bool
-	}{
-		{
-			name: "valid config",
-			cfg: &Config{
-				LibrarianDir: "/librarian",
-				OutputDir:    "/output",
-				RepoDir:      "/repo",
-			},
-			wantErr: false,
-		},
-		{
-			name: "missing librarian dir",
-			cfg: &Config{
-				OutputDir: "/output",
-				RepoDir:   "/repo",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing output dir",
-			cfg: &Config{
-				LibrarianDir: "/librarian",
-				RepoDir:      "/repo",
-			},
-			wantErr: true,
-		},
-		{
-			name: "missing repo dir",
-			cfg: &Config{
-				LibrarianDir: "/librarian",
-				OutputDir:    "/output",
-			},
-			wantErr: true,
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			err := test.cfg.Validate()
-			if test.wantErr && err == nil {
-				t.Fatal("expected error but got none")
-			}
-			if !test.wantErr && err != nil {
-				t.Fatalf("unexpected error: %v", err)
-			}
-		})
-	}
-}
 
 func TestUpdateFileVersion(t *testing.T) {
 	for _, test := range []struct {
@@ -147,16 +93,13 @@ func TestCreateChangelog(t *testing.T) {
 	tmpDir := t.TempDir()
 	changelogPath := filepath.Join(tmpDir, "CHANGELOG.md")
 
-	lib := &request.Library{
-		ID:      "google-cloud-language",
-		Version: "1.1.0",
-		Changes: []*request.Change{
-			{Type: "feat", Subject: "Add new feature"},
-			{Type: "fix", Subject: "Fix bug"},
-		},
+	version := "1.1.0"
+	changes := []*Change{
+		{Type: "feat", Subject: "Add new feature"},
+		{Type: "fix", Subject: "Fix bug"},
 	}
 
-	if err := createChangelog(changelogPath, lib); err != nil {
+	if err := createChangelog(changelogPath, version, changes); err != nil {
 		t.Fatal(err)
 	}
 
@@ -194,15 +137,12 @@ func TestAppendChangelog(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	lib := &request.Library{
-		ID:      "google-cloud-language",
-		Version: "1.1.0",
-		Changes: []*request.Change{
-			{Type: "feat", Subject: "Add new feature"},
-		},
+	version := "1.1.0"
+	changes := []*Change{
+		{Type: "feat", Subject: "Add new feature"},
 	}
 
-	if err := appendChangelog(changelogPath, lib); err != nil {
+	if err := appendChangelog(changelogPath, version, changes); err != nil {
 		t.Fatal(err)
 	}
 
@@ -283,43 +223,5 @@ func TestFindFiles(t *testing.T) {
 				t.Errorf("got %d files, want %d", len(got), test.want)
 			}
 		})
-	}
-}
-
-func TestReadReleaseReq(t *testing.T) {
-	tmpDir := t.TempDir()
-	reqPath := filepath.Join(tmpDir, "release-init-request.json")
-
-	lib := &request.Library{
-		ID:               "google-cloud-language",
-		Version:          "1.1.0",
-		ReleaseTriggered: true,
-		Changes: []*request.Change{
-			{Type: "feat", Subject: "Add new feature"},
-		},
-	}
-
-	data, err := json.Marshal(lib)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if err := os.WriteFile(reqPath, data, 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	got, err := readReleaseReq(tmpDir)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if got.ID != lib.ID {
-		t.Errorf("got ID %q, want %q", got.ID, lib.ID)
-	}
-	if got.Version != lib.Version {
-		t.Errorf("got Version %q, want %q", got.Version, lib.Version)
-	}
-	if got.ReleaseTriggered != lib.ReleaseTriggered {
-		t.Errorf("got ReleaseTriggered %v, want %v", got.ReleaseTriggered, lib.ReleaseTriggered)
 	}
 }
