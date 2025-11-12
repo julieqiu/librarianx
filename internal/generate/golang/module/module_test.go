@@ -227,12 +227,12 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testdata {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, test := range testdata {
+		t.Run(test.name, func(t *testing.T) {
 			sourceDir := t.TempDir()
 			destDir := t.TempDir()
 
-			for path, content := range tc.files {
+			for path, content := range test.files {
 				fullPath := filepath.Join(sourceDir, path)
 				if err := os.MkdirAll(filepath.Dir(fullPath), 0755); err != nil {
 					t.Fatalf("failed to create directory: %v", err)
@@ -242,12 +242,12 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 				}
 			}
 
-			if err := UpdateSnippetsMetadata(tc.lib, sourceDir, destDir, tc.moduleConfig); (err != nil) != tc.wantErr {
-				t.Errorf("UpdateSnippetsMetadata() error = %v, wantErr %v", err, tc.wantErr)
+			if err := UpdateSnippetsMetadata(test.lib, sourceDir, destDir, test.moduleConfig); (err != nil) != test.wantErr {
+				t.Errorf("UpdateSnippetsMetadata() error = %v, wantErr %v", err, test.wantErr)
 			}
 
 			got := make(map[string]string)
-			for path := range tc.want {
+			for path := range test.want {
 				content, err := os.ReadFile(filepath.Join(destDir, path))
 				if err != nil {
 					// If the file is not found, it's a valid case for some tests.
@@ -259,7 +259,7 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 				got[path] = string(content)
 			}
 
-			if diff := cmp.Diff(tc.want, got); diff != "" {
+			if diff := cmp.Diff(test.want, got); diff != "" {
 				t.Errorf("UpdateSnippetsMetadata() mismatch (-want +got):\n%s", diff)
 			}
 		})

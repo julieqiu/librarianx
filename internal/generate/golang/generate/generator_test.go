@@ -194,12 +194,12 @@ go_gapic_library(
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			e := newTestEnv(t)
 			defer e.cleanup(t)
 
-			tt.setup(e, t)
+			test.setup(e, t)
 
 			var protocRunCount int
 			execvRun = func(ctx context.Context, args []string, dir string) error {
@@ -207,14 +207,14 @@ go_gapic_library(
 				if args[0] != want {
 					t.Errorf("protocRun called with %s; want %s", args[0], want)
 				}
-				if tt.protocErr == nil {
+				if test.protocErr == nil {
 					// Simulate protoc creating the nested directory.
 					if err := os.MkdirAll(filepath.Join(e.outputDir, "cloud.google.com", "go"), 0755); err != nil {
 						t.Fatalf("failed to create nested dir: %v", err)
 					}
 				}
 				protocRunCount++
-				return tt.protocErr
+				return test.protocErr
 			}
 			recorder := &postProcessRecorder{}
 			postProcess = recorder.record
@@ -224,15 +224,15 @@ go_gapic_library(
 				InputDir:             "fake-input",
 				OutputDir:            e.outputDir,
 				SourceDir:            e.sourceDir,
-				DisablePostProcessor: tt.name != "happy path" && tt.name != "multi-api request uses first api config",
+				DisablePostProcessor: test.name != "happy path" && test.name != "multi-api request uses first api config",
 			}
 
-			if err := Generate(context.Background(), cfg); (err != nil) != tt.wantErr {
-				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Generate(context.Background(), cfg); (err != nil) != test.wantErr {
+				t.Errorf("Generate() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if protocRunCount != tt.wantProtocRunCount {
-				t.Errorf("protocRun called = %v; want %v", protocRunCount, tt.wantProtocRunCount)
+			if protocRunCount != test.wantProtocRunCount {
+				t.Errorf("protocRun called = %v; want %v", protocRunCount, test.wantProtocRunCount)
 			}
 		})
 	}
@@ -375,10 +375,10 @@ func TestConfig_Validate(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.Validate(); (err != nil) != tt.wantErr {
-				t.Errorf("Config.Validate() error = %v, wantErr %v", err, tt.wantErr)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.cfg.Validate(); (err != nil) != test.wantErr {
+				t.Errorf("Config.Validate() error = %v, wantErr %v", err, test.wantErr)
 			}
 		})
 	}
@@ -430,11 +430,11 @@ func TestApplyModuleVersion(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 
-			for _, file := range tt.setupFiles {
+			for _, file := range test.setupFiles {
 				fullFile := filepath.Join(tmpDir, file)
 				fullDir := filepath.Dir(fullFile)
 				if err := os.MkdirAll(fullDir, 0755); err != nil {
@@ -445,15 +445,15 @@ func TestApplyModuleVersion(t *testing.T) {
 				}
 			}
 
-			if err := applyModuleVersion(tmpDir, tt.libraryID, tt.modulePath); (err != nil) != tt.wantErr {
-				t.Errorf("applyModuleVersion() error = %v, wantErr %v", err, tt.wantErr)
+			if err := applyModuleVersion(tmpDir, test.libraryID, test.modulePath); (err != nil) != test.wantErr {
+				t.Errorf("applyModuleVersion() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if tt.wantErr {
+			if test.wantErr {
 				return
 			}
-			assertPresent(t, tmpDir, tt.wantPresent)
-			assertAbsent(t, tmpDir, tt.wantAbsent)
+			assertPresent(t, tmpDir, test.wantPresent)
+			assertAbsent(t, tmpDir, test.wantAbsent)
 		})
 	}
 }

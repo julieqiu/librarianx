@@ -233,10 +233,10 @@ func TestStage(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 
-			librarianDir, repoDir, outputDir := setupTestDirs(t, tt.initialRepoContent, tt.requestJSON)
+			librarianDir, repoDir, outputDir := setupTestDirs(t, test.initialRepoContent, test.requestJSON)
 			cfg := &Config{
 				LibrarianDir: librarianDir,
 				RepoDir:      repoDir,
@@ -244,14 +244,14 @@ func TestStage(t *testing.T) {
 			}
 
 			err := Stage(context.Background(), cfg)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("Stage() error = %v, wantErr %v", err, tt.wantErr)
+			if (err != nil) != test.wantErr {
+				t.Fatalf("Stage() error = %v, wantErr %v", err, test.wantErr)
 			}
-			if tt.wantErr {
+			if test.wantErr {
 				return
 			}
 
-			if tt.releaseNotTriggered {
+			if test.releaseNotTriggered {
 				files, _ := os.ReadDir(outputDir)
 				if len(files) > 0 {
 					t.Errorf("outputDir should be empty, but got %d files", len(files))
@@ -259,30 +259,30 @@ func TestStage(t *testing.T) {
 				return
 			}
 
-			if tt.changelogAlreadyUpToDate {
-				_, err := os.Stat(filepath.Join(outputDir, tt.moduleRootPath, "CHANGES.md"))
+			if test.changelogAlreadyUpToDate {
+				_, err := os.Stat(filepath.Join(outputDir, test.moduleRootPath, "CHANGES.md"))
 				if !os.IsNotExist(err) {
 					t.Errorf("new changelog should not be created when already up-to-date")
 				}
 			} else {
-				changelog, err := os.ReadFile(filepath.Join(outputDir, tt.moduleRootPath, "CHANGES.md"))
+				changelog, err := os.ReadFile(filepath.Join(outputDir, test.moduleRootPath, "CHANGES.md"))
 				if err != nil {
 					t.Fatalf("failed to read changelog: %v", err)
 				}
-				if !strings.Contains(string(changelog), tt.wantChangelogSubstr) {
-					t.Errorf("changelog content = %q, want contains %q", string(changelog), tt.wantChangelogSubstr)
+				if !strings.Contains(string(changelog), test.wantChangelogSubstr) {
+					t.Errorf("changelog content = %q, want contains %q", string(changelog), test.wantChangelogSubstr)
 				}
 			}
 
-			assertVersion(t, filepath.Join(outputDir, tt.moduleRootPath, "internal/version.go"), tt.wantVersion)
+			assertVersion(t, filepath.Join(outputDir, test.moduleRootPath, "internal/version.go"), test.wantVersion)
 
-			if tt.wantSnippetVersion != "" {
+			if test.wantSnippetVersion != "" {
 				snippet, err := os.ReadFile(filepath.Join(outputDir, "internal/generated/snippets/secretmanager/apiv1/snippet_metadata.google.cloud.secretmanager.v1.json"))
 				if err != nil {
 					t.Fatalf("failed to read snippet: %v", err)
 				}
-				if !strings.Contains(string(snippet), tt.wantSnippetVersion) {
-					t.Errorf("snippet content = %q, want contains %q", string(snippet), tt.wantSnippetVersion)
+				if !strings.Contains(string(snippet), test.wantSnippetVersion) {
+					t.Errorf("snippet content = %q, want contains %q", string(snippet), test.wantSnippetVersion)
 				}
 			}
 		})

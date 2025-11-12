@@ -116,9 +116,8 @@ func TestPostProcess(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			outputDir := filepath.Join(t.TempDir(), "output")
 			moduleDir := filepath.Join(outputDir, "chronicle")
 			if err := os.MkdirAll(moduleDir, 0755); err != nil {
@@ -133,7 +132,7 @@ func TestPostProcess(t *testing.T) {
 				return
 			}
 
-			for _, snippetFile := range tt.snippetFiles {
+			for _, snippetFile := range test.snippetFiles {
 				fullPath := filepath.Join(snippetsDir, snippetFile)
 				specificSnippetDir := filepath.Dir(fullPath)
 				if err := os.MkdirAll(specificSnippetDir, 0755); err != nil {
@@ -160,7 +159,7 @@ func TestPostProcess(t *testing.T) {
 				if len(args) > 2 && args[1] == "mod" && args[2] == "tidy" {
 					goModTidyCalled = true
 				}
-				return tt.mockexecvRun(ctx, args, dir)
+				return test.mockexecvRun(ctx, args, dir)
 			}
 
 			req := &request.Library{
@@ -172,7 +171,7 @@ func TestPostProcess(t *testing.T) {
 				},
 				Version: "1.0.0",
 			}
-			if tt.singleNewAPI {
+			if test.singleNewAPI {
 				req = &request.Library{
 					ID: "chronicle",
 					APIs: []request.API{
@@ -182,18 +181,18 @@ func TestPostProcess(t *testing.T) {
 				}
 			}
 
-			if tt.noVersion {
+			if test.noVersion {
 				req.Version = ""
 			}
 
 			moduleConfig := &config.ModuleConfig{
 				Name: "chronicle",
 			}
-			if err := PostProcess(context.Background(), req, outputDir, moduleDir, moduleConfig); (err != nil) != tt.wantErr {
-				t.Fatalf("PostProcess() error = %v, wantErr %v", err, tt.wantErr)
+			if err := PostProcess(context.Background(), req, outputDir, moduleDir, moduleConfig); (err != nil) != test.wantErr {
+				t.Fatalf("PostProcess() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if tt.singleNewAPI && !tt.wantErr {
+			if test.singleNewAPI && !test.wantErr {
 				if !goModInitCalled {
 					t.Error("go mod init was not called")
 				}
@@ -201,7 +200,7 @@ func TestPostProcess(t *testing.T) {
 					t.Error("go mod tidy was not called")
 				}
 			}
-			if !tt.singleNewAPI {
+			if !test.singleNewAPI {
 				if goModInitCalled {
 					t.Error("go mod init was called unexpectedly")
 				}
@@ -210,18 +209,18 @@ func TestPostProcess(t *testing.T) {
 				}
 			}
 
-			if tt.wantErr {
+			if test.wantErr {
 				return
 			}
 
 			// Determine which files should have been modified based on the request.
-			for _, snippetFile := range tt.snippetFiles {
+			for _, snippetFile := range test.snippetFiles {
 				path := filepath.Join(snippetsDir, snippetFile)
 				read, err := os.ReadFile(path)
 				if err != nil {
 					t.Fatalf("Couldn't read snippet metadata file %s: %v", snippetFile, err)
 				}
-				wantModified := slices.Contains(tt.wantModifiedSnippetFiles, snippetFile)
+				wantModified := slices.Contains(test.wantModifiedSnippetFiles, snippetFile)
 				gotModified := strings.Contains(string(read), req.Version)
 				if wantModified != gotModified {
 					t.Errorf("incorrect snippet metadata modification for %s; got = %v; want = %v", snippetFile, gotModified, wantModified)
