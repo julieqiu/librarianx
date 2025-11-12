@@ -9,3 +9,5 @@ This document tracks tasks and design decisions that need to be addressed.
 ## Configuration
 
 - [ ] Rethink `GenerateDefaults` - The current design for repository-level defaults may need reconsideration. Evaluate whether defaults should be more granular, whether they should apply differently to different types of libraries, or if the current three fields (transport, rest_numeric_enums, release_level) are sufficient.
+
+- [ ] Implement `service_config_overrides.yaml` - Create a global service config overrides file in `internal/generate` that maps API paths to their service config file names. This centralizes service config overrides instead of storing them in librarian.yaml per-API configuration. The generator should use convention-based defaults for service config paths and consult this overrides file for exceptions.
