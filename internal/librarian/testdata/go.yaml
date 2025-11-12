@@ -1,0 +1,71 @@
+version: v0.5.0
+language: go
+
+container:
+  image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/go-librarian-generator
+  tag: latest
+
+sources:
+  googleapis:
+    url: https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz
+    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
+
+generate:
+  output_dir: ./
+  defaults:
+    transport: grpc+rest
+    rest_numeric_enums: true
+    release_level: stable
+
+release:
+  tag_format: '{name}/v{version}'
+
+libraries:
+  - name: secretmanager
+    version: 1.13.4
+    generate:
+      apis:
+        - path: google/cloud/secretmanager/v1
+          name_pretty: "Secret Manager"
+          product_documentation: "https://cloud.google.com/secret-manager/docs"
+          release_level: stable
+        - path: google/cloud/secretmanager/v1beta2
+          release_level: preview
+
+  - name: pubsub
+    version: 1.42.0
+    generate:
+      apis:
+        - path: google/cloud/pubsub/v1
+          grpc_service_config: pubsub_grpc_service_config.json
+          service_yaml: pubsub_v1.yaml
+          name_pretty: "Cloud Pub/Sub"
+          product_documentation: "https://cloud.google.com/pubsub/docs"
+          release_level: stable
+          transport: grpc+rest
+          rest_numeric_enums: true
+
+  - name: spanner
+    version: 1.65.0
+    generate:
+      apis:
+        - path: google/spanner/v1
+          name_pretty: "Cloud Spanner"
+          product_documentation: "https://cloud.google.com/spanner/docs"
+        - path: google/spanner/admin/database/v1
+        - path: google/spanner/admin/instance/v1
+
+  - name: custom-tool
+    version: 0.1.0
+
+  # Disabled: Generator fails on proto field validation
+  # See: https://github.com/googleapis/google-cloud-go/issues/9999
+  - name: aiplatform
+    version: 1.2.3
+    disabled: true
+    generate:
+      apis:
+        - path: google/cloud/aiplatform/v1
+          name_pretty: "Vertex AI"
+          product_documentation: "https://cloud.google.com/vertex-ai/docs"
+          release_level: stable
