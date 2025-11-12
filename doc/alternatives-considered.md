@@ -14,6 +14,7 @@ This document describes alternative designs that were considered for the Librari
 8. [Multiple Configuration Files (Per-Edition Config Files)](#multiple-configuration-files-per-edition-config-files)
 9. [Naming: Libraries vs Modules vs Packages vs Editions](#naming-libraries-vs-modules-vs-packages-vs-editions)
 10. [Global Keep/Remove in Defaults](#global-keepremove-in-defaults)
+11. [Service Config in API Configuration](#service-config-in-api-configuration)
 
 ## Single Container Invocation with Configuration-Based Interface
 
@@ -233,3 +234,29 @@ However, this approach had these costs:
 4. **Limited benefit** - Most keep/remove patterns are library-specific, making global defaults less useful
 
 We ultimately went with library-level keep/remove only because of clearer ownership and simpler configuration. Each library explicitly declares what to keep and remove, default file filtering logic lives in the generator (not configuration), and there's no ambiguity about where filtering rules come from.
+
+## Service Config in API Configuration
+
+We considered adding a `service_config` field to each API in the library configuration because of allowing per-API service configuration overrides.
+
+**How it would work:**
+
+```yaml
+libraries:
+  - name: secretmanager
+    generate:
+      apis:
+        - path: google/cloud/secretmanager/v1
+          service_config: secretmanager_v1.yaml
+```
+
+Each API could specify its service configuration file path relative to the API directory.
+
+However, this approach had these costs:
+
+1. **Configuration verbosity** - Most APIs follow a standard naming pattern for service config files
+2. **Repetitive data** - Service config file names are predictable from API paths in most cases
+3. **Mixed concerns** - Mixes structural API information with override details
+4. **Harder to maintain** - Service config overrides are scattered across all library definitions
+
+We ultimately went with a global `service_config_overrides.yaml` file in `internal/generate` because of simplicity and centralized maintenance. The generator uses convention-based defaults for service config file paths, overrides are centralized in one file for easy discovery, and the librarian.yaml configuration remains focused on structural information (which APIs to generate). This keeps the configuration file simpler and puts override logic where it belongs: in the generator implementation.
