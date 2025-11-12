@@ -449,9 +449,9 @@ func testOneOfEnumNameImpl(t *testing.T, c *codec, name string, want string) {
 
 func TestWellKnownTypesExist(t *testing.T) {
 	model := api.NewTestAPI([]*api.Message{}, []*api.Enum{}, []*api.Service{})
-	for _, name := range []string{"Any", "Duration", "Empty", "FieldMask", "Timestamp"} {
-		if _, ok := model.State.MessageByID[fmt.Sprintf(".google.protobuf.%s", name)]; !ok {
-			t.Errorf("cannot find well-known message %s in API", name)
+	for _, test := range []string{"Any", "Duration", "Empty", "FieldMask", "Timestamp"} {
+		if _, ok := model.State.MessageByID[fmt.Sprintf(".google.protobuf.%s", test)]; !ok {
+			t.Errorf("cannot find well-known message %s in API", test)
 		}
 	}
 }
@@ -506,8 +506,8 @@ func TestGeneratedFiles(t *testing.T) {
 
 func expectGeneratedFile(t *testing.T, name string, files []language.GeneratedFile) {
 	t.Helper()
-	for _, g := range files {
-		if strings.HasSuffix(g.OutputPath, name) {
+	for _, test := range files {
+		if strings.HasSuffix(test.OutputPath, name) {
 			return
 		}
 	}
@@ -516,8 +516,8 @@ func expectGeneratedFile(t *testing.T, name string, files []language.GeneratedFi
 
 func unexpectedGeneratedFile(t *testing.T, name string, files []language.GeneratedFile) {
 	t.Helper()
-	for _, g := range files {
-		if strings.HasSuffix(g.OutputPath, name) {
+	for _, test := range files {
+		if strings.HasSuffix(test.OutputPath, name) {
 			t.Errorf("unexpectedly found %s in %v", name, files)
 		}
 	}
@@ -697,23 +697,23 @@ func TestFieldType(t *testing.T) {
 		"f_map":                    "std::collections::HashMap<i32,i32>",
 	}
 	c := createRustCodec()
-	for _, field := range message.Fields {
-		want, ok := expectedTypes[field.Name]
+	for _, test := range message.Fields {
+		want, ok := expectedTypes[test.Name]
 		if !ok {
-			t.Fatalf("missing expected value for %s", field.Name)
+			t.Fatalf("missing expected value for %s", test.Name)
 		}
-		got := fieldType(field, model.State, false, c.modulePath, model.PackageName, c.packageMapping)
+		got := fieldType(test, model.State, false, c.modulePath, model.PackageName, c.packageMapping)
 		if got != want {
-			t.Errorf("mismatched field type for %s, got=%s, want=%s", field.Name, got, want)
+			t.Errorf("mismatched field type for %s, got=%s, want=%s", test.Name, got, want)
 		}
 
-		want, ok = expectedPrimitiveTypes[field.Name]
+		want, ok = expectedPrimitiveTypes[test.Name]
 		if !ok {
-			t.Fatalf("missing expected value for %s", field.Name)
+			t.Fatalf("missing expected value for %s", test.Name)
 		}
-		got = fieldType(field, model.State, true, c.modulePath, model.PackageName, c.packageMapping)
+		got = fieldType(test, model.State, true, c.modulePath, model.PackageName, c.packageMapping)
 		if got != want {
-			t.Errorf("mismatched field type for %s, got=%s, want=%s", field.Name, got, want)
+			t.Errorf("mismatched field type for %s, got=%s, want=%s", test.Name, got, want)
 		}
 	}
 }
@@ -741,14 +741,14 @@ func TestOneOfFieldType(t *testing.T) {
 		"f_map":                    "std::collections::HashMap<i32,i32>",
 	}
 	c := createRustCodec()
-	for _, field := range message.Fields {
-		want, ok := expectedTypes[field.Name]
+	for _, test := range message.Fields {
+		want, ok := expectedTypes[test.Name]
 		if !ok {
-			t.Fatalf("missing expected value for %s", field.Name)
+			t.Fatalf("missing expected value for %s", test.Name)
 		}
-		got := oneOfFieldType(field, model.State, c.modulePath, model.PackageName, c.packageMapping)
+		got := oneOfFieldType(test, model.State, c.modulePath, model.PackageName, c.packageMapping)
 		if got != want {
-			t.Errorf("mismatched field type for %s, got=%s, want=%s", field.Name, got, want)
+			t.Errorf("mismatched field type for %s, got=%s, want=%s", test.Name, got, want)
 		}
 	}
 }
@@ -1910,8 +1910,8 @@ func TestEnumValueVariantName(t *testing.T) {
 	model := api.NewTestAPI([]*api.Message{}, []*api.Enum{testEnum, networkingEnum, validationEnum}, []*api.Service{})
 	model.PackageName = "test"
 	var got []string
-	for _, value := range testEnum.Values {
-		got = append(got, enumValueVariantName(value))
+	for _, test := range testEnum.Values {
+		got = append(got, enumValueVariantName(test))
 	}
 	want := []string{"Unspecified", "EnumName1", "A", "Partial", "Green"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -1919,8 +1919,8 @@ func TestEnumValueVariantName(t *testing.T) {
 	}
 
 	got = []string{}
-	for _, value := range networkingEnum.Values {
-		got = append(got, enumValueVariantName(value))
+	for _, test := range networkingEnum.Values {
+		got = append(got, enumValueVariantName(test))
 	}
 	want = []string{"Unspecified", "InheritFromSubnetwork"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -1928,8 +1928,8 @@ func TestEnumValueVariantName(t *testing.T) {
 	}
 
 	got = []string{}
-	for _, value := range validationEnum.Values {
-		got = append(got, enumValueVariantName(value))
+	for _, test := range validationEnum.Values {
+		got = append(got, enumValueVariantName(test))
 	}
 	want = []string{"Unknown", "Verify"}
 	if diff := cmp.Diff(want, got); diff != "" {
