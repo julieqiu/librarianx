@@ -13,6 +13,7 @@ This document describes alternative designs that were considered for the Librari
 7. [Three-Phase Release Process (release prepare/release tag/release publish)](#three-phase-release-process-release-preparerelease-tagrelease-publish)
 8. [Multiple Configuration Files (Per-Edition Config Files)](#multiple-configuration-files-per-edition-config-files)
 9. [Naming: Libraries vs Modules vs Packages vs Editions](#naming-libraries-vs-modules-vs-packages-vs-editions)
+10. [Global Keep/Remove in Defaults](#global-keepremove-in-defaults)
 
 ## Single Container Invocation with Configuration-Based Interface
 
@@ -202,3 +203,33 @@ However, this approach had these costs:
 3. **Less intuitive** - Developers naturally think in terms of "libraries"
 
 We ultimately went with "libraries" because of familiarity and accuracy. "Libraries" is the standard term developers use when talking about client libraries (e.g., "the google-cloud-secretmanager library"). While "library" does have language-specific connotations, this is actually appropriate since librarian manages language-specific artifacts (Python packages, Go modules, Rust crates). The term accurately captures what librarian manages without introducing unfamiliar abstractions.
+
+## Global Keep/Remove in Defaults
+
+We considered adding `keep` and `remove` as global defaults that would apply to all libraries because of providing default file filtering behavior across the repository.
+
+**How it would work:**
+
+```yaml
+defaults:
+  generated_dir: ./
+  transport: grpc+rest
+  rest_numeric_enums: true
+  release_level: stable
+  keep:
+    - "*.md"
+    - "go.mod"
+  remove:
+    - "internal/generated/snippets/"
+```
+
+Libraries could override these defaults with their own keep/remove settings.
+
+However, this approach had these costs:
+
+1. **Confusing ownership** - Unclear whether files are kept/removed due to global defaults or library-specific rules
+2. **Debugging difficulty** - When a file is unexpectedly kept or removed, need to check both global and library-specific settings
+3. **Merge complexity** - Global and library-specific keep/remove rules would need to be merged, requiring decisions about precedence
+4. **Limited benefit** - Most keep/remove patterns are library-specific, making global defaults less useful
+
+We ultimately went with library-level keep/remove only because of clearer ownership and simpler configuration. Each library explicitly declares what to keep and remove, default file filtering logic lives in the generator (not configuration), and there's no ambiguity about where filtering rules come from.
