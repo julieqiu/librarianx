@@ -43,6 +43,56 @@ and IDEs via
 or private module docs using
 [pkgsite](https://pkg.go.dev/golang.org/x/pkgsite/cmd/pkgsite).
 
+## Formatting Structs
+
+### Blank lines between struct fields
+
+Add a blank line between each field in a struct definition to improve
+readability:
+
+```go
+type Library struct {
+	// Name is the library name.
+	Name string `yaml:"name"`
+
+	// Version is the version of the library.
+	Version string `yaml:"version,omitempty"`
+
+	// APIs is the list of googleapis paths.
+	APIs []API `yaml:"apis,omitempty"`
+}
+```
+
+This spacing makes it easier to scan struct definitions and clearly separates
+each field with its documentation.
+
+### Grouping variable declarations
+
+When declaring multiple variables at the beginning of a function or block, group
+them using `var (...)` instead of separate `var` statements:
+
+```go
+// Good
+func process() {
+	var (
+		library *Library
+		api     *API
+		count   int
+	)
+	// ...
+}
+
+// Avoid
+func process() {
+	var library *Library
+	var api *API
+	var count int
+	// ...
+}
+```
+
+This makes the declarations more compact and easier to scan.
+
 
 ## Writing Tests
 
