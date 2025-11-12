@@ -189,8 +189,8 @@ func TestConfig_Add(t *testing.T) {
 		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "secretmanager")
 	}
 
-	wantApis := []string{"google/cloud/secretmanager/v1"}
-	if diff := cmp.Diff(wantApis, cfg.Libraries[0].Apis); diff != "" {
+	wantApis := []API{{Path: "google/cloud/secretmanager/v1"}}
+	if diff := cmp.Diff(wantApis, cfg.Libraries[0].APIs); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
@@ -261,8 +261,8 @@ func TestConfig_Add_WithLocation(t *testing.T) {
 		t.Errorf("got location %q, want %q", cfg.Libraries[0].Location, "storage/")
 	}
 
-	if len(cfg.Libraries[0].Apis) != 0 {
-		t.Errorf("got %d apis, want 0", len(cfg.Libraries[0].Apis))
+	if len(cfg.Libraries[0].APIs) != 0 {
+		t.Errorf("got %d apis, want 0", len(cfg.Libraries[0].APIs))
 	}
 }
 
@@ -278,7 +278,7 @@ func TestLibrary_ExpandTemplate(t *testing.T) {
 			name: "name_only",
 			library: Library{
 				Name: "secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}},
 			},
 			template: "{name}/",
 			want:     "secretmanager/",
@@ -287,7 +287,7 @@ func TestLibrary_ExpandTemplate(t *testing.T) {
 			name: "api_path_single_api",
 			library: Library{
 				Name: "google-cloud-secretmanager-v1",
-				Apis: []string{"google/cloud/secretmanager/v1"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}},
 			},
 			template: "src/generated/{api.path}/",
 			want:     "src/generated/google/cloud/secretmanager/v1/",
@@ -296,7 +296,7 @@ func TestLibrary_ExpandTemplate(t *testing.T) {
 			name: "api_path_multiple_apis_fails",
 			library: Library{
 				Name: "secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}, {Path: "google/cloud/secretmanager/v1beta2"}},
 			},
 			template: "src/generated/{api.path}/",
 			wantErr:  true,
@@ -305,7 +305,7 @@ func TestLibrary_ExpandTemplate(t *testing.T) {
 			name: "packages_with_name",
 			library: Library{
 				Name: "google-cloud-secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}, {Path: "google/cloud/secretmanager/v1beta2"}},
 			},
 			template: "packages/{name}/",
 			want:     "packages/google-cloud-secretmanager/",
@@ -314,7 +314,7 @@ func TestLibrary_ExpandTemplate(t *testing.T) {
 			name: "no_keywords",
 			library: Library{
 				Name: "secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}},
 			},
 			template: "generated/",
 			want:     "generated/",
@@ -359,7 +359,7 @@ func TestLibrary_GeneratedLocation(t *testing.T) {
 			name: "computed_from_template_name",
 			library: Library{
 				Name: "secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}},
 			},
 			generateOutput: "{name}/",
 			want:           "secretmanager/",
@@ -368,7 +368,7 @@ func TestLibrary_GeneratedLocation(t *testing.T) {
 			name: "computed_from_template_api",
 			library: Library{
 				Name: "google-cloud-secretmanager-v1",
-				Apis: []string{"google/cloud/secretmanager/v1"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}},
 			},
 			generateOutput: "src/generated/{api.path}/",
 			want:           "src/generated/google/cloud/secretmanager/v1/",
@@ -377,7 +377,7 @@ func TestLibrary_GeneratedLocation(t *testing.T) {
 			name: "api_path_multiple_apis_fails",
 			library: Library{
 				Name: "secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+				APIs: []API{{Path: "google/cloud/secretmanager/v1"}, {Path: "google/cloud/secretmanager/v1beta2"}},
 			},
 			generateOutput: "src/generated/{api.path}/",
 			wantErr:        true,

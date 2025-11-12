@@ -386,9 +386,9 @@ func TestRunAdd(t *testing.T) {
 		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "secretmanager")
 	}
 
-	wantApis := []config.API{{"google/cloud/secretmanager/v1"}, {"google/cloud/secretmanager/v1beta2"}}
+	wantApis := []config.API{{Path: "google/cloud/secretmanager/v1"}, {Path: "google/cloud/secretmanager/v1beta2"}}
 
-	if diff := cmp.Diff(wantApis, cfg.Librarys[0].APIs); diff != "" {
+	if diff := cmp.Diff(wantApis, cfg.Libraries[0].APIs); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
@@ -452,8 +452,8 @@ func TestRunAdd_WithLocation(t *testing.T) {
 		t.Errorf("got location %q, want %q", cfg.Libraries[0].Location, "storage/")
 	}
 
-	if len(cfg.Librarys[0].APIs) != 0 {
-		t.Errorf("got %d apis, want 0", len(cfg.Librarys[0].APIs))
+	if len(cfg.Libraries[0].APIs) != 0 {
+		t.Errorf("got %d apis, want 0", len(cfg.Libraries[0].APIs))
 	}
 }
 
@@ -518,7 +518,7 @@ func TestGenerateRust(t *testing.T) {
 			},
 			library: &config.Library{
 				Name: "secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1"},
+				APIs: []config.API{{Path: "google/cloud/secretmanager/v1"}},
 			},
 			wantErr: true,
 		},
@@ -529,7 +529,7 @@ func TestGenerateRust(t *testing.T) {
 			},
 			library: &config.Library{
 				Name: "secretmanager",
-				Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
+				APIs: []config.API{{Path: "google/cloud/secretmanager/v1"}, {Path: "google/cloud/secretmanager/v1beta2"}},
 			},
 			wantErr: true,
 		},
@@ -540,7 +540,7 @@ func TestGenerateRust(t *testing.T) {
 			},
 			library: &config.Library{
 				Name: "storage",
-				Apis: []string{},
+				APIs: []config.API{},
 			},
 			wantErr: true,
 		},

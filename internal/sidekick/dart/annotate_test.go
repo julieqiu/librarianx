@@ -213,11 +213,11 @@ func TestAnnotateModel_Options_MissingRequired(t *testing.T) {
 	for _, test := range tests {
 		annotate := newAnnotateModel(model)
 		options := maps.Clone(requiredConfig)
-		delete(options, tt)
+		delete(options, test)
 
 		err := annotate.annotateModel(options)
 		if err == nil {
-			t.Fatalf("expected error when missing %q", tt)
+			t.Fatalf("expected error when missing %q", test)
 		}
 	}
 }

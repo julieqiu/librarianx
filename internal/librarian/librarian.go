@@ -674,8 +674,8 @@ func generateGo(ctx context.Context, cfg *config.Config, library *config.Library
 
 func generateRust(cfg *config.Config, library *config.Library) (err error) {
 	// Validate Rust-specific requirements
-	if len(library.Apis) != 1 {
-		return fmt.Errorf("rust generation requires exactly one API per library, got %d for library %q", len(library.Apis), library.Name)
+	if len(library.APIs) != 1 {
+		return fmt.Errorf("rust generation requires exactly one API per library, got %d for library %q", len(library.APIs), library.Name)
 	}
 
 	// Determine output directory
@@ -693,7 +693,7 @@ func generateRust(cfg *config.Config, library *config.Library) (err error) {
 	args := []string{
 		"sidekick",
 		"rust-generate",
-		"--specification-source", library.Apis[0],
+		"--specification-source", library.APIs[0].Path,
 		"--output", location,
 		"--language", "rust",
 	}
