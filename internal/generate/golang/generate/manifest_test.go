@@ -21,7 +21,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/generate/golang/bazel"
+	"github.com/googleapis/librarian/internal/bazel"
 	"github.com/googleapis/librarian/internal/generate/golang/config"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
 )

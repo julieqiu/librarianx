@@ -29,8 +29,6 @@ type PostProcessorConfig struct {
 	OutputDir string
 	// LibraryPath is the relative path to the library (e.g., "packages/google-cloud-language").
 	LibraryPath string
-	// StagingDir is the owl-bot-staging directory.
-	StagingDir string
 }
 
 // RunSynthtool runs synthtool to post-process generated code.

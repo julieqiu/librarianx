@@ -22,7 +22,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/generate/golang/bazel"
+	"github.com/googleapis/librarian/internal/bazel"
 	"github.com/googleapis/librarian/internal/generate/golang/config"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
 	"gopkg.in/yaml.v3"

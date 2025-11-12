@@ -19,13 +19,12 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 func TestBuildGapicCommand(t *testing.T) {
 	for _, test := range []struct {
 		name      string
-		api       *request.API
+		apiPath   string
 		sourceDir string
 		outputDir string
 		opts      *GapicOptions
@@ -33,10 +32,8 @@ func TestBuildGapicCommand(t *testing.T) {
 		wantErr   bool
 	}{
 		{
-			name: "basic GAPIC",
-			api: &request.API{
-				Path: "google/cloud/language/v1",
-			},
+			name:      "basic GAPIC",
+			apiPath:   "google/cloud/language/v1",
 			sourceDir: "/source",
 			outputDir: "/output",
 			opts: &GapicOptions{
@@ -53,10 +50,8 @@ func TestBuildGapicCommand(t *testing.T) {
 			},
 		},
 		{
-			name: "with opt args",
-			api: &request.API{
-				Path: "google/cloud/secretmanager/v1",
-			},
+			name:      "with opt args",
+			apiPath:   "google/cloud/secretmanager/v1",
 			sourceDir: "/source",
 			outputDir: "/output",
 			opts: &GapicOptions{
@@ -72,10 +67,8 @@ func TestBuildGapicCommand(t *testing.T) {
 			},
 		},
 		{
-			name: "minimal options",
-			api: &request.API{
-				Path: "google/cloud/vision/v1",
-			},
+			name:      "minimal options",
+			apiPath:   "google/cloud/vision/v1",
 			sourceDir: "/source",
 			outputDir: "/output",
 			opts:      &GapicOptions{},
@@ -87,10 +80,8 @@ func TestBuildGapicCommand(t *testing.T) {
 			},
 		},
 		{
-			name: "empty path",
-			api: &request.API{
-				Path: "",
-			},
+			name:      "empty path",
+			apiPath:   "",
 			sourceDir: "/source",
 			outputDir: "/output",
 			opts:      &GapicOptions{},
@@ -98,7 +89,7 @@ func TestBuildGapicCommand(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got, err := BuildGapicCommand(test.api, test.sourceDir, test.outputDir, test.opts)
+			got, err := BuildGapicCommand(test.apiPath, test.sourceDir, test.outputDir, test.opts)
 			if test.wantErr {
 				if err == nil {
 					t.Fatal("expected error but got none")
@@ -123,17 +114,15 @@ func TestBuildGapicCommand(t *testing.T) {
 func TestBuildProtoCommand(t *testing.T) {
 	for _, test := range []struct {
 		name      string
-		api       *request.API
+		apiPath   string
 		sourceDir string
 		outputDir string
 		wantArgs  []string
 		wantErr   bool
 	}{
 		{
-			name: "proto only",
-			api: &request.API{
-				Path: "google/type",
-			},
+			name:      "proto only",
+			apiPath:   "google/type",
 			sourceDir: "/source",
 			outputDir: "/output",
 			wantArgs: []string{
@@ -144,17 +133,15 @@ func TestBuildProtoCommand(t *testing.T) {
 			},
 		},
 		{
-			name: "empty path",
-			api: &request.API{
-				Path: "",
-			},
+			name:      "empty path",
+			apiPath:   "",
 			sourceDir: "/source",
 			outputDir: "/output",
 			wantErr:   true,
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got, err := BuildProtoCommand(test.api, test.sourceDir, test.outputDir)
+			got, err := BuildProtoCommand(test.apiPath, test.sourceDir, test.outputDir)
 			if test.wantErr {
 				if err == nil {
 					t.Fatal("expected error but got none")
@@ -177,9 +164,7 @@ func TestBuildProtoCommand(t *testing.T) {
 }
 
 func TestGapicOptionsFormatting(t *testing.T) {
-	api := &request.API{
-		Path: "google/cloud/test/v1",
-	}
+	apiPath := "google/cloud/test/v1"
 	opts := &GapicOptions{
 		GrpcServiceConfig: "test_grpc_service_config.json",
 		ServiceYAML:       "test_v1.yaml",
@@ -188,7 +173,7 @@ func TestGapicOptionsFormatting(t *testing.T) {
 		OptArgs:           []string{"opt1=val1", "opt2=val2"},
 	}
 
-	got, err := BuildGapicCommand(api, "/src", "/out", opts)
+	got, err := BuildGapicCommand(apiPath, "/src", "/out", opts)
 	if err != nil {
 		t.Fatal(err)
 	}

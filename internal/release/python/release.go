@@ -17,7 +17,6 @@ package python
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
@@ -25,72 +24,35 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/generate/golang/request"
+	"github.com/googleapis/librarian/internal/config"
 )
 
-// Test substitution vars.
-var (
-	requestParse = request.ParseLibrary
-)
-
-// Config holds the configuration for the Python release command.
-type Config struct {
-	// LibrarianDir is the path to the librarian-tool input directory.
-	// It is expected to contain the release-init-request.json file.
-	LibrarianDir string
-	// OutputDir is the path to the directory where updated files are written.
-	OutputDir string
-	// RepoDir is the path to the repository root.
-	RepoDir string
-}
-
-// Validate ensures that the configuration is valid.
-func (c *Config) Validate() error {
-	if c.LibrarianDir == "" {
-		return errors.New("librarian directory must be set")
-	}
-	if c.OutputDir == "" {
-		return errors.New("output directory must be set")
-	}
-	if c.RepoDir == "" {
-		return errors.New("repo directory must be set")
-	}
-	return nil
+// Change represents a single commit change for a library.
+type Change struct {
+	Type    string
+	Subject string
+	Body    string
 }
 
 // Release is the main entrypoint for the Python release command.
 // It orchestrates the release preparation process:
 //
-//  1. Read release-init-request.json
-//  2. For each library with release_triggered=true:
+//  1. For the library:
 //     - Update version in gapic_version.py, version.py, pyproject.toml, setup.py
 //     - Update snippet metadata JSON files
 //     - Update CHANGELOG.md with new entries
-//  3. Update global CHANGELOG.md if it exists
-//  4. Write modified files to output directory
-func Release(ctx context.Context, cfg *Config) error {
-	if err := cfg.Validate(); err != nil {
-		return fmt.Errorf("invalid configuration: %w", err)
-	}
+//  2. Update global CHANGELOG.md if it exists
+//  3. Write modified files to output directory
+func Release(ctx context.Context, lib *config.Library, version string, changes []*Change, repoDir string) error {
 	slog.Debug("python release: started")
 
-	releaseReq, err := readReleaseReq(cfg.LibrarianDir)
-	if err != nil {
-		return fmt.Errorf("failed to read request: %w", err)
-	}
-
-	if !releaseReq.ReleaseTriggered {
-		slog.Debug("python release: release not triggered")
-		return nil
-	}
-
 	// Update version files
-	if err := updateVersionFiles(cfg, releaseReq); err != nil {
+	if err := updateVersionFiles(repoDir, lib.Name, version); err != nil {
 		return fmt.Errorf("failed to update version files: %w", err)
 	}
 
 	// Update changelog
-	if err := updateChangelog(cfg, releaseReq); err != nil {
+	if err := updateChangelog(repoDir, lib.Name, version, changes); err != nil {
 		return fmt.Errorf("failed to update changelog: %w", err)
 	}
 
@@ -99,8 +61,8 @@ func Release(ctx context.Context, cfg *Config) error {
 }
 
 // updateVersionFiles updates version strings in all version-related files.
-func updateVersionFiles(cfg *Config, lib *request.Library) error {
-	libraryPath := filepath.Join(cfg.RepoDir, lib.ID)
+func updateVersionFiles(repoDir, libraryName, version string) error {
+	libraryPath := filepath.Join(repoDir, libraryName)
 
 	// Files to update with their regex patterns
 	versionFiles := []struct {
@@ -125,7 +87,7 @@ func updateVersionFiles(cfg *Config, lib *request.Library) error {
 		},
 	}
 
-	replacement := fmt.Sprintf(`version = "%s"`, lib.Version)
+	replacement := fmt.Sprintf(`version = "%s"`, version)
 
 	for _, vf := range versionFiles {
 		files, err := findFiles(libraryPath, vf.pattern)
@@ -134,7 +96,7 @@ func updateVersionFiles(cfg *Config, lib *request.Library) error {
 		}
 
 		for _, file := range files {
-			if err := updateFileVersion(file, vf.regex, replacement, lib.Version); err != nil {
+			if err := updateFileVersion(file, vf.regex, replacement, version); err != nil {
 				return fmt.Errorf("failed to update version in %s: %w", file, err)
 			}
 		}
@@ -177,25 +139,25 @@ func updateFileVersion(filePath string, regex *regexp.Regexp, replacement, versi
 }
 
 // updateChangelog updates CHANGELOG.md with new release entries.
-func updateChangelog(cfg *Config, lib *request.Library) error {
-	libraryPath := filepath.Join(cfg.RepoDir, lib.ID)
+func updateChangelog(repoDir, libraryName, version string, changes []*Change) error {
+	libraryPath := filepath.Join(repoDir, libraryName)
 	changelogPath := filepath.Join(libraryPath, "CHANGELOG.md")
 
 	// Check if CHANGELOG.md exists
 	if _, err := os.Stat(changelogPath); os.IsNotExist(err) {
 		// Create new CHANGELOG.md
-		return createChangelog(changelogPath, lib)
+		return createChangelog(changelogPath, version, changes)
 	}
 
 	// Update existing CHANGELOG.md
-	return appendChangelog(changelogPath, lib)
+	return appendChangelog(changelogPath, version, changes)
 }
 
 // createChangelog creates a new CHANGELOG.md file.
-func createChangelog(path string, lib *request.Library) error {
-	content := fmt.Sprintf("# Changelog\n\n## %s\n\n", lib.Version)
+func createChangelog(path, version string, changes []*Change) error {
+	content := fmt.Sprintf("# Changelog\n\n## %s\n\n", version)
 
-	for _, change := range lib.Changes {
+	for _, change := range changes {
 		content += fmt.Sprintf("* %s: %s\n", change.Type, change.Subject)
 	}
 
@@ -208,7 +170,7 @@ func createChangelog(path string, lib *request.Library) error {
 }
 
 // appendChangelog appends new entries to an existing CHANGELOG.md.
-func appendChangelog(path string, lib *request.Library) error {
+func appendChangelog(path, version string, changes []*Change) error {
 	data, err := os.ReadFile(path)
 	if err != nil {
 		return fmt.Errorf("failed to read changelog: %w", err)
@@ -217,8 +179,8 @@ func appendChangelog(path string, lib *request.Library) error {
 	content := string(data)
 
 	// Insert new section at the top (after the # Changelog line)
-	newSection := fmt.Sprintf("\n## %s\n\n", lib.Version)
-	for _, change := range lib.Changes {
+	newSection := fmt.Sprintf("\n## %s\n\n", version)
+	for _, change := range changes {
 		newSection += fmt.Sprintf("* %s: %s\n", change.Type, change.Subject)
 	}
 
@@ -276,17 +238,4 @@ func findFiles(baseDir, pattern string) ([]string, error) {
 	}
 
 	return matches, nil
-}
-
-// readReleaseReq reads release-init-request.json from the librarian-tool input directory.
-func readReleaseReq(librarianDir string) (*request.Library, error) {
-	reqPath := filepath.Join(librarianDir, "release-init-request.json")
-	slog.Debug("python release: reading release request", "path", reqPath)
-
-	releaseReq, err := requestParse(reqPath)
-	if err != nil {
-		return nil, err
-	}
-	slog.Debug("python release: successfully read request", "library_id", releaseReq.ID)
-	return releaseReq, nil
 }
