@@ -17,92 +17,42 @@ package python
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"os"
 	"path/filepath"
 
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/execv"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // Test substitution vars.
 var (
-	execvRun     = execv.Run
-	requestParse = request.ParseLibrary
+	execvRun = execv.Run
 )
-
-// Config holds the configuration for the Python generate command.
-type Config struct {
-	// LibrarianDir is the path to the librarian-tool input directory.
-	// It is expected to contain the generate-request.json file.
-	LibrarianDir string
-	// OutputDir is the path to the directory where generated code is written.
-	OutputDir string
-	// SourceDir is the path to a complete checkout of the googleapis repository.
-	SourceDir string
-	// StagingDir is the path to the owl-bot-staging directory.
-	StagingDir string
-	// DisablePostProcessor controls whether synthtool is run.
-	DisablePostProcessor bool
-}
-
-// Validate ensures that the configuration is valid.
-func (c *Config) Validate() error {
-	if c.LibrarianDir == "" {
-		return errors.New("librarian directory must be set")
-	}
-	if c.OutputDir == "" {
-		return errors.New("output directory must be set")
-	}
-	if c.SourceDir == "" {
-		return errors.New("source directory must be set")
-	}
-	if c.StagingDir == "" {
-		return errors.New("staging directory must be set")
-	}
-	return nil
-}
 
 // Generate is the main entrypoint for the Python generate command.
 // It orchestrates the entire generation process:
 //
-//  1. Read generate-request.json
-//  2. For each API:
+//  1. For each API in the library:
 //     - Construct protoc command
-//     - Run protoc with --python_gapic_out to generate code
-//     - Stage code in owl-bot-staging directory
-//  3. Generate .repo-metadata.json from service_yaml
-//  4. Run synthtool post-processor
-//  5. Copy README.rst to docs/
-//  6. Write generated code to output directory
-func Generate(ctx context.Context, cfg *Config) error {
-	if err := cfg.Validate(); err != nil {
-		return fmt.Errorf("invalid configuration: %w", err)
-	}
+//     - Run protoc with --python_gapic_out to generate code directly to output
+//  2. Generate .repo-metadata.json from service_yaml
+//  3. Run synthtool post-processor in place
+//  4. Copy README.rst to docs/
+func Generate(ctx context.Context, lib *config.Library, outputDir, sourceDir string, disablePostProcessor bool) error {
 	slog.Debug("python generate: started")
 
-	generateReq, err := readGenerateReq(cfg.LibrarianDir)
-	if err != nil {
-		return fmt.Errorf("failed to read request: %w", err)
-	}
-
-	// Create staging directory
-	if err := os.MkdirAll(cfg.StagingDir, 0755); err != nil {
-		return fmt.Errorf("failed to create staging directory: %w", err)
-	}
-
 	// Generate code for each API
-	for _, api := range generateReq.APIs {
-		if err := generateAPI(ctx, cfg, generateReq, &api); err != nil {
-			return fmt.Errorf("failed to generate API %s: %w", api.Path, err)
+	for _, apiPath := range lib.Apis {
+		if err := generateAPI(ctx, sourceDir, outputDir, apiPath); err != nil {
+			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
 		}
 	}
 
 	// Run post-processor (synthtool) if enabled
-	if !cfg.DisablePostProcessor {
-		if err := runPostProcessor(ctx, cfg, generateReq); err != nil {
+	if !disablePostProcessor {
+		if err := runPostProcessor(ctx, outputDir, lib.Name); err != nil {
 			return fmt.Errorf("post-processing failed: %w", err)
 		}
 	}
@@ -112,8 +62,8 @@ func Generate(ctx context.Context, cfg *Config) error {
 }
 
 // generateAPI generates code for a single API.
-func generateAPI(ctx context.Context, cfg *Config, lib *request.Library, api *request.API) error {
-	apiServiceDir := filepath.Join(cfg.SourceDir, api.Path)
+func generateAPI(ctx context.Context, sourceDir, outputDir, apiPath string) error {
+	apiServiceDir := filepath.Join(sourceDir, apiPath)
 	slog.Info("processing api", "service_dir", apiServiceDir)
 
 	// Determine if this is a GAPIC or proto-only library
@@ -127,14 +77,13 @@ func generateAPI(ctx context.Context, cfg *Config, lib *request.Library, api *re
 	if isGapic {
 		// Build GAPIC command
 		opts := &GapicOptions{
-			GrpcServiceConfig: api.ServiceConfig,
-			Transport:         "grpc+rest",
-			RestNumericEnums:  true,
+			Transport:        "grpc+rest",
+			RestNumericEnums: true,
 		}
-		cmd, err = BuildGapicCommand(api, cfg.SourceDir, cfg.StagingDir, opts)
+		cmd, err = BuildGapicCommand(apiPath, sourceDir, outputDir, opts)
 	} else {
 		// Build proto-only command
-		cmd, err = BuildProtoCommand(api, cfg.SourceDir, cfg.StagingDir)
+		cmd, err = BuildProtoCommand(apiPath, sourceDir, outputDir)
 	}
 
 	if err != nil {
@@ -143,7 +92,7 @@ func generateAPI(ctx context.Context, cfg *Config, lib *request.Library, api *re
 
 	// Run protoc
 	args := append([]string{cmd.Command}, cmd.Args...)
-	if err := execvRun(ctx, args, cfg.OutputDir); err != nil {
+	if err := execvRun(ctx, args, outputDir); err != nil {
 		return fmt.Errorf("protoc failed: %w", err)
 	}
 
@@ -151,15 +100,15 @@ func generateAPI(ctx context.Context, cfg *Config, lib *request.Library, api *re
 }
 
 // runPostProcessor runs synthtool to post-process generated code.
-func runPostProcessor(ctx context.Context, cfg *Config, lib *request.Library) error {
+func runPostProcessor(ctx context.Context, outputDir, libraryName string) error {
 	slog.Debug("python generate: running post-processor")
 
 	// Check if custom owlbot.py exists
-	owlbotPath := filepath.Join(cfg.OutputDir, "owlbot.py")
+	owlbotPath := filepath.Join(outputDir, "owlbot.py")
 	if _, err := os.Stat(owlbotPath); err == nil {
 		// Run custom owlbot.py
 		args := []string{"python3", owlbotPath}
-		if err := execvRun(ctx, args, cfg.OutputDir); err != nil {
+		if err := execvRun(ctx, args, outputDir); err != nil {
 			return fmt.Errorf("owlbot.py failed: %w", err)
 		}
 		return nil
@@ -167,27 +116,14 @@ func runPostProcessor(ctx context.Context, cfg *Config, lib *request.Library) er
 
 	// Run default synthtool
 	// synthtool.languages.python_mono_repo.owlbot_main expects the relative library path
-	libraryPath := filepath.Join("packages", lib.ID)
+	libraryPath := filepath.Join("packages", libraryName)
 	args := []string{
 		"python3", "-c",
 		fmt.Sprintf("from synthtool.languages import python_mono_repo; python_mono_repo.owlbot_main('%s')", libraryPath),
 	}
-	if err := execvRun(ctx, args, cfg.OutputDir); err != nil {
+	if err := execvRun(ctx, args, outputDir); err != nil {
 		return fmt.Errorf("synthtool failed: %w", err)
 	}
 
 	return nil
-}
-
-// readGenerateReq reads generate-request.json from the librarian-tool input directory.
-func readGenerateReq(librarianDir string) (*request.Library, error) {
-	reqPath := filepath.Join(librarianDir, "generate-request.json")
-	slog.Debug("python generate: reading generate request", "path", reqPath)
-
-	generateReq, err := requestParse(reqPath)
-	if err != nil {
-		return nil, err
-	}
-	slog.Debug("python generate: successfully read request", "library_id", generateReq.ID)
-	return generateReq, nil
 }

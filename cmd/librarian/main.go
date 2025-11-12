@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Command librarian manages client library generation for multiple languages.
 package main
 
 import (

@@ -68,7 +68,6 @@ func TestPostProcessorConfig(t *testing.T) {
 	cfg := &PostProcessorConfig{
 		OutputDir:   "/output",
 		LibraryPath: "packages/google-cloud-language",
-		StagingDir:  "/staging",
 	}
 
 	if cfg.OutputDir != "/output" {
@@ -76,8 +75,5 @@ func TestPostProcessorConfig(t *testing.T) {
 	}
 	if cfg.LibraryPath != "packages/google-cloud-language" {
 		t.Errorf("got LibraryPath %q, want %q", cfg.LibraryPath, "packages/google-cloud-language")
-	}
-	if cfg.StagingDir != "/staging" {
-		t.Errorf("got StagingDir %q, want %q", cfg.StagingDir, "/staging")
 	}
 }
