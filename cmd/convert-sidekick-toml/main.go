@@ -31,10 +31,10 @@ import (
 
 // SidekickRootConfig represents the root .sidekick.toml configuration file structure.
 type SidekickRootConfig struct {
-	General GeneralConfig        `toml:"general"`
-	Source  SourceConfig         `toml:"source"`
-	Codec   map[string]any       `toml:"codec"`
-	Release ReleaseConfig        `toml:"release"`
+	General GeneralConfig  `toml:"general"`
+	Source  SourceConfig   `toml:"source"`
+	Codec   map[string]any `toml:"codec"`
+	Release ReleaseConfig  `toml:"release"`
 }
 
 // SidekickLibraryConfig represents a library-level .sidekick.toml configuration.
@@ -512,15 +512,6 @@ func getStringFromMap(m map[string]any, key string) string {
 		return v
 	}
 	return ""
-}
-
-func getIntFromMap(m map[string]any, key string) int {
-	if v, ok := m[key].(string); ok {
-		var result int
-		fmt.Sscanf(v, "%d", &result)
-		return result
-	}
-	return 0
 }
 
 func getBoolFromMap(m map[string]any, key string) bool {

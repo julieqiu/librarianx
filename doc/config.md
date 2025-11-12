@@ -126,9 +126,9 @@ When present, enables code generation commands. This section defines generation 
 
 When present, enables release commands.
 
-- `tag_format` - Template for git tags (e.g., `'{name}-v{version}'` or `'{id}/v{version}'`)
-  - Supported placeholders: `{id}`, `{name}`, and `{version}`
-  - The global default is `'{id}/v{version}'` for Go repositories
+- `tag_format` - Template for git tags (e.g., `'{name}/v{version}'` or `'{name}-v{version}'`)
+  - Supported placeholders: `{name}` and `{version}`
+  - The global default is `'{name}/v{version}'` for Go repositories
   - Some modules require custom formats to avoid double version paths. These exceptions should be handled in code:
     - `bigquery/v2` uses `bigquery/v{version}` (instead of `bigquery/v2/v{version}`)
     - `pubsub/v2` uses `pubsub/v{version}` (instead of `pubsub/v2/v{version}`)

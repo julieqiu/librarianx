@@ -136,7 +136,7 @@ go:
         - ^secretmanager/apiv1/\.repo-metadata\.json$
     release_exclude_paths:
         - internal/generated/snippets/secretmanager/
-    tag_format: '{id}/v{version}'
+    tag_format: '{name}/v{version}'
     module_path_version: /v2
     delete_generation_output_paths:
         - internal/generated/snippets/secretmanager/

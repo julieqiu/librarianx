@@ -37,6 +37,9 @@ type Config struct {
 	// Sources contains references to external source repositories.
 	Sources Sources `yaml:"sources,omitempty"`
 
+	// Global contains global repository settings.
+	Global *Global `yaml:"global,omitempty"`
+
 	// Defaults contains default generation settings.
 	Defaults *Defaults `yaml:"defaults,omitempty"`
 
@@ -74,6 +77,21 @@ type Source struct {
 	SHA256 string `yaml:"sha256"`
 }
 
+// Global contains global repository settings.
+type Global struct {
+	// FilesAllowlist is the list of files that can be modified globally.
+	FilesAllowlist []FileAllowlist `yaml:"files_allowlist,omitempty"`
+}
+
+// FileAllowlist represents a file that can be modified globally.
+type FileAllowlist struct {
+	// Path is the file path.
+	Path string `yaml:"path"`
+
+	// Permissions specifies the access level (read-only, read-write, write-only).
+	Permissions string `yaml:"permissions"`
+}
+
 // Defaults contains default generation settings.
 type Defaults struct {
 	// GeneratedDir is the directory where generated code is written (relative to repository root).
@@ -97,8 +115,8 @@ type Generate struct {
 
 // Release contains release configuration.
 type Release struct {
-	// TagFormat is the template for git tags (e.g., '{id}/v{version}').
-	// Supported placeholders: {id}, {name}, {version}
+	// TagFormat is the template for git tags (e.g., '{name}/v{version}').
+	// Supported placeholders: {name}, {version}
 	TagFormat string `yaml:"tag_format,omitempty"`
 }
 
@@ -113,6 +131,15 @@ type Library struct {
 	// CopyrightYear is the copyright year for the library.
 	CopyrightYear int `yaml:"copyright_year,omitempty"`
 
+	// ModulePathVersion is the module version suffix (e.g., "v2").
+	ModulePathVersion string `yaml:"module_path_version,omitempty"`
+
+	// SourceRoots are the source directories for this library.
+	SourceRoots []string `yaml:"source_roots,omitempty"`
+
+	// Release contains per-library release configuration.
+	Release *LibraryRelease `yaml:"release,omitempty"`
+
 	// Generate contains generation configuration for this library.
 	Generate *LibraryGenerate `yaml:"generate,omitempty"`
 
@@ -124,6 +151,12 @@ type Library struct {
 	Location string `yaml:"location,omitempty"`
 }
 
+// LibraryRelease contains per-library release configuration.
+type LibraryRelease struct {
+	// Disabled prevents automatic releases.
+	Disabled bool `yaml:"disabled,omitempty"`
+}
+
 // LibraryGenerate contains generation configuration for a library.
 type LibraryGenerate struct {
 	// APIs is the list of API configurations.
@@ -132,8 +165,8 @@ type LibraryGenerate struct {
 	// Keep is the list of files/directories not overwritten during generation.
 	Keep []string `yaml:"keep,omitempty"`
 
-	// Remove is the list of files/directories deleted after generation.
-	Remove []string `yaml:"remove,omitempty"`
+	// DeleteOutputPaths is the list of paths to delete from output.
+	DeleteOutputPaths []string `yaml:"delete_output_paths,omitempty"`
 }
 
 // API represents an API configuration.
@@ -162,6 +195,9 @@ type API struct {
 
 	// Python contains Python-specific configuration.
 	Python *PythonAPI `yaml:"python,omitempty"`
+
+	// Go contains Go-specific configuration.
+	Go *GoAPI `yaml:"go,omitempty"`
 }
 
 // PythonAPI contains Python-specific API configuration.
@@ -169,6 +205,20 @@ type PythonAPI struct {
 	// OptArgs contains additional options passed to the generator.
 	// E.g., ["warehouse-package-name=google-cloud-secret-manager"]
 	OptArgs []string `yaml:"opt_args,omitempty"`
+}
+
+type GoAPI struct {
+	// ClientDirectory is the custom client directory (optional).
+	ClientDirectory string `yaml:"client_directory,omitempty"`
+
+	// DisableGapic disables GAPIC generation for this API.
+	DisableGapic bool `yaml:"disable_gapic,omitempty"`
+
+	// ProtoPackage is the custom protobuf package name.
+	ProtoPackage string `yaml:"proto_package,omitempty"`
+
+	// NestedProtos are additional nested proto files to include.
+	NestedProtos []string `yaml:"nested_protos,omitempty"`
 }
 
 // Read reads the configuration from a file.

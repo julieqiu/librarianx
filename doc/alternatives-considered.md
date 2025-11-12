@@ -15,6 +15,9 @@ This document describes alternative designs that were considered for the Librari
 9. [Naming: Libraries vs Modules vs Packages vs Editions](#naming-libraries-vs-modules-vs-packages-vs-editions)
 10. [Global Keep/Remove in Defaults](#global-keepremove-in-defaults)
 11. [Service Config in API Configuration](#service-config-in-api-configuration)
+12. [Last Generated Commit in Library Configuration](#last-generated-commit-in-library-configuration)
+13. [Remove Patterns in Library Configuration](#remove-patterns-in-library-configuration)
+14. [Release Exclude Paths in Library Configuration](#release-exclude-paths-in-library-configuration)
 
 ## Single Container Invocation with Configuration-Based Interface
 
@@ -256,7 +259,162 @@ However, this approach had these costs:
 
 1. **Configuration verbosity** - Most APIs follow a standard naming pattern for service config files
 2. **Repetitive data** - Service config file names are predictable from API paths in most cases
-3. **Mixed concerns** - Mixes structural API information with override details
-4. **Harder to maintain** - Service config overrides are scattered across all library definitions
+3. **Duplication with overrides** - The old `.librarian` format had this in `state.yaml`, but it's already captured in `service_config_overrides.yaml`
+4. **Mixed concerns** - Mixes structural API information with override details
+5. **Harder to maintain** - Service config overrides would be scattered across all library definitions
 
-We ultimately went with a global `service_config_overrides.yaml` file in `internal/generate` because of simplicity and centralized maintenance. The generator uses convention-based defaults for service config file paths, overrides are centralized in one file for easy discovery, and the librarian.yaml configuration remains focused on structural information (which APIs to generate). This keeps the configuration file simpler and puts override logic where it belongs: in the generator implementation.
+We ultimately went with using the existing `service_config_overrides.yaml` file in `internal/generate` because of simplicity and avoiding duplication. The generator uses convention-based defaults for service config file paths, overrides are centralized in `service_config_overrides.yaml` for easy discovery, and the librarian.yaml configuration remains focused on structural information (which APIs to generate). This keeps the configuration file simpler and avoids duplicating information that's already maintained in the override file.
+
+## Last Generated Commit in Library Configuration
+
+We considered adding a `last_generated_commit` field to track the last commit hash when each library was generated because of providing traceability for when code was last generated.
+
+**How it would work:**
+
+```yaml
+libraries:
+  - name: secretmanager
+    version: 1.15.0
+    last_generated_commit: c288189b43c016dd3cf1ec73ce3cadee8b732f07
+    generate:
+      apis:
+        - path: google/cloud/secretmanager/v1
+```
+
+The field would be updated each time the library is regenerated.
+
+However, this approach had these costs:
+
+1. **Runtime state in configuration** - `last_generated_commit` is runtime state that changes with each generation, not static configuration
+2. **Git already tracks this** - Git history shows when files were last modified, making this field redundant
+3. **Unnecessary noise in diffs** - Every generation would update all library commit hashes, cluttering git diffs
+4. **No practical use** - The commit hash doesn't affect generation behavior or release decisions
+5. **Creates merge conflicts** - Multiple generations would conflict on this field
+
+We ultimately went with not including `last_generated_commit` in `librarian.yaml` because of separation of configuration and state. The librarian.yaml file contains configuration (what to generate, how to release), while git history tracks state (when files were last modified). Users can determine when a library was last generated using `git log` on the library's directory, avoiding redundant state tracking in configuration files.
+
+## Remove Patterns in Library Configuration
+
+We considered adding a `remove` field to each library to specify regex patterns for files to delete after generation because of providing cleanup control.
+
+**How it would work:**
+
+```yaml
+libraries:
+  - name: secretmanager
+    generate:
+      apis:
+        - path: google/cloud/secretmanager/v1
+      remove:
+        - ^internal/generated/snippets/secretmanager/
+        - ^secretmanager/apiv1/[^/]*_client\.go$
+        - ^secretmanager/apiv1/[^/]*_client_example_go123_test\.go$
+        - ^secretmanager/apiv1/[^/]*_client_example_test\.go$
+        - ^secretmanager/apiv1/auxiliary\.go$
+        - ^secretmanager/apiv1/auxiliary_go123\.go$
+        - ^secretmanager/apiv1/doc\.go$
+        - ^secretmanager/apiv1/gapic_metadata\.json$
+        - ^secretmanager/apiv1/helpers\.go$
+        - ^secretmanager/apiv1/secretmanagerpb/.*$
+        - ^secretmanager/apiv1/\.repo-metadata\.json$
+```
+
+Each library would specify which files to remove after generation.
+
+However, this approach had these costs:
+
+1. **Massive duplication** - The old `.librarian/state.yaml` has ~10 nearly identical patterns per library × 183 libraries = ~1,830 lines of duplicated regex
+2. **Identical patterns** - The patterns are the same for every library, just with the library name substituted
+3. **Configuration verbosity** - Adding these patterns to every library makes `librarian.yaml` extremely verbose
+4. **Maintenance burden** - Updating the removal logic requires editing 183 library definitions
+5. **Same pattern as service_config** - This is duplication that should be handled by defaults/conventions
+
+**Pattern analysis:**
+
+Nearly every library has this identical pattern (with `{library}` substituted):
+```
+^internal/generated/snippets/{library}/
+^{library}/apiv1/[^/]*_client\.go$
+^{library}/apiv1/[^/]*_client_example_go123_test\.go$
+^{library}/apiv1/[^/]*_client_example_test\.go$
+^{library}/apiv1/auxiliary\.go$
+^{library}/apiv1/auxiliary_go123\.go$
+^{library}/apiv1/doc\.go$
+^{library}/apiv1/gapic_metadata\.json$
+^{library}/apiv1/helpers\.go$
+^{library}/apiv1/{library}pb/.*$
+^{library}/apiv1/\.repo-metadata\.json$
+```
+
+We ultimately went with implementing default removal patterns in the generator because of avoiding duplication and simplifying configuration. The generator implements standard cleanup patterns with variable substitution (e.g., `{library}`, `{api.version}`), libraries only specify `remove` for non-standard cleanup needs, and the librarian.yaml configuration remains focused on structure rather than implementation details. This reduces the configuration file from ~2,000+ lines of remove patterns to effectively zero for standard libraries.
+
+## Release Exclude Paths in Library Configuration
+
+We considered adding a `release.exclude_paths` field to each library to specify which paths to exclude from releases because of providing control over what gets released.
+
+**How it would work:**
+
+```yaml
+libraries:
+  - name: secretmanager
+    release:
+      exclude_paths:
+        - internal/generated/snippets/secretmanager/
+```
+
+Each library would specify which paths to exclude from release packages.
+
+However, this approach had these costs:
+
+1. **Massive duplication** - The old `.librarian/state.yaml` has 175 out of 183 libraries with this field
+2. **Identical pattern** - ALL 175 libraries have the exact same pattern: `internal/generated/snippets/{library}/`
+3. **Configuration verbosity** - Adding this to every library adds 175+ lines of duplicated configuration
+4. **Same problem as remove_regex** - This is another case of template-based duplication
+5. **Maintenance burden** - Updating the exclusion logic requires editing 175 library definitions
+
+**Pattern analysis:**
+
+Every library has this identical pattern (with `{library}` substituted):
+```
+internal/generated/snippets/{library}/
+```
+
+We ultimately went with implementing default release exclusion patterns in the release tooling because of avoiding duplication and simplifying configuration. The release tooling implements standard exclusion patterns with variable substitution (e.g., `internal/generated/snippets/{library}/`), libraries only specify `release.exclude_paths` for non-standard exclusions (e.g., specific test files, internal directories), and the librarian.yaml configuration remains focused on structure rather than implementation details. This reduces the configuration file from 175+ lines of exclude paths to effectively zero for standard libraries.
+
+## Source Roots in Library Configuration
+
+We considered adding a `source_roots` field to each library to specify which directories contain code for that library because of providing explicit source directory configuration.
+
+**How it would work:**
+
+```yaml
+libraries:
+  - name: secretmanager
+    source_roots:
+      - secretmanager
+      - internal/generated/snippets/secretmanager
+```
+
+Each library would explicitly list its source directories.
+
+However, this approach had these costs:
+
+1. **Massive duplication** - The old `.librarian/state.yaml` has 175 out of 183 libraries with identical pattern
+2. **Identical pattern** - 175 libraries (95.6%) follow the exact same pattern: `[{name}, internal/generated/snippets/{name}]`
+3. **Configuration verbosity** - Adding this to every library adds ~350 lines of duplicated configuration (175 libraries × 2 lines)
+4. **Same problem as remove_regex and release_exclude_paths** - This is another case of template-based duplication
+5. **Predictable structure** - For generated libraries, the source structure follows a consistent convention
+
+**Pattern analysis:**
+
+175 out of 183 libraries have this identical pattern (with `{name}` substituted):
+```
+- {name}
+- internal/generated/snippets/{name}
+```
+
+**Only 8 libraries (4.4%) differ from this pattern:**
+- Handwritten libraries: `auth`, `auth/oauth2adapt`, `bigtable`, `compute/metadata`, `grafeas`, `profiler`, `vertexai` (single source root only)
+- Special multi-source module: `root-module` with `[civil, httpreplay, internal, rpcreplay]`
+
+We ultimately went with implementing default source root patterns in the tooling because of avoiding duplication and simplifying configuration. The tooling implements the standard pattern `[{name}, internal/generated/snippets/{name}]` as the default, libraries only specify `source_roots` when they differ from this pattern (8 exceptions), and the librarian.yaml configuration remains focused on non-standard configurations. This reduces the configuration file from ~350 lines of source roots to only the 8 exceptions that need explicit configuration.
