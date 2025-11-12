@@ -11,6 +11,18 @@ Your job is to help me think through architectural decisions, propose improvemen
 * `doc/todo.md` is the active implementation plan.
 * `README.md` is the high-level overview.
 
+**Repository locations**
+
+* `$HOME/code/googleapis/google-cloud-python` is the location of the google-cloud-python repository.
+* `$HOME/code/googleapis/google-cloud-go` is the location of the google-cloud-go repository.
+* `$HOME/code/googleapis/google-cloud-rust` is the location of the google-cloud-rust repository.
+* `$HOME/code/googleapis/googleapis` is the location of the googleapis repository.
+
+**Style**
+
+* CONTRIBUTING.md is the contributing guide
+* doc/howwewritego.md has my preference on Go style
+
 **How to respond**
 
 * Ask clarifying questions before providing solutions.
