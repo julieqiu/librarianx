@@ -26,55 +26,17 @@ import (
 	"strings"
 
 	"github.com/googleapis/librarian/internal/generate/golang/bazel"
-	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/execv"
 	"github.com/googleapis/librarian/internal/generate/golang/postprocessor"
 	"github.com/googleapis/librarian/internal/generate/golang/protoc"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // Test substitution vars.
 var (
-	postProcess  = postprocessor.PostProcess
-	bazelParse   = bazel.Parse
-	execvRun     = execv.Run
-	requestParse = request.ParseLibrary
+	postProcess = postprocessor.PostProcess
+	execvRun    = execv.Run
 )
-
-// Config holds the internal librariangen configuration for the generate command.
-type Config struct {
-	// LibrarianDir is the path to the librarian-tool input directory.
-	// It is expected to contain the generate-request.json file.
-	LibrarianDir string
-	// InputDir is the path to the .librarian/generator-input directory from the
-	// language repository.
-	InputDir string
-	// OutputDir is the path to the empty directory where librariangen writes
-	// its output.
-	OutputDir string
-	// SourceDir is the path to a complete checkout of the googleapis repository.
-	SourceDir string
-	// DisablePostProcessor controls whether the post-processor is run.
-	// This should always be false in production.
-	DisablePostProcessor bool
-}
-
-// Validate ensures that the configuration is valid.
-func (c *Config) Validate() error {
-	if c.LibrarianDir == "" {
-		return errors.New("librariangen: librarian directory must be set")
-	}
-	if c.InputDir == "" {
-		return errors.New("librariangen: input directory must be set")
-	}
-	if c.OutputDir == "" {
-		return errors.New("librariangen: output directory must be set")
-	}
-	if c.SourceDir == "" {
-		return errors.New("librariangen: source directory must be set")
-	}
-	return nil
-}
 
 // Generate is the main entrypoint for the `generate` command. It orchestrates
 // the entire generation process. The high-level steps are:
@@ -93,47 +55,32 @@ func (c *Config) Validate() error {
 // The `DisablePostProcessor` flag should always be false in production. It can be
 // true during development to inspect the "raw" protoc output before any
 // post-processing is applied.
-func Generate(ctx context.Context, cfg *Config) error {
-	if err := cfg.Validate(); err != nil {
-		return fmt.Errorf("librariangen: invalid configuration: %w", err)
-	}
+func Generate(ctx context.Context, library *config.Library, sourceDir, outputDir string) error {
 	slog.Debug("librariangen: generate command started")
 
-	generateReq, err := readGenerateReq(cfg.LibrarianDir)
-	if err != nil {
-		return fmt.Errorf("librariangen: failed to read request: %w", err)
-	}
-	repoConfig, err := config.LoadRepoConfig(cfg.LibrarianDir)
-	if err != nil {
-		return fmt.Errorf("librariangen: failed to load repo config: %w", err)
-	}
-	moduleConfig := repoConfig.GetModuleConfig(generateReq.ID)
-
-	if err := invokeProtoc(ctx, cfg, generateReq, moduleConfig); err != nil {
+	if err := invokeProtoc(ctx, sourceDir, outputDir, library); err != nil {
 		return fmt.Errorf("librariangen: gapic generation failed: %w", err)
 	}
-	if err := fixPermissions(cfg.OutputDir); err != nil {
+	if err := fixPermissions(outputDir); err != nil {
 		return fmt.Errorf("librariangen: failed to fix permissions: %w", err)
 	}
-	if err := flattenOutput(cfg.OutputDir); err != nil {
+	if err := flattenOutput(outputDir); err != nil {
 		return fmt.Errorf("librariangen: failed to flatten output: %w", err)
 	}
 
-	if err := applyModuleVersion(cfg.OutputDir, generateReq.ID, moduleConfig.GetModulePath()); err != nil {
+	if err := applyModuleVersion(outputDir, library.Name, library.GetModulePath()); err != nil {
 		return fmt.Errorf("librariangen: failed to apply module version to output directories: %w", err)
 	}
 
-	if !cfg.DisablePostProcessor {
-		slog.Debug("librariangen: post-processor enabled")
-		if len(generateReq.APIs) == 0 {
-			return errors.New("librariangen: no APIs in request")
-		}
-		moduleDir := filepath.Join(cfg.OutputDir, generateReq.ID)
-		if err := postProcess(ctx, generateReq, cfg.OutputDir, moduleDir, moduleConfig); err != nil {
-			return fmt.Errorf("librariangen: post-processing failed: %w", err)
-		}
+	slog.Debug("librariangen: post-processor enabled")
+	if len(library.APIs) == 0 {
+		return errors.New("librariangen: no APIs in request")
 	}
-	if err := deleteOutputPaths(cfg.OutputDir, moduleConfig.DeleteGenerationOutputPaths); err != nil {
+	moduleDir := filepath.Join(outputDir, library.Name)
+	if err := postProcess(ctx, library, outputDir, moduleDir); err != nil {
+		return fmt.Errorf("librariangen: post-processing failed: %w", err)
+	}
+	if err := deleteOutputPaths(outputDir, library.DeleteGenerationOutputPaths); err != nil {
 		return fmt.Errorf("librariangen: failed to delete paths specified in delete_generation_output_paths: %w", err)
 	}
 
@@ -144,46 +91,30 @@ func Generate(ctx context.Context, cfg *Config) error {
 // invokeProtoc handles the protoc GAPIC generation logic for the 'generate' CLI command.
 // It reads a request file, and for each API specified, it invokes protoc
 // to generate the client library and its corresponding .repo-metadata.json file.
-func invokeProtoc(ctx context.Context, cfg *Config, generateReq *request.Library, moduleConfig *config.ModuleConfig) error {
-	for _, api := range generateReq.APIs {
-		apiServiceDir := filepath.Join(cfg.SourceDir, api.Path)
+func invokeProtoc(ctx context.Context, sourceDir, outputDir string, library *config.Library) error {
+	for i, api := range library.APIs {
+		apiServiceDir := filepath.Join(sourceDir, api.Path)
 		slog.Info("processing api", "service_dir", apiServiceDir)
-		bazelConfig, err := bazelParse(apiServiceDir)
-		apiConfig := moduleConfig.GetAPIConfig(api.Path)
-		if apiConfig.HasDisableGAPIC() {
+		bazelConfig, err := bazel.Parse(apiServiceDir)
+		if api.HasDisableGAPIC() {
 			bazelConfig.DisableGAPIC()
 		}
 		if err != nil {
 			return fmt.Errorf("librariangen: failed to parse BUILD.bazel for %s: %w", apiServiceDir, err)
 		}
-		args, err := protoc.Build(generateReq, &api, bazelConfig, cfg.SourceDir, cfg.OutputDir, apiConfig.NestedProtos)
+		args, err := protoc.Build(api.Path, bazelConfig, sourceDir, outputDir, api.NestedProtos)
 		if err != nil {
-			return fmt.Errorf("librariangen: failed to build protoc command for api %q in library %q: %w", api.Path, generateReq.ID, err)
+			return fmt.Errorf("librariangen: failed to build protoc command for api %q in library %q: %w", api.Path, library.Name, err)
 		}
-		if err := execvRun(ctx, args, cfg.OutputDir); err != nil {
-			return fmt.Errorf("librariangen: protoc failed for api %q in library %q: %w", api.Path, generateReq.ID, err)
+		if err := execvRun(ctx, args, outputDir); err != nil {
+			return fmt.Errorf("librariangen: protoc failed for api %q in library %q: %w", api.Path, library.Name, err)
 		}
 		// Generate the .repo-metadata.json file for this API.
-		if err := generateRepoMetadata(cfg, &api, moduleConfig, bazelConfig); err != nil {
-			return fmt.Errorf("librariangen: failed to generate .repo-metadata.json for api %q in library %q: %w", api.Path, generateReq.ID, err)
+		if err := generateRepoMetadata(sourceDir, outputDir, &library.Apis[i], library, bazelConfig); err != nil {
+			return fmt.Errorf("librariangen: failed to generate .repo-metadata.json for api %q in library %q: %w", api.Path, library.Name, err)
 		}
 	}
 	return nil
-}
-
-// readGenerateReq reads generate-request.json from the librarian-tool input directory.
-// The request file tells librariangen which library and APIs to generate.
-// It is prepared by the Librarian tool and mounted at /librarian.
-func readGenerateReq(librarianDir string) (*request.Library, error) {
-	reqPath := filepath.Join(librarianDir, "generate-request.json")
-	slog.Debug("librariangen: reading generate request", "path", reqPath)
-
-	generateReq, err := requestParse(reqPath)
-	if err != nil {
-		return nil, err
-	}
-	slog.Debug("librariangen: successfully unmarshalled request", "library_id", generateReq.ID)
-	return generateReq, nil
 }
 
 // fixPermissions recursively finds all .go files in the given directory and sets

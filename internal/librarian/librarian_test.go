@@ -386,8 +386,9 @@ func TestRunAdd(t *testing.T) {
 		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "secretmanager")
 	}
 
-	wantApis := []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"}
-	if diff := cmp.Diff(wantApis, cfg.Libraries[0].Apis); diff != "" {
+	wantApis := []config.API{{"google/cloud/secretmanager/v1"}, {"google/cloud/secretmanager/v1beta2"}}
+
+	if diff := cmp.Diff(wantApis, cfg.Librarys[0].APIs); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
@@ -451,8 +452,8 @@ func TestRunAdd_WithLocation(t *testing.T) {
 		t.Errorf("got location %q, want %q", cfg.Libraries[0].Location, "storage/")
 	}
 
-	if len(cfg.Libraries[0].Apis) != 0 {
-		t.Errorf("got %d apis, want 0", len(cfg.Libraries[0].Apis))
+	if len(cfg.Librarys[0].APIs) != 0 {
+		t.Errorf("got %d apis, want 0", len(cfg.Librarys[0].APIs))
 	}
 }
 

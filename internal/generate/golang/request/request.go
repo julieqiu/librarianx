@@ -15,46 +15,7 @@
 // Package request provides types and functions for parsing librarian tool requests.
 package request
 
-import (
-	"encoding/json"
-	"fmt"
-	"os"
-)
-
-// Library is the combination of all the fields used by CLI requests and responses.
-// Each CLI command has its own request/response type, but they all use Library.
-type Library struct {
-	ID      string `json:"id,omitempty"`
-	Version string `json:"version,omitempty"`
-	APIs    []API  `json:"apis,omitempty"`
-	// SourcePaths are the directories to which librarian contributes code.
-	// For Go, this is typically the Go module directory.
-	SourcePaths []string `json:"source_roots,omitempty"`
-	// PreserveRegex are files/directories to leave untouched during generation.
-	// This is useful for preserving handwritten helper files or customizations.
-	PreserveRegex []string `json:"preserve_regex,omitempty"`
-	// RemoveRegex are files/directories to remove during generation.
-	RemoveRegex []string `json:"remove_regex,omitempty"`
-	// Changes are the changes being released (in a release request)
-	Changes []*Change `json:"changes,omitempty"`
-	// Specifying a tag format allows librarian to honor this format when creating
-	// a tag for the release of the library. The replacement values of {id} and {version}
-	// permitted to reference the values configured in the library. If not specified
-	// the assumed format is {id}-{version}. e.g., {id}/v{version}.
-	TagFormat string `yaml:"tag_format,omitempty" json:"tag_format,omitempty"`
-	// ReleaseTriggered indicates whether this library is being released (in a release request)
-	ReleaseTriggered bool `json:"release_triggered,omitempty"`
-}
-
-// API corresponds to a single API definition within a librarian request/response.
-type API struct {
-	// Path is the directory to the API definition in protos, within googleapis (e.g. google/cloud/functions/v2)
-	Path string `json:"path,omitempty"`
-	// ServiceConfig is the name of the service config file, relative to Path.
-	ServiceConfig string `json:"service_config,omitempty"`
-	// Status is the status of the API: "new" or "existing". This is only used in the configure command.
-	Status string `json:"status,omitempty"`
-}
+import "fmt"
 
 // Change represents a single commit change for a library.
 type Change struct {
@@ -65,19 +26,10 @@ type Change struct {
 	CommitHash    string `json:"commit_hash"`
 }
 
-// ParseLibrary reads a file from the given path and unmarshals
-// it into a Library struct. This is used for build and generate, where the requests
-// are simply the library, with no wrapping.
-func ParseLibrary(path string) (*Library, error) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		return nil, fmt.Errorf("librariangen: failed to read request file from %s: %w", path, err)
+// ConventionalCommit returns a conventional commit message string.
+func (c *Change) ConventionalCommit() string {
+	if c.Body == "" {
+		return fmt.Sprintf("%s: %s", c.Type, c.Subject)
 	}
-
-	var req Library
-	if err := json.Unmarshal(data, &req); err != nil {
-		return nil, fmt.Errorf("librariangen: failed to unmarshal request file %s: %w", path, err)
-	}
-
-	return &req, nil
+	return fmt.Sprintf("%s: %s\n\n%s", c.Type, c.Subject, c.Body)
 }

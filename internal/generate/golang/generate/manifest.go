@@ -23,7 +23,7 @@ import (
 	"strings"
 
 	"github.com/googleapis/librarian/internal/generate/golang/bazel"
-	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
 	"gopkg.in/yaml.v3"
 )
@@ -46,12 +46,12 @@ const gapicAutoLibraryType = "GAPIC_AUTO"
 // It gathers metadata from the service YAML, Bazel configuration, and Go module information.
 // The generated file is written to the appropriate location within the output directory,
 // following the expected structure for .repo-metadata.json files.
-func generateRepoMetadata(cfg *Config, api *request.API, moduleConfig *config.ModuleConfig, bazelConfig *bazel.Config) error {
+func generateRepoMetadata(sourceDir, outputDir string, api *config.API, moduleConfig *config.Library, bazelConfig *bazel.Config) error {
 	if api.ServiceConfig == "" {
 		slog.Info("librariangen: no service config for API, skipping .repo-metadata.json generation", "api_path", api.Path)
 		return nil
 	}
-	apiServiceDir := filepath.Join(cfg.SourceDir, api.Path)
+	apiServiceDir := filepath.Join(sourceDir, api.Path)
 	yamlPath := filepath.Join(apiServiceDir, api.ServiceConfig)
 
 	yamlFile, err := os.Open(yamlPath)
@@ -91,7 +91,7 @@ func generateRepoMetadata(cfg *Config, api *request.API, moduleConfig *config.Mo
 	}
 
 	// Determine output path from the import path.
-	outputPath := filepath.Join(cfg.OutputDir, filepath.FromSlash(importPath), ".repo-metadata.json")
+	outputPath := filepath.Join(outputDir, filepath.FromSlash(importPath), ".repo-metadata.json")
 
 	if err := os.MkdirAll(filepath.Dir(outputPath), 0755); err != nil {
 		return fmt.Errorf("librariangen: error creating directory for %s: %w", outputPath, err)

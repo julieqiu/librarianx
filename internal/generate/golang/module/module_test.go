@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
@@ -70,27 +70,27 @@ func TestGenerateInternalVersionFile(t *testing.T) {
 
 func TestUpdateSnippetsMetadata(t *testing.T) {
 	testdata := []struct {
-		name         string
-		lib          *request.Library
-		moduleConfig *config.ModuleConfig
-		files        map[string]string
-		want         map[string]string
-		wantErr      bool
+		name    string
+		lib     *config.Library
+		library *config.Library
+		files   map[string]string
+		want    map[string]string
+		wantErr bool
 	}{
 		{
 			name: "version placeholder",
-			lib: &request.Library{
-				ID:      "secretmanager",
+			lib: &config.Library{
+				Name:    "secretmanager",
 				Version: "2.3.4",
-				APIs: []request.API{
+				APIs: []config.API{
 					{
 						Path: "google/cloud/secretmanager/v1",
 					},
 				},
 			},
-			moduleConfig: &config.ModuleConfig{
+			library: &config.Library{
 				Name: "secretmanager",
-				APIs: []*config.APIConfig{
+				APIs: []config.API{
 					{
 						Path:         "google/cloud/secretmanager/v1",
 						ProtoPackage: "google.cloud.secretmanager.v1",
@@ -106,18 +106,18 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 		},
 		{
 			name: "existing version",
-			lib: &request.Library{
-				ID:      "workflows",
+			lib: &config.Library{
+				Name:    "workflows",
 				Version: "5.6.7",
-				APIs: []request.API{
+				APIs: []config.API{
 					{
 						Path: "google/cloud/workflows/v1",
 					},
 				},
 			},
-			moduleConfig: &config.ModuleConfig{
+			library: &config.Library{
 				Name: "workflows",
-				APIs: []*config.APIConfig{
+				APIs: []config.API{
 					{
 						Path:         "google/cloud/workflows/v1",
 						ProtoPackage: "google.cloud.workflows.v1",
@@ -133,18 +133,18 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 		},
 		{
 			name: "file not found",
-			lib: &request.Library{
-				ID:      "secretmanager",
+			lib: &config.Library{
+				Name:    "secretmanager",
 				Version: "2.3.4",
-				APIs: []request.API{
+				APIs: []config.API{
 					{
 						Path: "google/cloud/secretmanager/v1",
 					},
 				},
 			},
-			moduleConfig: &config.ModuleConfig{
+			library: &config.Library{
 				Name: "secretmanager",
-				APIs: []*config.APIConfig{
+				APIs: []config.API{
 					{
 						Path:         "google/cloud/secretmanager/v1",
 						ProtoPackage: "google.cloud.secretmanager.v1",
@@ -156,18 +156,18 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 		},
 		{
 			name: "no version string",
-			lib: &request.Library{
-				ID:      "secretmanager",
+			lib: &config.Library{
+				Name:    "secretmanager",
 				Version: "2.3.4",
-				APIs: []request.API{
+				APIs: []config.API{
 					{
 						Path: "google/cloud/secretmanager/v1",
 					},
 				},
 			},
-			moduleConfig: &config.ModuleConfig{
+			library: &config.Library{
 				Name: "secretmanager",
-				APIs: []*config.APIConfig{
+				APIs: []config.API{
 					{
 						Path:         "google/cloud/secretmanager/v1",
 						ProtoPackage: "google.cloud.secretmanager.v1",
@@ -182,10 +182,10 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 		},
 		{
 			name: "multiple api versions and a sub-API",
-			lib: &request.Library{
-				ID:      "secretmanager",
+			lib: &config.Library{
+				Name:    "secretmanager",
 				Version: "1.0.0",
-				APIs: []request.API{
+				APIs: []config.API{
 					{
 						Path: "google/cloud/secretmanager/v1",
 					},
@@ -197,9 +197,9 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 					},
 				},
 			},
-			moduleConfig: &config.ModuleConfig{
+			library: &config.Library{
 				Name: "secretmanager",
-				APIs: []*config.APIConfig{
+				APIs: []config.API{
 					{
 						Path:         "google/cloud/secretmanager/v1",
 						ProtoPackage: "google.cloud.secretmanager.v1",
@@ -242,7 +242,7 @@ func TestUpdateSnippetsMetadata(t *testing.T) {
 				}
 			}
 
-			if err := UpdateSnippetsMetadata(tc.lib, sourceDir, destDir, tc.moduleConfig); (err != nil) != tc.wantErr {
+			if err := UpdateSnippetsMetadata(tc.lib, sourceDir, destDir, tc.library); (err != nil) != tc.wantErr {
 				t.Errorf("UpdateSnippetsMetadata() error = %v, wantErr %v", err, tc.wantErr)
 			}
 

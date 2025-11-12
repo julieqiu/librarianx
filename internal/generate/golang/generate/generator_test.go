@@ -21,16 +21,14 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
+	"github.com/googleapis/librarian/internal/config"
 )
 
 // testEnv encapsulates a temporary test environment.
 type testEnv struct {
-	tmpDir       string
-	librarianDir string
-	sourceDir    string
-	outputDir    string
+	tmpDir    string
+	sourceDir string
+	outputDir string
 }
 
 // newTestEnv creates a new test environment.
@@ -38,21 +36,12 @@ func newTestEnv(t *testing.T) *testEnv {
 	t.Helper()
 	tmpDir := t.TempDir()
 	e := &testEnv{tmpDir: tmpDir}
-	e.librarianDir = filepath.Join(tmpDir, "librarian")
 	e.sourceDir = filepath.Join(tmpDir, "source")
 	e.outputDir = filepath.Join(tmpDir, "output")
-	generatorInputDir := filepath.Join(e.librarianDir, config.GeneratorInputDir)
-	for _, dir := range []string{e.librarianDir, e.sourceDir, e.outputDir, generatorInputDir} {
+	for _, dir := range []string{e.sourceDir, e.outputDir} {
 		if err := os.Mkdir(dir, 0755); err != nil {
 			t.Fatalf("failed to create dir %s: %v", dir, err)
 		}
-	}
-
-	// An empty config file is valid, and any modules that are requested will
-	// just get default values.
-	configFile := filepath.Join(generatorInputDir, config.RepoConfigFile)
-	if err := os.WriteFile(configFile, make([]byte, 0), 0644); err != nil {
-		t.Fatalf("failed to create file %s: %v", configFile, err)
 	}
 
 	return e
@@ -63,15 +52,6 @@ func (e *testEnv) cleanup(t *testing.T) {
 	t.Helper()
 	if err := os.RemoveAll(e.tmpDir); err != nil {
 		t.Fatalf("failed to remove temp dir: %v", err)
-	}
-}
-
-// writeRequestFile writes a generate-request.json file.
-func (e *testEnv) writeRequestFile(t *testing.T, content string) {
-	t.Helper()
-	p := filepath.Join(e.librarianDir, "generate-request.json")
-	if err := os.WriteFile(p, []byte(content), 0644); err != nil {
-		t.Fatalf("failed to write request file: %v", err)
 	}
 }
 
@@ -107,14 +87,20 @@ type postProcessRecorder struct {
 	called bool
 }
 
-func (r *postProcessRecorder) record(ctx context.Context, req *request.Library, outputDir, moduleDir string, moduleConfig *config.ModuleConfig) error {
+func (r *postProcessRecorder) record(ctx context.Context, library *config.Library, outputDir, moduleDir string, moduleConfig *config.Library) error {
 	r.called = true
 	return nil
 }
 
 func TestGenerate(t *testing.T) {
-	singleAPIRequest := `{"id": "foo", "apis": [{"path": "api/v1"}]}`
-	multiAPIRequest := `{"id": "foo", "apis": [{"path": "api/v1"}, {"path": "api/v2"}]}`
+	singleAPIRequest := &config.Library{
+		Name: "foo",
+		APIs: []config.API{{Path: "api/v1"}},
+	}
+	multiAPIRequest := &config.Library{
+		Name: "foo",
+		APIs: []config.API{{Path: "api/v1"}, {Path: "api/v2"}},
+	}
 	validBazel := `
 go_gapic_library(
     name = "v1_gapic",
@@ -132,15 +118,16 @@ go_gapic_library(
 `
 	tests := []struct {
 		name               string
+		library            *config.Library
 		setup              func(e *testEnv, t *testing.T)
 		protocErr          error
 		wantErr            bool
 		wantProtocRunCount int
 	}{
 		{
-			name: "happy path",
+			name:    "happy path",
+			library: singleAPIRequest,
 			setup: func(e *testEnv, t *testing.T) {
-				e.writeRequestFile(t, singleAPIRequest)
 				e.writeBazelFile(t, "api/v1", validBazel)
 				e.writeServiceYAML(t, "api/v1", "My API")
 			},
@@ -148,9 +135,9 @@ go_gapic_library(
 			wantProtocRunCount: 1,
 		},
 		{
-			name: "multi-api request uses first api config",
+			name:    "multi-api request uses first api config",
+			library: multiAPIRequest,
 			setup: func(e *testEnv, t *testing.T) {
-				e.writeRequestFile(t, multiAPIRequest)
 				e.writeBazelFile(t, "api/v1", validBazel)
 				e.writeServiceYAML(t, "api/v1", "First API")
 				e.writeBazelFile(t, "api/v2", validBazel)
@@ -160,31 +147,23 @@ go_gapic_library(
 			wantProtocRunCount: 2,
 		},
 		{
-			name: "missing request file",
-			setup: func(e *testEnv, t *testing.T) {
-				e.writeBazelFile(t, "api/v1", validBazel)
-			},
+			name:    "missing bazel file",
+			library: singleAPIRequest,
+			setup:   func(e *testEnv, t *testing.T) {},
 			wantErr: true,
 		},
 		{
-			name: "missing bazel file",
+			name:    "invalid bazel config",
+			library: singleAPIRequest,
 			setup: func(e *testEnv, t *testing.T) {
-				e.writeRequestFile(t, singleAPIRequest)
-			},
-			wantErr: true,
-		},
-		{
-			name: "invalid bazel config",
-			setup: func(e *testEnv, t *testing.T) {
-				e.writeRequestFile(t, singleAPIRequest)
 				e.writeBazelFile(t, "api/v1", invalidBazel)
 			},
 			wantErr: true,
 		},
 		{
-			name: "protoc fails",
+			name:    "protoc fails",
+			library: singleAPIRequest,
 			setup: func(e *testEnv, t *testing.T) {
-				e.writeRequestFile(t, singleAPIRequest)
 				e.writeBazelFile(t, "api/v1", validBazel)
 				e.writeServiceYAML(t, "api/v1", "My API")
 			},
@@ -194,12 +173,12 @@ go_gapic_library(
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			e := newTestEnv(t)
 			defer e.cleanup(t)
 
-			tt.setup(e, t)
+			test.setup(e, t)
 
 			var protocRunCount int
 			execvRun = func(ctx context.Context, args []string, dir string) error {
@@ -207,32 +186,24 @@ go_gapic_library(
 				if args[0] != want {
 					t.Errorf("protocRun called with %s; want %s", args[0], want)
 				}
-				if tt.protocErr == nil {
+				if test.protocErr == nil {
 					// Simulate protoc creating the nested directory.
 					if err := os.MkdirAll(filepath.Join(e.outputDir, "cloud.google.com", "go"), 0755); err != nil {
 						t.Fatalf("failed to create nested dir: %v", err)
 					}
 				}
 				protocRunCount++
-				return tt.protocErr
+				return test.protocErr
 			}
 			recorder := &postProcessRecorder{}
 			postProcess = recorder.record
 
-			cfg := &Config{
-				LibrarianDir:         e.librarianDir,
-				InputDir:             "fake-input",
-				OutputDir:            e.outputDir,
-				SourceDir:            e.sourceDir,
-				DisablePostProcessor: tt.name != "happy path" && tt.name != "multi-api request uses first api config",
+			if err := Generate(t.Context(), test.library, e.sourceDir, e.outputDir); (err != nil) != test.wantErr {
+				t.Errorf("Generate() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if err := Generate(context.Background(), cfg); (err != nil) != tt.wantErr {
-				t.Errorf("Generate() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			if protocRunCount != tt.wantProtocRunCount {
-				t.Errorf("protocRun called = %v; want %v", protocRunCount, tt.wantProtocRunCount)
+			if protocRunCount != test.wantProtocRunCount {
+				t.Errorf("protocRun called = %v; want %v", protocRunCount, test.wantProtocRunCount)
 			}
 		})
 	}
@@ -375,10 +346,10 @@ func TestConfig_Validate(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.Validate(); (err != nil) != tt.wantErr {
-				t.Errorf("Config.Validate() error = %v, wantErr %v", err, tt.wantErr)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.cfg.Validate(); (err != nil) != test.wantErr {
+				t.Errorf("Config.Validate() error = %v, wantErr %v", err, test.wantErr)
 			}
 		})
 	}
@@ -430,11 +401,11 @@ func TestApplyModuleVersion(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 
-			for _, file := range tt.setupFiles {
+			for _, file := range test.setupFiles {
 				fullFile := filepath.Join(tmpDir, file)
 				fullDir := filepath.Dir(fullFile)
 				if err := os.MkdirAll(fullDir, 0755); err != nil {
@@ -445,15 +416,15 @@ func TestApplyModuleVersion(t *testing.T) {
 				}
 			}
 
-			if err := applyModuleVersion(tmpDir, tt.libraryID, tt.modulePath); (err != nil) != tt.wantErr {
-				t.Errorf("applyModuleVersion() error = %v, wantErr %v", err, tt.wantErr)
+			if err := applyModuleVersion(tmpDir, test.libraryID, test.modulePath); (err != nil) != test.wantErr {
+				t.Errorf("applyModuleVersion() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if tt.wantErr {
+			if test.wantErr {
 				return
 			}
-			assertPresent(t, tmpDir, tt.wantPresent)
-			assertAbsent(t, tmpDir, tt.wantAbsent)
+			assertPresent(t, tmpDir, test.wantPresent)
+			assertAbsent(t, tmpDir, test.wantAbsent)
 		})
 	}
 }

@@ -27,8 +27,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
+	"github.com/googleapis/librarian/internal/config"
 )
 
 var (
@@ -66,21 +65,20 @@ func GenerateInternalVersionFile(moduleDir, version string) error {
 
 // UpdateSnippetsMetadata updates all snippet files to populate the $VERSION placeholder, reading them from
 // the sourceDir and writing them to the destDir. These two may be the same, but don't have to be.
-func UpdateSnippetsMetadata(lib *request.Library, sourceDir string, destDir string, moduleConfig *config.ModuleConfig) error {
-	moduleName := lib.ID
+func UpdateSnippetsMetadata(lib *config.Library, sourceDir string, destDir string, moduleConfig *config.Library) error {
+	moduleName := lib.Name
 	version := lib.Version
 
 	slog.Debug("librariangen: updating snippets metadata")
 	snpDir := filepath.Join("internal", "generated", "snippets", moduleName)
 
-	for _, api := range lib.APIs {
-		apiConfig := moduleConfig.GetAPIConfig(api.Path)
-		clientDirName, err := apiConfig.GetClientDirectory()
+	for _, api := range moduleConfig.APIs {
+		clientDirName, err := api.GetClientDirectory(moduleName)
 		if err != nil {
 			return err
 		}
 
-		snippetFile := "snippet_metadata." + apiConfig.GetProtoPackage() + ".json"
+		snippetFile := "snippet_metadata." + api.GetProtoPackage() + ".json"
 		path := filepath.Join(snpDir, clientDirName, snippetFile)
 		slog.Info("librariangen: updating snippet metadata file", "path", path)
 		read, err := os.ReadFile(filepath.Join(sourceDir, path))

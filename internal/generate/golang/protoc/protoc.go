@@ -19,8 +19,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // ConfigProvider is an interface that describes the configuration needed
@@ -41,9 +39,9 @@ type ConfigProvider interface {
 }
 
 // Build constructs the full protoc command arguments for a given API.
-func Build(lib *request.Library, api *request.API, config ConfigProvider, sourceDir, outputDir string, nestedProtos []string) ([]string, error) {
+func Build(apiPath string, config ConfigProvider, sourceDir, outputDir string, nestedProtos []string) ([]string, error) {
 	// Gather all .proto files in the API's source directory (but not in subdirectories).
-	apiServiceDir := filepath.Join(sourceDir, api.Path)
+	apiServiceDir := filepath.Join(sourceDir, apiPath)
 	entries, err := os.ReadDir(apiServiceDir)
 	if err != nil {
 		return nil, fmt.Errorf("librariangen: failed to read API source directory %s: %w", apiServiceDir, err)

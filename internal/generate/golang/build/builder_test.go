@@ -21,56 +21,42 @@ import (
 	"path/filepath"
 	"slices"
 	"testing"
+
+	"github.com/googleapis/librarian/internal/config"
 )
 
 // testEnv encapsulates a temporary test environment.
 type testEnv struct {
-	tmpDir       string
-	librarianDir string
-	repoDir      string
+	tmpDir  string
+	repoDir string
 }
 
 func TestBuild(t *testing.T) {
-	singleAPIRequest := `{"id": "foo", "apis": [{"path": "api/v1"}]}`
+	library := &config.Library{Name: "foo"}
+
 	tests := []struct {
 		name           string
-		setup          func(e *testEnv, t *testing.T)
 		buildErr       error
-		testErr        error
 		wantErr        bool
 		wantExecvCount int
 	}{
 		{
-			name: "happy path",
-			setup: func(e *testEnv, t *testing.T) {
-				e.writeRequestFile(t, singleAPIRequest)
-			},
+			name:           "happy path",
 			wantErr:        false,
 			wantExecvCount: 1,
 		},
 		{
-			name:    "missing request file",
-			wantErr: true,
-		},
-		{
-			name: "go build fails",
-			setup: func(e *testEnv, t *testing.T) {
-				e.writeRequestFile(t, singleAPIRequest)
-			},
+			name:           "go build fails",
 			buildErr:       errors.New("build failed"),
 			wantErr:        true,
 			wantExecvCount: 1,
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			e := newTestEnv(t)
 			defer e.cleanup(t)
-
-			if tt.setup != nil {
-				tt.setup(e, t)
-			}
 
 			var execvCount int
 			execvRun = func(ctx context.Context, args []string, dir string) error {
@@ -81,24 +67,19 @@ func TestBuild(t *testing.T) {
 				}
 				switch {
 				case slices.Equal(args, []string{"go", "build", "./..."}):
-					return tt.buildErr
+					return test.buildErr
 				default:
 					t.Errorf("execv called with unexpected args %v", args)
 					return nil
 				}
 			}
 
-			cfg := &Config{
-				LibrarianDir: e.librarianDir,
-				RepoDir:      e.repoDir,
+			if err := Build(t.Context(), e.repoDir, library); (err != nil) != test.wantErr {
+				t.Errorf("Build() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if err := Build(context.Background(), cfg); (err != nil) != tt.wantErr {
-				t.Errorf("Build() error = %v, wantErr %v", err, tt.wantErr)
-			}
-
-			if execvCount != tt.wantExecvCount {
-				t.Errorf("execv called = %v; want %v", execvCount, tt.wantExecvCount)
+			if execvCount != test.wantExecvCount {
+				t.Errorf("execv called = %v; want %v", execvCount, test.wantExecvCount)
 			}
 		})
 	}
@@ -112,26 +93,16 @@ func (e *testEnv) cleanup(t *testing.T) {
 	}
 }
 
-// writeRequestFile writes a builf-request.json file.
-func (e *testEnv) writeRequestFile(t *testing.T, content string) {
-	t.Helper()
-	p := filepath.Join(e.librarianDir, "build-request.json")
-	if err := os.WriteFile(p, []byte(content), 0644); err != nil {
-		t.Fatalf("failed to write request file: %v", err)
-	}
-}
-
 // newTestEnv creates a new test environment.
 func newTestEnv(t *testing.T) *testEnv {
 	t.Helper()
 	tmpDir := t.TempDir()
-	e := &testEnv{tmpDir: tmpDir}
-	e.librarianDir = filepath.Join(tmpDir, "librarian")
-	e.repoDir = filepath.Join(tmpDir, "repo")
-	for _, dir := range []string{e.librarianDir, e.repoDir} {
-		if err := os.Mkdir(dir, 0755); err != nil {
-			t.Fatalf("failed to create dir %s: %v", dir, err)
-		}
+	e := &testEnv{
+		tmpDir:  tmpDir,
+		repoDir: filepath.Join(tmpDir, "repo"),
+	}
+	if err := os.Mkdir(e.repoDir, 0755); err != nil {
+		t.Fatalf("failed to create dir %s: %v", e.repoDir, err)
 	}
 
 	return e

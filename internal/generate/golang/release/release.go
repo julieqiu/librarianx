@@ -28,7 +28,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
 	"github.com/googleapis/librarian/internal/generate/golang/module"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
@@ -56,16 +55,10 @@ func Stage(ctx context.Context, cfg *Config) error {
 		return writeErrorResponse(cfg.LibrarianDir, fmt.Errorf("librariangen: failed to unmarshal request: %w", err))
 	}
 
-	repoConfig, err := config.LoadRepoConfig(cfg.LibrarianDir)
-	if err != nil {
-		return fmt.Errorf("librariangen: failed to load repo config: %w", err)
-	}
-
 	for _, lib := range req.Libraries {
 		if !lib.ReleaseTriggered {
 			continue
 		}
-		moduleConfig := repoConfig.GetModuleConfig(lib.ID)
 
 		var moduleDir string
 		if isRootRepoModule(lib) {
@@ -80,7 +73,11 @@ func Stage(ctx context.Context, cfg *Config) error {
 		if err := module.GenerateInternalVersionFile(moduleDir, lib.Version); err != nil {
 			return writeErrorResponse(cfg.LibrarianDir, fmt.Errorf("librariangen: failed to update version for %s: %w", lib.ID, err))
 		}
-		if err := module.UpdateSnippetsMetadata(lib, cfg.RepoDir, cfg.OutputDir, moduleConfig); err != nil {
+		var apis []config.API
+		for _, api := range lib.APIs {
+			apis = append(apis, config.API{Path: api.Path})
+		}
+		if err := module.UpdateSnippetsMetadata(lib, cfg.RepoDir, cfg.OutputDir, &config.Library{Name: lib.ID, APIs: apis}); err != nil {
 			return writeErrorResponse(cfg.LibrarianDir, fmt.Errorf("librariangen: failed to update snippet version for %s: %w", lib.ID, err))
 		}
 	}
@@ -99,12 +96,12 @@ var changelogSections = []struct {
 	{Type: "docs", Section: "Documentation"},
 }
 
-func updateChangelog(cfg *Config, lib *request.Library, t time.Time) error {
+func updateChangelog(cfg *Config, lib *config.Library, t time.Time) error {
 	var relativeChangelogPath string
 	if isRootRepoModule(lib) {
 		relativeChangelogPath = "CHANGES.md"
 	} else {
-		relativeChangelogPath = filepath.Join(lib.ID, "CHANGES.md")
+		relativeChangelogPath = filepath.Join(lib.Name, "CHANGES.md")
 	}
 	slog.Info("librariangen: updating changelog", "path", relativeChangelogPath)
 
@@ -122,7 +119,7 @@ func updateChangelog(cfg *Config, lib *request.Library, t time.Time) error {
 
 	var newEntry bytes.Buffer
 
-	tag := strings.NewReplacer("{id}", lib.ID, "{version}", lib.Version).Replace(lib.TagFormat)
+	tag := strings.NewReplacer("{id}", lib.Name, "{version}", lib.Version).Replace(lib.TagFormat)
 	encodedTag := strings.ReplaceAll(tag, "/", "%2F")
 	releaseURL := "https://github.com/googleapis/google-cloud-go/releases/tag/" + encodedTag
 	date := t.Format("2006-01-02")

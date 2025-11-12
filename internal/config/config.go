@@ -76,15 +76,70 @@ type Library struct {
 	// Name is the library name (e.g., "secretmanager").
 	Name string `yaml:"name"`
 
+	// Version is the version of the library.
+	Version string `yaml:"version,omitempty"`
+
 	// CopyrightYear is the copyright year for the library.
 	CopyrightYear int `yaml:"copyright_year,omitempty"`
 
-	// Apis is the list of googleapis paths for generated librarys.
-	Apis []string `yaml:"apis,omitempty"`
+	// APIs is the list of googleapis paths for generated librarys.
+	APIs []API `yaml:"apis,omitempty"`
 
 	// Location is the explicit filesystem path (optional).
 	// If not set and apis is present, computed from generate.output template.
 	Location string `yaml:"location,omitempty"`
+
+	// ModulePathVersion is the major version for the overall module, e.g. "v2"
+	// to create a module path of cloud.google.com/go/{Name}/v2
+	//
+	// The data for this field comes from .librarian/generator-input/repo-config.yaml.
+	ModulePathVersion string `yaml:"module_path_version,omitempty"`
+
+	// DeleteGenerationOutputPaths specifies paths (files or directories) to
+	// be deleted from the output directory at the end of generation. This is for files
+	// which it is difficult to prevent from being generated, but which shouldn't appear
+	// in the repo.
+	//
+	// The data for this field comes from .librarian/generator-input/repo-config.yaml.
+	DeleteGenerationOutputPaths []string `yaml:"delete_generation_output_paths,omitempty"`
+}
+
+// API corresponds to a single API definition within a librarian request/response.
+type API struct {
+	// Path is the directory to the API definition in protos, within googleapis (e.g. google/cloud/functions/v2)
+	Path string `yaml:"path,omitempty"`
+
+	// Status indicates whether this API is new or existing (used during configure).
+	Status string `yaml:"status,omitempty"`
+
+	// ServiceConfig is the name of the service config file, relative to Path.
+	ServiceConfig string `yaml:"service_config,omitempty"`
+
+	// ProtoPackage is the protobuf package, when it doesn't match the Path
+	// (after replacing slash with period).
+	//
+	// The data for this field comes from .librarian/generator-input/repo-config.yaml.
+	ProtoPackage string `yaml:"proto_package,omitempty"`
+
+	// ClientDirectory is the directory containing the client code, relative to the module root.
+	// (This is currently only used to find snippet metadata files.)
+	//
+	// The data for this field comes from .librarian/generator-input/repo-config.yaml.
+	ClientDirectory string `yaml:"client_directory,omitempty"`
+
+	// DisableGAPIC is a flag to disable GAPIC generation for an API, overriding
+	// settings from the BUILD.bazel file.
+	//
+	// The data for this field comes from .librarian/generator-input/repo-config.yaml.
+	DisableGAPIC bool `yaml:"disable_gapic,omitempty"`
+
+	// NestedProtos lists any nested proto files (under Path) that should be included
+	// in generation. Currently, only proto files *directly* under Path (as opposed to
+	// in subdirectories) are passed to protoc; this setting allows selected nested
+	// protos to be included as well.
+	//
+	// The data for this field comes from .librarian/generator-input/repo-config.yaml.
+	NestedProtos []string `yaml:"nested_protos,omitempty"`
 }
 
 // Read reads the configuration from a file.
@@ -207,28 +262,46 @@ func (c *Config) Add(name string, apis []string, location string) error {
 		return fmt.Errorf("library must have at least one API or a location")
 	}
 
+	var apiStructs []API
+	for _, api := range apis {
+		apiStructs = append(apiStructs, API{Path: api})
+	}
+
 	// Check if library with same name and apis already exists
 	for _, ed := range c.Libraries {
-		if ed.Name == name && stringSliceEqual(ed.Apis, apis) {
+		if ed.Name == name && apiPathsEqual(ed.APIs, apis) {
 			return fmt.Errorf("library %q with apis %v already exists", name, apis)
 		}
 	}
 
 	c.Libraries = append(c.Libraries, Library{
 		Name: name,
-		Apis: apis,
+		APIs: apiStructs,
 	})
 
 	return nil
 }
 
-// stringSliceEqual checks if two string slices are equal.
-func stringSliceEqual(a, b []string) bool {
+// apiSliceEqual checks if two API slices are equal.
+func apiSliceEqual(a, b []API) bool {
 	if len(a) != len(b) {
 		return false
 	}
 	for i := range a {
-		if a[i] != b[i] {
+		if a[i].Path != b[i].Path {
+			return false
+		}
+	}
+	return true
+}
+
+// apiPathsEqual checks if an API slice matches a string slice of paths.
+func apiPathsEqual(apis []API, paths []string) bool {
+	if len(apis) != len(paths) {
+		return false
+	}
+	for i := range apis {
+		if apis[i].Path != paths[i] {
 			return false
 		}
 	}
@@ -249,10 +322,10 @@ func (e *Library) ExpandTemplate(template string) (string, error) {
 
 	// Replace {api.path} with API path (requires exactly one API)
 	if strings.Contains(result, "{api.path}") {
-		if len(e.Apis) != 1 {
-			return "", fmt.Errorf("template uses {api.path} but library %q has %d APIs (expected exactly 1)", e.Name, len(e.Apis))
+		if len(e.APIs) != 1 {
+			return "", fmt.Errorf("template uses {api.path} but library %q has %d APIs (expected exactly 1)", e.Name, len(e.APIs))
 		}
-		result = strings.ReplaceAll(result, "{api.path}", e.Apis[0])
+		result = strings.ReplaceAll(result, "{api.path}", e.APIs[0].Path)
 	}
 
 	return result, nil
@@ -267,4 +340,68 @@ func (e *Library) GeneratedLocation(generateOutput string) (string, error) {
 		return e.Location, nil
 	}
 	return e.ExpandTemplate(generateOutput)
+}
+
+// GetModulePath returns the module path for the library, applying
+// any configured version.
+func (l *Library) GetModulePath() string {
+	prefix := "cloud.google.com/go/" + l.Name
+	if l.ModulePathVersion != "" {
+		return prefix + "/" + l.ModulePathVersion
+	}
+
+	// No override: assume implicit v1.
+	return prefix
+}
+
+// GetProtoPackage returns the protobuf package for the API config,
+// which is derived from the path unless overridden.
+func (a *API) GetProtoPackage() string {
+	if a.ProtoPackage != "" {
+		return a.ProtoPackage
+	}
+
+	// No override: derive the value.
+	return strings.ReplaceAll(a.Path, "/", ".")
+}
+
+// GetClientDirectory returns the directory for the clients of this
+// API, relative to the module root.
+func (a *API) GetClientDirectory(libraryName string) (string, error) {
+	if a.ClientDirectory != "" {
+		return a.ClientDirectory, nil
+	}
+
+	// No override: derive the value.
+	startOfModuleName := strings.Index(a.Path, libraryName+"/")
+	if startOfModuleName == -1 {
+		return "", fmt.Errorf("librariangen: unexpected API path format: %s", a.Path)
+	}
+
+	// google/spanner/v1 => ["google", "spanner", "v1"]
+	// google/spanner/admin/instance/v1 => ["google", "spanner", "admin", "instance", "v1"]
+	parts := strings.Split(a.Path, "/")
+	moduleIndex := -1
+	for i, p := range parts {
+		if p == libraryName {
+			moduleIndex = i
+			break
+		}
+	}
+	if moduleIndex == -1 {
+		return "", fmt.Errorf("librariangen: module name '%s' not found in API path '%s'", libraryName, a.Path)
+	}
+
+	// Remove everything up to and include the module name.
+	// google/spanner/v1 => ["v1"]
+	// google/spanner/admin/instance/v1 => ["admin", "instance", "v1"]
+	parts = parts[moduleIndex+1:]
+	parts[len(parts)-1] = "api" + parts[len(parts)-1]
+	return strings.Join(parts, "/"), nil
+}
+
+// HasDisableGAPIC returns a value saying whether GAPIC generation is explicitly
+// disabled for this module.
+func (a *API) HasDisableGAPIC() bool {
+	return a.DisableGAPIC
 }

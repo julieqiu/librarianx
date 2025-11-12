@@ -15,84 +15,46 @@
 package request
 
 import (
-	"os"
-	"path/filepath"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
-func TestParseLibrary(t *testing.T) {
-	testCases := []struct {
-		name    string
-		content string
-		want    *Library
-		wantErr bool
+func TestChange_ConventionalCommit(t *testing.T) {
+	tests := []struct {
+		name   string
+		change *Change
+		want   string
 	}{
 		{
-			name: "valid request",
-			content: `{
-				"id": "asset",
-				"version": "1.15.0",
-				"apis": [
-					{
-						"path": "google/cloud/asset/v1",
-						"service_config": "cloudasset_v1.yaml"
-					}
-				],
-				"source_roots": ["asset/apiv1"],
-				"preserve_regex": ["asset/apiv1/foo.go"],
-				"remove_regex": ["asset/apiv1/bar.go"]
-			}`,
-			want: &Library{
-				ID:      "asset",
-				Version: "1.15.0",
-				APIs: []API{
-					{
-						Path:          "google/cloud/asset/v1",
-						ServiceConfig: "cloudasset_v1.yaml",
-					},
-				},
-				SourcePaths:   []string{"asset/apiv1"},
-				PreserveRegex: []string{"asset/apiv1/foo.go"},
-				RemoveRegex:   []string{"asset/apiv1/bar.go"},
+			name: "feat",
+			change: &Change{
+				Type:    "feat",
+				Subject: "add new feature",
 			},
-			wantErr: false,
+			want: "feat: add new feature",
 		},
 		{
-			name:    "malformed json",
-			content: `{"id": "foo",`,
-			wantErr: true,
+			name: "fix with scope",
+			change: &Change{
+				Type:    "fix",
+				Subject: "fix bug",
+			},
+			want: "fix: fix bug",
+		},
+		{
+			name: "docs with body",
+			change: &Change{
+				Type:    "docs",
+				Subject: "update documentation",
+				Body:    "add more details",
+			},
+			want: "docs: update documentation\n\nadd more details",
 		},
 	}
-
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
-			tmpDir := t.TempDir()
-			reqPath := filepath.Join(tmpDir, "generate-request.json")
-			if err := os.WriteFile(reqPath, []byte(tc.content), 0644); err != nil {
-				t.Fatalf("failed to write test file: %v", err)
-			}
-
-			got, err := ParseLibrary(reqPath)
-
-			if (err != nil) != tc.wantErr {
-				t.Errorf("Parse() error = %v, wantErr %v", err, tc.wantErr)
-				return
-			}
-
-			if !tc.wantErr {
-				if diff := cmp.Diff(tc.want, got); diff != "" {
-					t.Errorf("Parse() mismatch (-want +got):\n%s", diff)
-				}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if got := test.change.ConventionalCommit(); got != test.want {
+				t.Errorf("Change.ConventionalCommit() = %v, want %v", got, test.want)
 			}
 		})
-	}
-}
-
-func TestParseLibrary_FileNotFound(t *testing.T) {
-	_, err := ParseLibrary("non-existent-file.json")
-	if err == nil {
-		t.Error("Parse() expected error for non-existent file, got nil")
 	}
 }

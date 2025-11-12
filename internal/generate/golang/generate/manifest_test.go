@@ -22,7 +22,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/librarian/internal/generate/golang/bazel"
-	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
@@ -59,32 +59,32 @@ func TestReleaseLevel(t *testing.T) {
 		{"default_stable", "", "", "stable"},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			docGoPath := filepath.Join(tmpDir, "doc.go")
-			if tt.docGoContent != "" {
-				if err := os.WriteFile(docGoPath, []byte(tt.docGoContent), 0644); err != nil {
+			if test.docGoContent != "" {
+				if err := os.WriteFile(docGoPath, []byte(test.docGoContent), 0644); err != nil {
 					t.Fatalf("writing doc.go: %v", err)
 				}
 			}
 
-			bazelConfig, err := bazel.Parse(createFakeBazelFile(t, tt.bazelRL))
+			bazelConfig, err := bazel.Parse(createFakeBazelFile(t, test.bazelRL))
 			if err != nil {
 				t.Fatalf("bazel.Parse() failed: %v", err)
 			}
 
 			importPath := "cloud.google.com/go/foo/apiv1"
-			if tt.name == "import_path_alpha" {
+			if test.name == "import_path_alpha" {
 				importPath = "cloud.google.com/go/foo/apiv1alpha1"
 			}
-			if tt.name == "import_path_beta" {
+			if test.name == "import_path_beta" {
 				importPath = "cloud.google.com/go/foo/apiv1beta"
 			}
 
 			got := releaseLevel(importPath, bazelConfig)
-			if got != tt.want {
-				t.Errorf("releaseLevel() = %q, want %q", got, tt.want)
+			if got != test.want {
+				t.Errorf("releaseLevel() = %q, want %q", got, test.want)
 			}
 		})
 	}

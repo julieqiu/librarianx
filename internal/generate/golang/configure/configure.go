@@ -29,7 +29,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/execv"
 	"github.com/googleapis/librarian/internal/generate/golang/module"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
@@ -54,69 +54,25 @@ var (
 	responseSave = saveResponse
 )
 
-// Config holds the internal librariangen configuration for the configure command.
-type Config struct {
-	// LibrarianDir is the path to the librarian-tool input directory.
-	// It is expected to contain the configure-request.json file.
-	LibrarianDir string
-	// InputDir is the path to the .librarian/generator-input directory from the
-	// language repository.
-	InputDir string
-	// OutputDir is the path to the empty directory where librariangen writes
-	// its output for global files.
-	OutputDir string
-	// SourceDir is the path to a complete checkout of the googleapis repository.
-	SourceDir string
-	// RepoDir is the path to a read-only mount of existing relevant (global or library-specific)
-	// files in the language repository.
-	RepoDir string
-}
-
-// Validate ensures that the configuration is valid.
-func (c *Config) Validate() error {
-	if c.LibrarianDir == "" {
-		return errors.New("librariangen: librarian directory must be set")
-	}
-	if c.InputDir == "" {
-		return errors.New("librariangen: input directory must be set")
-	}
-	if c.OutputDir == "" {
-		return errors.New("librariangen: output directory must be set")
-	}
-	if c.SourceDir == "" {
-		return errors.New("librariangen: source directory must be set")
-	}
-	if c.RepoDir == "" {
-		return errors.New("librariangen: repo directory must be set")
-	}
-	return nil
-}
-
 // Configure configures a new library, or a new API within an existing library.
 // This is effectively the entry point of the "configure" container command.
-func Configure(ctx context.Context, cfg *Config) error {
-	if err := cfg.Validate(); err != nil {
-		return fmt.Errorf("librariangen: invalid configuration: %w", err)
-	}
+func Configure(ctx context.Context, librarianDir, outputDir, sourceDir, repoDir string, cfg *config.Config) (*config.Library, error) {
 	slog.Debug("librariangen: configure command started")
-	configureReq, err := readConfigureReq(cfg.LibrarianDir)
+
+	library, api, err := findLibraryAndAPIToConfigure(cfg)
 	if err != nil {
-		return fmt.Errorf("librariangen: failed to read request: %w", err)
-	}
-	library, api, err := findLibraryAndAPIToConfigure(configureReq)
-	if err != nil {
-		return err
+		return nil, err
 	}
 
-	response, err := configureLibrary(ctx, cfg, library, api)
+	response, err := configureLibrary(ctx, outputDir, sourceDir, repoDir, library, api)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if err := saveConfigureResp(response, cfg.LibrarianDir); err != nil {
-		return fmt.Errorf("librariangen: failed to save response: %w", err)
+	if err := saveConfigureResp(response, librarianDir); err != nil {
+		return nil, fmt.Errorf("librariangen: failed to save response: %w", err)
 	}
 
-	return nil
+	return response, nil
 }
 
 // readConfigureReq reads generate-request.json from the librarian-tool input directory.
@@ -147,34 +103,40 @@ func saveConfigureResp(resp *request.Library, librarianDir string) error {
 	return nil
 }
 
-// findLibraryAndAPIToConfigure examines a request, and finds a single library
+// findLibraryAndAPIToConfigure examines a config, and finds a single library
 // containing a single new API, returning both of them. An error is returned
 // if there is not exactly one library containing exactly one new API.
-func findLibraryAndAPIToConfigure(req *Request) (*request.Library, *request.API, error) {
-	var library *request.Library
-	var api *request.API
-	for _, candidate := range req.Libraries {
-		var newAPI *request.API
-		for _, api := range candidate.APIs {
-			if api.Status == NewAPIStatus {
+func findLibraryAndAPIToConfigure(cfg *config.Config) (*config.Library, *config.API, error) {
+	var (
+		library *config.Library
+		api     *config.API
+	)
+
+	for i := range cfg.Libraries {
+		candidate := &cfg.Libraries[i]
+		var newAPI *config.API
+		for j := range candidate.APIs {
+			if candidate.APIs[j].Status == NewAPIStatus {
 				if newAPI != nil {
-					return nil, nil, fmt.Errorf("librariangen: library %s has multiple new APIs", candidate.ID)
+					return nil, nil, fmt.Errorf("librariangen: library %s has multiple new APIs", candidate.Name)
 				}
-				newAPI = &api
+				newAPI = &candidate.APIs[j]
 			}
 		}
 
 		if newAPI != nil {
 			if library != nil {
-				return nil, nil, fmt.Errorf("librariangen: multiple libraries have new APIs (at least %s and %s)", library.ID, candidate.ID)
+				return nil, nil, fmt.Errorf("librariangen: multiple libraries have new APIs (at least %s and %s)", library.Name, candidate.Name)
 			}
 			library = candidate
 			api = newAPI
 		}
 	}
+
 	if library == nil {
 		return nil, nil, fmt.Errorf("librariangen: no libraries have new APIs")
 	}
+
 	return library, api, nil
 }
 
@@ -184,20 +146,8 @@ func findLibraryAndAPIToConfigure(req *Request) (*request.Library, *request.API,
 // returning the configure-response... it just happens to be "the library being configured"
 // at the moment. If the format of configure-response ever changes, we'll need fewer
 // changes if we don't make too many assumptions now.
-func configureLibrary(ctx context.Context, cfg *Config, library *request.Library, api *request.API) (*request.Library, error) {
-	// It's just *possible* the new path has a manually configured
-	// client directory - but even if not, RepoConfig has the logic
-	// for figuring out the client directory. Even if the new path
-	// doesn't have a custom configuration, we can use this to
-	// work out the module path, e.g. if there's a major version other
-	// than v1.
-	repoConfig, err := config.LoadRepoConfig(cfg.LibrarianDir)
-	if err != nil {
-		return nil, err
-	}
-	var moduleConfig = repoConfig.GetModuleConfig(library.ID)
-
-	moduleRoot := filepath.Join(cfg.OutputDir, library.ID)
+func configureLibrary(ctx context.Context, outputDir, sourceDir, repoDir string, library *config.Library, api *config.API) (*config.Library, error) {
+	moduleRoot := filepath.Join(outputDir, library.Name)
 	if err := os.Mkdir(moduleRoot, 0755); err != nil {
 		return nil, err
 	}
@@ -209,20 +159,16 @@ func configureLibrary(ctx context.Context, cfg *Config, library *request.Library
 	// - internal/version.go
 	// - go.mod
 	if len(library.APIs) == 1 {
-		library.SourcePaths = []string{library.ID, "internal/generated/snippets/" + library.ID}
-		library.RemoveRegex = []string{"^internal/generated/snippets/" + library.ID + "/"}
-		library.TagFormat = "{id}/v{version}"
-		library.Version = "0.0.0"
-		if err := generateReadme(cfg, library); err != nil {
+		if err := generateReadme(outputDir, sourceDir, library); err != nil {
 			return nil, err
 		}
-		if err := generateChanges(cfg, library); err != nil {
+		if err := generateChanges(outputDir, library); err != nil {
 			return nil, err
 		}
 		if err := module.GenerateInternalVersionFile(moduleRoot, library.Version); err != nil {
 			return nil, err
 		}
-		if err := goModEditReplaceInSnippets(ctx, cfg, moduleConfig.GetModulePath(), "../../../"+library.ID); err != nil {
+		if err := goModEditReplaceInSnippets(ctx, outputDir, repoDir, library.GetModulePath(), "../../../"+library.Name); err != nil {
 			return nil, err
 		}
 		// The postprocessor for the generate command will run "go mod init" and "go mod tidy"
@@ -231,13 +177,7 @@ func configureLibrary(ctx context.Context, cfg *Config, library *request.Library
 	}
 
 	// Whether it's a new library or not, generate a version file for the new client directory.
-	if err := generateClientVersionFile(cfg, moduleConfig, api.Path); err != nil {
-		return nil, err
-	}
-
-	// Make changes in the Library object, to communicate state file changes back to
-	// Librarian.
-	if err := updateLibraryState(moduleConfig, library, api); err != nil {
+	if err := generateClientVersionFile(outputDir, sourceDir, library, api.Path); err != nil {
 		return nil, err
 	}
 
@@ -247,9 +187,9 @@ func configureLibrary(ctx context.Context, cfg *Config, library *request.Library
 // generateReadme generates a README.md file in the module's root directory,
 // using the service config for the first API in the library to obtain the
 // service's title.
-func generateReadme(cfg *Config, library *request.Library) error {
-	readmePath := filepath.Join(cfg.OutputDir, library.ID, "README.md")
-	serviceYAMLPath := filepath.Join(cfg.SourceDir, library.APIs[0].Path, library.APIs[0].ServiceConfig)
+func generateReadme(outputDir, sourceDir string, library *config.Library) error {
+	readmePath := filepath.Join(outputDir, library.Name, "README.md")
+	serviceYAMLPath := filepath.Join(sourceDir, library.APIs[0].Path, library.APIs[0].ServiceConfig)
 	title, err := readTitleFromServiceYAML(serviceYAMLPath)
 	if err != nil {
 		return fmt.Errorf("librariangen: failed to read title from service yaml: %w", err)
@@ -267,28 +207,37 @@ func generateReadme(cfg *Config, library *request.Library) error {
 		ModulePath string
 	}{
 		Name:       title,
-		ModulePath: "cloud.google.com/go/" + library.ID,
+		ModulePath: "cloud.google.com/go/" + library.Name,
 	}
 	return t.Execute(readmeFile, readmeData)
 }
 
 // generateChanges generates a CHANGES.md file at the root of the module.
-func generateChanges(cfg *Config, library *request.Library) error {
-	changesPath := filepath.Join(cfg.OutputDir, library.ID, "CHANGES.md")
+func generateChanges(outputDir string, library *config.Library) error {
+	changesPath := filepath.Join(outputDir, library.Name, "CHANGES.md")
 	slog.Info("librariangen: creating file", "path", changesPath)
 	content := "# Changes\n"
 	return os.WriteFile(changesPath, []byte(content), 0644)
 }
 
 // generateClientVersionFile creates a version.go file for a client.
-func generateClientVersionFile(cfg *Config, moduleConfig *config.ModuleConfig, apiPath string) error {
-	var apiConfig = moduleConfig.GetAPIConfig(apiPath)
-	clientDir, err := apiConfig.GetClientDirectory()
+func generateClientVersionFile(outputDir, sourceDir string, moduleConfig *config.Library, apiPath string) error {
+	var apiConfig *config.API
+	for _, a := range moduleConfig.APIs {
+		if a.Path == apiPath {
+			apiConfig = &config.API{Path: a.Path}
+			break
+		}
+	}
+	if apiConfig == nil {
+		apiConfig = &config.API{Path: apiPath}
+	}
+	clientDir, err := apiConfig.GetClientDirectory(moduleConfig.Name)
 	if err != nil {
 		return err
 	}
 
-	fullClientDir := filepath.Join(cfg.OutputDir, moduleConfig.Name, clientDir)
+	fullClientDir := filepath.Join(outputDir, moduleConfig.Name, clientDir)
 	if err := os.MkdirAll(fullClientDir, 0755); err != nil {
 		return err
 	}
@@ -314,15 +263,15 @@ func generateClientVersionFile(cfg *Config, moduleConfig *config.ModuleConfig, a
 }
 
 // goModEditReplaceInSnippets copies internal/generated/snippets/go.mod from
-// cfg.RepoDir to cfg.OutputDir, then runs go mod edit to replace the specified
+// repoDir to outputDir, then runs go mod edit to replace the specified
 // modulePath with relativeDir which is expected to the location of the module
 // relative to internal/generated/snippets.
-func goModEditReplaceInSnippets(ctx context.Context, cfg *Config, modulePath, relativeDir string) error {
-	outputSnippetsDir := filepath.Join(cfg.OutputDir, "internal", "generated", "snippets")
+func goModEditReplaceInSnippets(ctx context.Context, outputDir, repoDir, modulePath, relativeDir string) error {
+	outputSnippetsDir := filepath.Join(outputDir, "internal", "generated", "snippets")
 	if err := os.MkdirAll(outputSnippetsDir, 0755); err != nil {
 		return err
 	}
-	copyRepoFileToOutput(cfg, "internal/generated/snippets/go.mod")
+	copyRepoFileToOutput(outputDir, repoDir, "internal/generated/snippets/go.mod")
 	replaceStr := fmt.Sprintf("%s=%s", modulePath, relativeDir)
 	args := []string{"go", "mod", "edit", "-replace", replaceStr}
 	slog.Info("librariangen: running go mod edit -replace", "replace", replaceStr, "directory", outputSnippetsDir)
@@ -330,10 +279,10 @@ func goModEditReplaceInSnippets(ctx context.Context, cfg *Config, modulePath, re
 }
 
 // copyRepoFileToOutput copies a single file (identified via path)
-// from cfg.RepoDir to cfg.OutputDir.
-func copyRepoFileToOutput(cfg *Config, path string) error {
-	src := filepath.Join(cfg.RepoDir, path)
-	dst := filepath.Join(cfg.OutputDir, path)
+// from repoDir to outputDir.
+func copyRepoFileToOutput(outputDir, repoDir, path string) error {
+	src := filepath.Join(repoDir, path)
+	dst := filepath.Join(outputDir, path)
 	data, err := os.ReadFile(src)
 	if err != nil {
 		return err
@@ -343,9 +292,18 @@ func copyRepoFileToOutput(cfg *Config, path string) error {
 
 // updateLibraryState updates the library to add any required removal/preservation
 // regexes for the specified API.
-func updateLibraryState(moduleConfig *config.ModuleConfig, library *request.Library, api *request.API) error {
-	apiConfig := moduleConfig.GetAPIConfig(api.Path)
-	clientDirectory, err := apiConfig.GetClientDirectory()
+func updateLibraryState(moduleConfig *config.Library, library *configureLibrary, api *configureAPI) error {
+	var apiConfig *config.API
+	for _, a := range moduleConfig.APIs {
+		if a.Path == api.Path {
+			apiConfig = &config.API{Path: a.Path}
+			break
+		}
+	}
+	if apiConfig == nil {
+		apiConfig = &config.API{Path: api.Path}
+	}
+	clientDirectory, err := apiConfig.GetClientDirectory(moduleConfig.Name)
 	if err != nil {
 		return err
 	}
@@ -394,7 +352,7 @@ func readTitleFromServiceYAML(path string) (string, error) {
 // contains all libraries.
 type Request struct {
 	// All libraries configured within the repository.
-	Libraries []*request.Library `json:"libraries"`
+	Libraries []*configureLibrary `json:"libraries"`
 }
 
 // Parse reads a configure-request.json file from the given path and unmarshals

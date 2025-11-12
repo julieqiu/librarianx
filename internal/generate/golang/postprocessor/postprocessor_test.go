@@ -24,7 +24,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/configure"
 	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
@@ -116,9 +116,9 @@ func TestPostProcess(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		tt := tt
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		test := test
+		t.Run(test.name, func(t *testing.T) {
 			outputDir := filepath.Join(t.TempDir(), "output")
 			moduleDir := filepath.Join(outputDir, "chronicle")
 			if err := os.MkdirAll(moduleDir, 0755); err != nil {
@@ -133,7 +133,7 @@ func TestPostProcess(t *testing.T) {
 				return
 			}
 
-			for _, snippetFile := range tt.snippetFiles {
+			for _, snippetFile := range test.snippetFiles {
 				fullPath := filepath.Join(snippetsDir, snippetFile)
 				specificSnippetDir := filepath.Dir(fullPath)
 				if err := os.MkdirAll(specificSnippetDir, 0755); err != nil {
@@ -160,7 +160,7 @@ func TestPostProcess(t *testing.T) {
 				if len(args) > 2 && args[1] == "mod" && args[2] == "tidy" {
 					goModTidyCalled = true
 				}
-				return tt.mockexecvRun(ctx, args, dir)
+				return test.mockexecvRun(ctx, args, dir)
 			}
 
 			req := &request.Library{
@@ -172,7 +172,7 @@ func TestPostProcess(t *testing.T) {
 				},
 				Version: "1.0.0",
 			}
-			if tt.singleNewAPI {
+			if test.singleNewAPI {
 				req = &request.Library{
 					ID: "chronicle",
 					APIs: []request.API{
@@ -182,18 +182,18 @@ func TestPostProcess(t *testing.T) {
 				}
 			}
 
-			if tt.noVersion {
+			if test.noVersion {
 				req.Version = ""
 			}
 
 			moduleConfig := &config.ModuleConfig{
 				Name: "chronicle",
 			}
-			if err := PostProcess(context.Background(), req, outputDir, moduleDir, moduleConfig); (err != nil) != tt.wantErr {
-				t.Fatalf("PostProcess() error = %v, wantErr %v", err, tt.wantErr)
+			if err := PostProcess(context.Background(), req, outputDir, moduleDir, moduleConfig); (err != nil) != test.wantErr {
+				t.Fatalf("PostProcess() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if tt.singleNewAPI && !tt.wantErr {
+			if test.singleNewAPI && !test.wantErr {
 				if !goModInitCalled {
 					t.Error("go mod init was not called")
 				}
@@ -201,7 +201,7 @@ func TestPostProcess(t *testing.T) {
 					t.Error("go mod tidy was not called")
 				}
 			}
-			if !tt.singleNewAPI {
+			if !test.singleNewAPI {
 				if goModInitCalled {
 					t.Error("go mod init was called unexpectedly")
 				}
@@ -210,18 +210,18 @@ func TestPostProcess(t *testing.T) {
 				}
 			}
 
-			if tt.wantErr {
+			if test.wantErr {
 				return
 			}
 
 			// Determine which files should have been modified based on the request.
-			for _, snippetFile := range tt.snippetFiles {
+			for _, snippetFile := range test.snippetFiles {
 				path := filepath.Join(snippetsDir, snippetFile)
 				read, err := os.ReadFile(path)
 				if err != nil {
 					t.Fatalf("Couldn't read snippet metadata file %s: %v", snippetFile, err)
 				}
-				wantModified := slices.Contains(tt.wantModifiedSnippetFiles, snippetFile)
+				wantModified := slices.Contains(test.wantModifiedSnippetFiles, snippetFile)
 				gotModified := strings.Contains(string(read), req.Version)
 				if wantModified != gotModified {
 					t.Errorf("incorrect snippet metadata modification for %s; got = %v; want = %v", snippetFile, gotModified, wantModified)
@@ -239,4 +239,95 @@ func createDirectories(t *testing.T, directories ...string) error {
 		}
 	}
 	return nil
+}
+
+func TestGoModInitialization(t *testing.T) {
+	for _, test := range []struct {
+		name               string
+		existingGoMod      bool
+		mockExecvError     error
+		wantGoModInitCall  bool
+		wantGoModTidyCall  bool
+		wantErr            bool
+	}{
+		{
+			name:              "new module without go.mod",
+			existingGoMod:     false,
+			wantGoModInitCall: true,
+			wantGoModTidyCall: true,
+			wantErr:           false,
+		},
+		{
+			name:              "existing module with go.mod",
+			existingGoMod:     true,
+			wantGoModInitCall: false,
+			wantGoModTidyCall: false,
+			wantErr:           false,
+		},
+		{
+			name:              "go mod init fails",
+			existingGoMod:     false,
+			mockExecvError:    errors.New("go mod init failed"),
+			wantGoModInitCall: true,
+			wantGoModTidyCall: false,
+			wantErr:           true,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			outputDir := t.TempDir()
+			moduleDir := filepath.Join(outputDir, "testmodule")
+			if err := os.MkdirAll(moduleDir, 0755); err != nil {
+				t.Fatal(err)
+			}
+
+			if test.existingGoMod {
+				goModPath := filepath.Join(moduleDir, "go.mod")
+				if err := os.WriteFile(goModPath, []byte("module example.com/test\n"), 0644); err != nil {
+					t.Fatal(err)
+				}
+			}
+
+			var goModInitCalled, goModTidyCalled bool
+			originalExecvRun := execvRun
+			execvRun = func(ctx context.Context, args []string, dir string) error {
+				if len(args) >= 3 && args[0] == "go" && args[1] == "mod" {
+					if args[2] == "init" {
+						goModInitCalled = true
+						if test.mockExecvError != nil {
+							return test.mockExecvError
+						}
+					}
+					if args[2] == "tidy" {
+						goModTidyCalled = true
+					}
+				}
+				if args[0] == "goimports" {
+					return nil
+				}
+				return nil
+			}
+			defer func() { execvRun = originalExecvRun }()
+
+			library := &config.Library{
+				Name: "testmodule",
+				APIs: []config.API{{Path: "google/cloud/test/v1"}},
+			}
+			moduleConfig := &config.Library{
+				Name: "testmodule",
+			}
+
+			err := PostProcess(t.Context(), library, outputDir, moduleDir, moduleConfig)
+			if (err != nil) != test.wantErr {
+				t.Errorf("mismatch (-want +got):\nwantErr: %v\ngot: %v", test.wantErr, err)
+			}
+
+			if goModInitCalled != test.wantGoModInitCall {
+				t.Errorf("go mod init called: got %v, want %v", goModInitCalled, test.wantGoModInitCall)
+			}
+
+			if goModTidyCalled != test.wantGoModTidyCall {
+				t.Errorf("go mod tidy called: got %v, want %v", goModTidyCalled, test.wantGoModTidyCall)
+			}
+		})
+	}
 }

@@ -25,7 +25,6 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/librarian/internal/generate/golang/execv"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // mockConfigProvider is a mock implementation of the ConfigProvider interface for testing.
@@ -66,7 +65,6 @@ func TestBuild(t *testing.T) {
 		name          string
 		apiPath       string
 		apiServiceDir string
-		reqID         string
 		config        mockConfigProvider
 		nestedProtos  []string
 		want          []string
@@ -74,7 +72,6 @@ func TestBuild(t *testing.T) {
 		{
 			name:    "go_grpc_library rule",
 			apiPath: "google/cloud/workflows/v1",
-			reqID:   "workflows",
 			config: mockConfigProvider{
 				gapicImportPath:   "cloud.google.com/go/workflows/apiv1;workflows",
 				transport:         "grpc",
@@ -110,7 +107,6 @@ func TestBuild(t *testing.T) {
 		{
 			name:    "go_proto_library rule with legacy gRPC",
 			apiPath: "google/cloud/secretmanager/v1beta2",
-			reqID:   "secretmanager",
 			config: mockConfigProvider{
 				gapicImportPath:   "cloud.google.com/go/secretmanager/apiv1beta2;secretmanager",
 				transport:         "grpc",
@@ -143,7 +139,6 @@ func TestBuild(t *testing.T) {
 		{
 			name:    "go_proto_library rule without legacy gRPC",
 			apiPath: "google/cloud/secretmanager/v1beta2",
-			reqID:   "secretmanager",
 			config: mockConfigProvider{
 				gapicImportPath:   "cloud.google.com/go/secretmanager/apiv1beta2;secretmanager",
 				transport:         "grpc",
@@ -176,7 +171,6 @@ func TestBuild(t *testing.T) {
 			// the config is used to say "don't generate GAPIC".
 			name:    "proto-only",
 			apiPath: "google/cloud/secretmanager/v1beta2",
-			reqID:   "secretmanager",
 			config: mockConfigProvider{
 				hasGoGRPC: false,
 				hasGAPIC:  false,
@@ -191,21 +185,14 @@ func TestBuild(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			req := &request.Library{
-				ID: tt.reqID,
-			}
-			api := &request.API{
-				Path: tt.apiPath,
-			}
-
-			got, err := Build(req, api, &tt.config, sourceDir, "/output", tt.nestedProtos)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := Build(test.apiPath, &test.config, sourceDir, "/output", test.nestedProtos)
 			if err != nil {
 				t.Fatalf("Build() failed: %v", err)
 			}
 
-			if diff := cmp.Diff(tt.want, got); diff != "" {
+			if diff := cmp.Diff(test.want, got); diff != "" {
 				t.Errorf("Build() mismatch (-want +got):\n%s", diff)
 			}
 		})

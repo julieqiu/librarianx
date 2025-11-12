@@ -20,12 +20,12 @@ import (
 	_ "embed"
 	"fmt"
 	"log/slog"
+	"os"
+	"path/filepath"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
-	"github.com/googleapis/librarian/internal/generate/golang/configure"
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/execv"
 	"github.com/googleapis/librarian/internal/generate/golang/module"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // Test substitution vars.
@@ -39,19 +39,15 @@ var (
 //  1. Modify the generated snippets to specify the current version
 //  2. Run `goimports` to format the code.
 //  3. For new modules only, run "go mod init" and "go mod tidy"
-func PostProcess(ctx context.Context, req *request.Library, outputDir, moduleDir string, moduleConfig *config.ModuleConfig) error {
+func PostProcess(ctx context.Context, library *config.Library, outputDir, moduleDir string) error {
 	slog.Debug("librariangen: starting post-processing", "directory", moduleDir)
 
-	if len(req.APIs) == 0 {
+	if len(library.APIs) == 0 {
 		slog.Debug("librariangen: no APIs in request, skipping module initialization")
 		return nil
 	}
 
-	if req.Version == "" {
-		return fmt.Errorf("librariangen: no version for API: %s (required for post-processing)", req.ID)
-	}
-
-	if err := module.UpdateSnippetsMetadata(req, outputDir, outputDir, moduleConfig); err != nil {
+	if err := module.UpdateSnippetsMetadata(library, outputDir, outputDir); err != nil {
 		return fmt.Errorf("librariangen: failed to update snippets metadata: %w", err)
 	}
 
@@ -68,8 +64,9 @@ func PostProcess(ctx context.Context, req *request.Library, outputDir, moduleDir
 	//
 	// We can't even run "go mod init" from configure and just "go mod tidy" here, as files written
 	// by the configure command aren't available during generate.
-	if len(req.APIs) == 1 && req.APIs[0].Status == configure.NewAPIStatus {
-		if err := goModInit(ctx, moduleDir, moduleConfig.GetModulePath()); err != nil {
+	goModPath := filepath.Join(moduleDir, "go.mod")
+	if _, err := os.Stat(goModPath); os.IsNotExist(err) {
+		if err := goModInit(ctx, moduleDir, library.GetModulePath()); err != nil {
 			return fmt.Errorf("librariangen: failed to run 'go mod init': %w", err)
 		}
 		if err := goModTidy(ctx, moduleDir); err != nil {

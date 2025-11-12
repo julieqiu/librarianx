@@ -645,8 +645,8 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	}
 
 	// Check if this is a handwritten library (no APIs)
-	if len(library.Apis) == 0 {
-		return fmt.Errorf("library %q is handwritten (no apis field), nothing to generate", libraryName)
+	if len(library.APIs) == 0 {
+		return fmt.Errorf("librarian: cannot generate library %q: no APIs configured (handwritten libraries should not call generate)", library.Name)
 	}
 
 	// Configure the library if not already configured

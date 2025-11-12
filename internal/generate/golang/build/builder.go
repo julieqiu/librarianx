@@ -17,55 +17,26 @@ package build
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"log/slog"
 	"path/filepath"
 
+	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/generate/golang/execv"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
 )
 
 // Test substitution vars.
 var (
-	execvRun     = execv.Run
-	requestParse = request.ParseLibrary
+	execvRun = execv.Run
 )
-
-// Config holds the internal librariangen configuration for the build command.
-type Config struct {
-	// LibrarianDir is the path to the librarian-tool input directory.
-	// It is expected to contain the build-request.json file.
-	LibrarianDir string
-	// RepoDir is the path to ehte entire language repository.
-	RepoDir string
-}
-
-// Validate ensures that the configuration is valid.
-func (c *Config) Validate() error {
-	if c.LibrarianDir == "" {
-		return errors.New("librariangen: librarian directory must be set")
-	}
-	if c.RepoDir == "" {
-		return errors.New("librariangen: repo directory must be set")
-	}
-	return nil
-}
 
 // Build is the main entrypoint for the `build` command. It runs `go build`
 // and then `go test`.
-func Build(ctx context.Context, cfg *Config) error {
-	if err := cfg.Validate(); err != nil {
-		return fmt.Errorf("librariangen: invalid configuration: %w", err)
-	}
-	slog.Debug("librariangen: generate command started")
+func Build(ctx context.Context, repoDir string, library *config.Library) error {
+	slog.Debug("librariangen: build command started", "library", library.Name)
 
-	buildReq, err := readBuildReq(cfg.LibrarianDir)
-	if err != nil {
-		return fmt.Errorf("librariangen: failed to read request: %w", err)
-	}
-	moduleDir := filepath.Join(cfg.RepoDir, buildReq.ID)
-	if err := goBuild(ctx, moduleDir, buildReq.ID); err != nil {
+	moduleDir := filepath.Join(repoDir, library.Name)
+	if err := goBuild(ctx, moduleDir, library.Name); err != nil {
 		return fmt.Errorf("librariangen: failed to run 'go build': %w", err)
 	}
 	// TODO(https://github.com/googleapis/google-cloud-go/issues/13335): run unit tests
@@ -77,19 +48,4 @@ func goBuild(ctx context.Context, dir, module string) error {
 	slog.Info("librariangen: building", "module", module)
 	args := []string{"go", "build", "./..."}
 	return execvRun(ctx, args, dir)
-}
-
-// readBuildReq reads generate-request.json from the librarian-tool input directory.
-// The request file tells librariangen which library and APIs to generate.
-// It is prepared by the Librarian tool and mounted at /librarian.
-func readBuildReq(librarianDir string) (*request.Library, error) {
-	reqPath := filepath.Join(librarianDir, "build-request.json")
-	slog.Debug("librariangen: reading build request", "path", reqPath)
-
-	buildReq, err := requestParse(reqPath)
-	if err != nil {
-		return nil, err
-	}
-	slog.Debug("librariangen: successfully unmarshalled request", "library_id", buildReq.ID)
-	return buildReq, nil
 }
