@@ -91,28 +91,28 @@ func TestConvert(t *testing.T) {
 
 func TestParseImage(t *testing.T) {
 	for _, test := range []struct {
-		name     string
-		input    string
-		wantImg  string
-		wantTag  string
+		name    string
+		input   string
+		wantImg string
+		wantTag string
 	}{
 		{
-			name:     "with tag",
-			input:    "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go:latest",
-			wantImg:  "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go",
-			wantTag:  "latest",
+			name:    "with tag",
+			input:   "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go:latest",
+			wantImg: "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go",
+			wantTag: "latest",
 		},
 		{
-			name:     "without tag",
-			input:    "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go",
-			wantImg:  "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go",
-			wantTag:  "latest",
+			name:    "without tag",
+			input:   "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go",
+			wantImg: "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go",
+			wantTag: "latest",
 		},
 		{
-			name:     "with version tag",
-			input:    "gcr.io/my-project/my-image:v1.2.3",
-			wantImg:  "gcr.io/my-project/my-image",
-			wantTag:  "v1.2.3",
+			name:    "with version tag",
+			input:   "gcr.io/my-project/my-image:v1.2.3",
+			wantImg: "gcr.io/my-project/my-image",
+			wantTag: "v1.2.3",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

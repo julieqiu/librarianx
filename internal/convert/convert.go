@@ -53,14 +53,14 @@ type OldState struct {
 
 // OldLibrary represents a library in the old format.
 type OldLibrary struct {
-	ID                   string   `yaml:"id"`
-	Version              string   `yaml:"version"`
-	LastGeneratedCommit  string   `yaml:"last_generated_commit"`
-	APIs                 []OldAPI `yaml:"apis"`
-	SourceRoots          []string `yaml:"source_roots"`
-	PreserveRegex        []string `yaml:"preserve_regex"`
-	RemoveRegex          []string `yaml:"remove_regex"`
-	TagFormat            string   `yaml:"tag_format"`
+	ID                  string   `yaml:"id"`
+	Version             string   `yaml:"version"`
+	LastGeneratedCommit string   `yaml:"last_generated_commit"`
+	APIs                []OldAPI `yaml:"apis"`
+	SourceRoots         []string `yaml:"source_roots"`
+	PreserveRegex       []string `yaml:"preserve_regex"`
+	RemoveRegex         []string `yaml:"remove_regex"`
+	TagFormat           string   `yaml:"tag_format"`
 }
 
 // OldAPI represents an API in the old format.
@@ -76,10 +76,10 @@ type OldRepoConfig struct {
 
 // OldModule represents a module in repo-config.yaml.
 type OldModule struct {
-	Name                        string        `yaml:"name"`
-	ModulePathVersion           string        `yaml:"module_path_version"`
+	Name                        string         `yaml:"name"`
+	ModulePathVersion           string         `yaml:"module_path_version"`
 	APIs                        []OldModuleAPI `yaml:"apis"`
-	DeleteGenerationOutputPaths []string      `yaml:"delete_generation_output_paths"`
+	DeleteGenerationOutputPaths []string       `yaml:"delete_generation_output_paths"`
 }
 
 // OldModuleAPI represents an API in a module.
@@ -315,16 +315,16 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 					for _, moduleAPI := range moduleConfig.APIs {
 						if moduleAPI.Path == api.Path {
 							if moduleAPI.ClientDirectory != "" {
-								newAPI.ClientDirectory = moduleAPI.ClientDirectory
+								newAPI.Go.ClientDirectory = moduleAPI.ClientDirectory
 							}
 							if moduleAPI.DisableGapic {
-								newAPI.DisableGapic = true
+								newAPI.Go.DisableGapic = true
 							}
 							if moduleAPI.ProtoPackage != "" {
-								newAPI.ProtoPackage = moduleAPI.ProtoPackage
+								newAPI.Go.ProtoPackage = moduleAPI.ProtoPackage
 							}
 							if len(moduleAPI.NestedProtos) > 0 {
-								newAPI.NestedProtos = moduleAPI.NestedProtos
+								newAPI.Go.NestedProtos = moduleAPI.NestedProtos
 							}
 							break
 						}
@@ -361,7 +361,7 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 
 // parseImage splits a container image string into image and tag.
 // Example: "us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go:latest"
-// Returns: ("us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go", "latest")
+// Returns: ("us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go", "latest").
 func parseImage(image string) (string, string) {
 	parts := strings.Split(image, ":")
 	if len(parts) == 2 {

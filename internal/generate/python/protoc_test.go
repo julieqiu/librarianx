@@ -56,9 +56,9 @@ func TestBuildGapicCommand(t *testing.T) {
 		wantErr      bool
 	}{
 		{
-			name:         "basic GAPIC",
-			apiPath:      "google/cloud/language/v1",
-			outputDir:    "/output",
+			name:      "basic GAPIC",
+			apiPath:   "google/cloud/language/v1",
+			outputDir: "/output",
 			opts: &GapicOptions{
 				GrpcServiceConfig: "language_grpc_service_config.json",
 				ServiceYAML:       "language_v1.yaml",

@@ -20,32 +20,32 @@ import "fmt"
 
 // SourceExtended represents an external source repository with additional fields.
 type SourceExtended struct {
-	Source      `yaml:",inline"`
+	Source        `yaml:",inline"`
 	ExtractedName string `yaml:"extracted_name,omitempty"`
 	Subdir        string `yaml:"subdir,omitempty"`
 }
 
 // SourcesExtended contains references to all external source repositories.
 type SourcesExtended struct {
-	Googleapis   *SourceExtended `yaml:"googleapis,omitempty"`
-	Showcase     *SourceExtended `yaml:"showcase,omitempty"`
-	Discovery    *SourceExtended `yaml:"discovery,omitempty"`
-	ProtobufSrc  *SourceExtended `yaml:"protobuf_src,omitempty"`
-	Conformance  *SourceExtended `yaml:"conformance,omitempty"`
+	Googleapis  *SourceExtended `yaml:"googleapis,omitempty"`
+	Showcase    *SourceExtended `yaml:"showcase,omitempty"`
+	Discovery   *SourceExtended `yaml:"discovery,omitempty"`
+	ProtobufSrc *SourceExtended `yaml:"protobuf_src,omitempty"`
+	Conformance *SourceExtended `yaml:"conformance,omitempty"`
 }
 
 // RustDefaults contains Rust-specific default configuration.
 type RustDefaults struct {
-	DisabledRustdocWarnings []string              `yaml:"disabled_rustdoc_warnings,omitempty"`
-	DisabledClippyWarnings  []string              `yaml:"disabled_clippy_warnings,omitempty"`
-	PackageDependencies     []PackageDependency   `yaml:"package_dependencies,omitempty"`
-	Release                 *RustReleaseDefaults  `yaml:"release,omitempty"`
+	DisabledRustdocWarnings []string             `yaml:"disabled_rustdoc_warnings,omitempty"`
+	DisabledClippyWarnings  []string             `yaml:"disabled_clippy_warnings,omitempty"`
+	PackageDependencies     []PackageDependency  `yaml:"package_dependencies,omitempty"`
+	Release                 *RustReleaseDefaults `yaml:"release,omitempty"`
 }
 
 // RustReleaseDefaults contains Rust-specific release tool requirements.
 type RustReleaseDefaults struct {
-	Tools         map[string][]Tool       `yaml:"tools,omitempty"`
-	PreInstalled  map[string]string       `yaml:"pre_installed,omitempty"`
+	Tools        map[string][]Tool `yaml:"tools,omitempty"`
+	PreInstalled map[string]string `yaml:"pre_installed,omitempty"`
 }
 
 // Tool represents a required tool with version.
@@ -167,29 +167,29 @@ type DiscoveryConfig struct {
 // RustGenerate contains Rust-specific code generation options.
 type RustGenerate struct {
 	// Source filtering fields (flattened from SourceFiltering)
-	Roots               []string          `yaml:"roots,omitempty"`
-	IncludedIDs         []string          `yaml:"included_ids,omitempty"`
-	SkippedIDs          []string          `yaml:"skipped_ids,omitempty"`
-	IncludeList         []string          `yaml:"include_list,omitempty"`
-	TitleOverride       string            `yaml:"title_override,omitempty"`
-	DescriptionOverride string            `yaml:"description_override,omitempty"`
-	ProjectRoot         string            `yaml:"project_root,omitempty"`
+	Roots               []string `yaml:"roots,omitempty"`
+	IncludedIDs         []string `yaml:"included_ids,omitempty"`
+	SkippedIDs          []string `yaml:"skipped_ids,omitempty"`
+	IncludeList         []string `yaml:"include_list,omitempty"`
+	TitleOverride       string   `yaml:"title_override,omitempty"`
+	DescriptionOverride string   `yaml:"description_override,omitempty"`
+	ProjectRoot         string   `yaml:"project_root,omitempty"`
 	// Code generation fields
-	NameOverrides               map[string]string   `yaml:"name_overrides,omitempty"`
-	ModulePath                  string              `yaml:"module_path,omitempty"`
-	RootName                    string              `yaml:"root_name,omitempty"`
-	PerServiceFeatures          bool                `yaml:"per_service_features,omitempty"`
-	DefaultFeatures             []string            `yaml:"default_features,omitempty"`
-	ExtraModules                []string            `yaml:"extra_modules,omitempty"`
-	PackageDependencies         []PackageDependency `yaml:"package_dependencies,omitempty"`
-	HasVeneer                   bool                `yaml:"has_veneer,omitempty"`
-	RoutingRequired             bool                `yaml:"routing_required,omitempty"`
-	IncludeGrpcOnlyMethods      bool                `yaml:"include_grpc_only_methods,omitempty"`
-	GenerateSetterSamples       bool                `yaml:"generate_setter_samples,omitempty"`
-	PostProcessProtos           bool                `yaml:"post_process_protos,omitempty"`
-	DetailedTracingAttributes   bool                `yaml:"detailed_tracing_attributes,omitempty"`
-	DisabledRustdocWarnings     []string            `yaml:"disabled_rustdoc_warnings,omitempty"`
-	DisabledClippyWarnings      []string            `yaml:"disabled_clippy_warnings,omitempty"`
+	NameOverrides             map[string]string   `yaml:"name_overrides,omitempty"`
+	ModulePath                string              `yaml:"module_path,omitempty"`
+	RootName                  string              `yaml:"root_name,omitempty"`
+	PerServiceFeatures        bool                `yaml:"per_service_features,omitempty"`
+	DefaultFeatures           []string            `yaml:"default_features,omitempty"`
+	ExtraModules              []string            `yaml:"extra_modules,omitempty"`
+	PackageDependencies       []PackageDependency `yaml:"package_dependencies,omitempty"`
+	HasVeneer                 bool                `yaml:"has_veneer,omitempty"`
+	RoutingRequired           bool                `yaml:"routing_required,omitempty"`
+	IncludeGrpcOnlyMethods    bool                `yaml:"include_grpc_only_methods,omitempty"`
+	GenerateSetterSamples     bool                `yaml:"generate_setter_samples,omitempty"`
+	PostProcessProtos         bool                `yaml:"post_process_protos,omitempty"`
+	DetailedTracingAttributes bool                `yaml:"detailed_tracing_attributes,omitempty"`
+	DisabledRustdocWarnings   []string            `yaml:"disabled_rustdoc_warnings,omitempty"`
+	DisabledClippyWarnings    []string            `yaml:"disabled_clippy_warnings,omitempty"`
 }
 
 // LibraryGenerateExtended contains extended generation configuration for a library.
@@ -226,12 +226,12 @@ type LibraryExtended struct {
 
 // ConfigExtended represents the extended librarian.yaml configuration.
 type ConfigExtended struct {
-	Version   string              `yaml:"version"`
-	Language  string              `yaml:"language,omitempty"`
-	Container *Container          `yaml:"container,omitempty"`
-	Sources   SourcesExtended     `yaml:"sources,omitempty"`
-	Defaults  *DefaultsExtended   `yaml:"defaults,omitempty"`
-	Generate  *Generate           `yaml:"generate,omitempty"`
-	Release   *ReleaseExtended    `yaml:"release,omitempty"`
-	Libraries []LibraryExtended   `yaml:"libraries,omitempty"`
+	Version   string            `yaml:"version"`
+	Language  string            `yaml:"language,omitempty"`
+	Container *Container        `yaml:"container,omitempty"`
+	Sources   SourcesExtended   `yaml:"sources,omitempty"`
+	Defaults  *DefaultsExtended `yaml:"defaults,omitempty"`
+	Generate  *Generate         `yaml:"generate,omitempty"`
+	Release   *ReleaseExtended  `yaml:"release,omitempty"`
+	Libraries []LibraryExtended `yaml:"libraries,omitempty"`
 }
