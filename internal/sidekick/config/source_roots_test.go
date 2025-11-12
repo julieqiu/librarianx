@@ -42,10 +42,10 @@ func TestSourceRoots(t *testing.T) {
 		}, []string{"googleapis-root", "more-root"}},
 	}
 
-	for _, c := range testCases {
-		got := SourceRoots(c.input)
+	for _, test := range testCases {
+		got := SourceRoots(test.input)
 		less := func(a, b string) bool { return a < b }
-		if diff := cmp.Diff(c.want, got, cmpopts.SortSlices(less)); diff != "" {
+		if diff := cmp.Diff(test.want, got, cmpopts.SortSlices(less)); diff != "" {
 			t.Errorf("AllSourceRoots mismatch (-want, +got):\n%s", diff)
 		}
 	}
@@ -65,10 +65,10 @@ func TestAllSourceRoots(t *testing.T) {
 		}, []string{"googleapis-root", "other-root"}},
 	}
 
-	for _, c := range testCases {
-		got := AllSourceRoots(c.input)
+	for _, test := range testCases {
+		got := AllSourceRoots(test.input)
 		less := func(a, b string) bool { return a < b }
-		if diff := cmp.Diff(c.want, got, cmpopts.SortSlices(less)); diff != "" {
+		if diff := cmp.Diff(test.want, got, cmpopts.SortSlices(less)); diff != "" {
 			t.Errorf("AllSourceRoots mismatch (-want, +got):\n%s", diff)
 		}
 	}
