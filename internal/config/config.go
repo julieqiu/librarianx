@@ -30,8 +30,14 @@ type Config struct {
 	// Language is the primary language for this repository (go, python, rust).
 	Language string `yaml:"language,omitempty"`
 
+	// Container contains the container image configuration.
+	Container *Container `yaml:"container,omitempty"`
+
 	// Sources contains references to external source repositories.
 	Sources Sources `yaml:"sources,omitempty"`
+
+	// Defaults contains default generation settings.
+	Defaults *Defaults `yaml:"defaults,omitempty"`
 
 	// Generate contains generation configuration.
 	Generate *Generate `yaml:"generate,omitempty"`
@@ -41,6 +47,15 @@ type Config struct {
 
 	// Libraries contains the list of library libraries.
 	Libraries []Library `yaml:"libraries,omitempty"`
+}
+
+// Container contains the container image configuration.
+type Container struct {
+	// Image is the container registry path (without tag).
+	Image string `yaml:"image"`
+
+	// Tag is the container image tag (e.g., "latest", "v1.0.0").
+	Tag string `yaml:"tag"`
 }
 
 // Sources contains references to external source repositories.
@@ -56,6 +71,21 @@ type Source struct {
 
 	// SHA256 is the hash for integrity verification.
 	SHA256 string `yaml:"sha256"`
+}
+
+// Defaults contains default generation settings.
+type Defaults struct {
+	// GeneratedDir is the directory where generated code is written (relative to repository root).
+	GeneratedDir string `yaml:"generated_dir,omitempty"`
+
+	// Transport is the default transport protocol (e.g., "grpc+rest", "grpc").
+	Transport string `yaml:"transport,omitempty"`
+
+	// RestNumericEnums indicates whether to use numeric enums in REST.
+	RestNumericEnums bool `yaml:"rest_numeric_enums,omitempty"`
+
+	// ReleaseLevel is the default release level ("stable" or "preview").
+	ReleaseLevel string `yaml:"release_level,omitempty"`
 }
 
 // Generate contains generation configuration.
@@ -76,8 +106,14 @@ type Library struct {
 	// Name is the library name (e.g., "secretmanager").
 	Name string `yaml:"name"`
 
+	// Version is the current released version.
+	Version string `yaml:"version,omitempty"`
+
 	// CopyrightYear is the copyright year for the library.
 	CopyrightYear int `yaml:"copyright_year,omitempty"`
+
+	// Generate contains generation configuration for this library.
+	Generate *LibraryGenerate `yaml:"generate,omitempty"`
 
 	// Apis is the list of googleapis paths for generated librarys.
 	Apis []string `yaml:"apis,omitempty"`
@@ -85,6 +121,24 @@ type Library struct {
 	// Location is the explicit filesystem path (optional).
 	// If not set and apis is present, computed from generate.output template.
 	Location string `yaml:"location,omitempty"`
+}
+
+// LibraryGenerate contains generation configuration for a library.
+type LibraryGenerate struct {
+	// APIs is the list of API configurations.
+	APIs []API `yaml:"apis,omitempty"`
+
+	// Keep is the list of files/directories not overwritten during generation.
+	Keep []string `yaml:"keep,omitempty"`
+
+	// Remove is the list of files/directories deleted after generation.
+	Remove []string `yaml:"remove,omitempty"`
+}
+
+// API represents an API configuration.
+type API struct {
+	// Path is the API path relative to googleapis root (e.g., "google/cloud/secretmanager/v1").
+	Path string `yaml:"path"`
 }
 
 // Read reads the configuration from a file.
