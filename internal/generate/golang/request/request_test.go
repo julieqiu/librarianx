@@ -66,23 +66,23 @@ func TestParseLibrary(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			reqPath := filepath.Join(tmpDir, "generate-request.json")
-			if err := os.WriteFile(reqPath, []byte(tc.content), 0644); err != nil {
+			if err := os.WriteFile(reqPath, []byte(test.content), 0644); err != nil {
 				t.Fatalf("failed to write test file: %v", err)
 			}
 
 			got, err := ParseLibrary(reqPath)
 
-			if (err != nil) != tc.wantErr {
-				t.Errorf("Parse() error = %v, wantErr %v", err, tc.wantErr)
+			if (err != nil) != test.wantErr {
+				t.Errorf("Parse() error = %v, wantErr %v", err, test.wantErr)
 				return
 			}
 
-			if !tc.wantErr {
-				if diff := cmp.Diff(tc.want, got); diff != "" {
+			if !test.wantErr {
+				if diff := cmp.Diff(test.want, got); diff != "" {
 					t.Errorf("Parse() mismatch (-want +got):\n%s", diff)
 				}
 			}

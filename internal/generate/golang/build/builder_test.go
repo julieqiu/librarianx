@@ -63,13 +63,13 @@ func TestBuild(t *testing.T) {
 		},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			e := newTestEnv(t)
 			defer e.cleanup(t)
 
-			if tt.setup != nil {
-				tt.setup(e, t)
+			if test.setup != nil {
+				test.setup(e, t)
 			}
 
 			var execvCount int
@@ -81,7 +81,7 @@ func TestBuild(t *testing.T) {
 				}
 				switch {
 				case slices.Equal(args, []string{"go", "build", "./..."}):
-					return tt.buildErr
+					return test.buildErr
 				default:
 					t.Errorf("execv called with unexpected args %v", args)
 					return nil
@@ -93,12 +93,12 @@ func TestBuild(t *testing.T) {
 				RepoDir:      e.repoDir,
 			}
 
-			if err := Build(context.Background(), cfg); (err != nil) != tt.wantErr {
-				t.Errorf("Build() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Build(context.Background(), cfg); (err != nil) != test.wantErr {
+				t.Errorf("Build() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if execvCount != tt.wantExecvCount {
-				t.Errorf("execv called = %v; want %v", execvCount, tt.wantExecvCount)
+			if execvCount != test.wantExecvCount {
+				t.Errorf("execv called = %v; want %v", execvCount, test.wantExecvCount)
 			}
 		})
 	}

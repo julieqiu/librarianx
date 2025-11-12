@@ -319,17 +319,17 @@ func TestConfigure(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			e := newTestEnv(t)
 			defer e.cleanup(t)
 
-			tt.setup(e, t)
+			test.setup(e, t)
 
 			var execvRunCount int
 			execvRun = func(ctx context.Context, args []string, dir string) error {
 				execvRunCount++
-				return tt.execvErr
+				return test.execvErr
 			}
 			t.Cleanup(func() { execvRun = execv.Run })
 
@@ -353,38 +353,38 @@ func TestConfigure(t *testing.T) {
 				RepoDir:      e.repoDir,
 			}
 
-			if err := Configure(context.Background(), cfg); (err != nil) != tt.wantErr {
-				t.Fatalf("Configure() error = %v, wantErr %v", err, tt.wantErr)
+			if err := Configure(context.Background(), cfg); (err != nil) != test.wantErr {
+				t.Fatalf("Configure() error = %v, wantErr %v", err, test.wantErr)
 			}
 
-			if tt.wantErr {
+			if test.wantErr {
 				return
 			}
 
-			if execvRunCount != tt.wantExecvRunCount {
-				t.Errorf("execvRun called = %d; want %d", execvRunCount, tt.wantExecvRunCount)
+			if execvRunCount != test.wantExecvRunCount {
+				t.Errorf("execvRun called = %d; want %d", execvRunCount, test.wantExecvRunCount)
 			}
 
-			if diff := cmp.Diff(tt.wantResponse, gotResponse); diff != "" {
+			if diff := cmp.Diff(test.wantResponse, gotResponse); diff != "" {
 				t.Fatalf("Configure() response mismatch (-want +got):\n%s", diff)
 			}
 
-			if tt.wantVersionGoPackage != "" {
-				versionGoPath := filepath.Join(e.outputDir, tt.clientPath, "version.go")
+			if test.wantVersionGoPackage != "" {
+				versionGoPath := filepath.Join(e.outputDir, test.clientPath, "version.go")
 				content, err := os.ReadFile(versionGoPath)
 				if err != nil {
 					t.Fatalf("failed to read version.go: %v", err)
 				}
 				gotPackage := extractPackageName(string(content))
-				if gotPackage != tt.wantVersionGoPackage {
-					t.Errorf("version.go package mismatch: got %q, want %q", gotPackage, tt.wantVersionGoPackage)
+				if gotPackage != test.wantVersionGoPackage {
+					t.Errorf("version.go package mismatch: got %q, want %q", gotPackage, test.wantVersionGoPackage)
 				}
 			}
 
-			for _, file := range tt.wantFiles {
+			for _, file := range test.wantFiles {
 				e.assertFileExists(t, file)
 			}
-			for _, file := range tt.wantNotFiles {
+			for _, file := range test.wantNotFiles {
 				e.assertFileNotExist(t, file)
 			}
 		})
@@ -469,10 +469,10 @@ func TestConfig_Validate(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			if err := tt.cfg.Validate(); (err != nil) != tt.wantErr {
-				t.Errorf("Config.Validate() error = %v, wantErr %v", err, tt.wantErr)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			if err := test.cfg.Validate(); (err != nil) != test.wantErr {
+				t.Errorf("Config.Validate() error = %v, wantErr %v", err, test.wantErr)
 			}
 		})
 	}
@@ -632,19 +632,19 @@ func TestFindLibraryAndAPIToConfigure(t *testing.T) {
 			wantErr: true,
 		},
 	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			lib, api, err := findLibraryAndAPIToConfigure(tt.req)
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("findLibraryToConfigure error = %v, wantErr %v", err, tt.wantErr)
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			lib, api, err := findLibraryAndAPIToConfigure(test.req)
+			if (err != nil) != test.wantErr {
+				t.Fatalf("findLibraryToConfigure error = %v, wantErr %v", err, test.wantErr)
 			}
 			// We assume that if the ID is correct, the rest is right too (i.e. we're just
 			// picking the right struct).
-			if tt.wantID != "" && lib.ID != tt.wantID {
-				t.Errorf("mismatched ID, got=%s, want=%s", lib.ID, tt.wantID)
+			if test.wantID != "" && lib.ID != test.wantID {
+				t.Errorf("mismatched ID, got=%s, want=%s", lib.ID, test.wantID)
 			}
-			if tt.wantPath != "" && api.Path != tt.wantPath {
-				t.Errorf("mismatched API path, got=%s, want=%s", api.Path, tt.wantPath)
+			if test.wantPath != "" && api.Path != test.wantPath {
+				t.Errorf("mismatched API path, got=%s, want=%s", api.Path, test.wantPath)
 			}
 		})
 	}

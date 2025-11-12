@@ -59,32 +59,32 @@ func TestReleaseLevel(t *testing.T) {
 		{"default_stable", "", "", "stable"},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			docGoPath := filepath.Join(tmpDir, "doc.go")
-			if tt.docGoContent != "" {
-				if err := os.WriteFile(docGoPath, []byte(tt.docGoContent), 0644); err != nil {
+			if test.docGoContent != "" {
+				if err := os.WriteFile(docGoPath, []byte(test.docGoContent), 0644); err != nil {
 					t.Fatalf("writing doc.go: %v", err)
 				}
 			}
 
-			bazelConfig, err := bazel.Parse(createFakeBazelFile(t, tt.bazelRL))
+			bazelConfig, err := bazel.Parse(createFakeBazelFile(t, test.bazelRL))
 			if err != nil {
 				t.Fatalf("bazel.Parse() failed: %v", err)
 			}
 
 			importPath := "cloud.google.com/go/foo/apiv1"
-			if tt.name == "import_path_alpha" {
+			if test.name == "import_path_alpha" {
 				importPath = "cloud.google.com/go/foo/apiv1alpha1"
 			}
-			if tt.name == "import_path_beta" {
+			if test.name == "import_path_beta" {
 				importPath = "cloud.google.com/go/foo/apiv1beta"
 			}
 
 			got := releaseLevel(importPath, bazelConfig)
-			if got != tt.want {
-				t.Errorf("releaseLevel() = %q, want %q", got, tt.want)
+			if got != test.want {
+				t.Errorf("releaseLevel() = %q, want %q", got, test.want)
 			}
 		})
 	}
@@ -119,8 +119,8 @@ func TestGenerateRepoMetadata(t *testing.T) {
 		},
 	}
 
-	for _, tc := range testCases {
-		t.Run(tc.name, func(t *testing.T) {
+	for _, test := range testCases {
+		t.Run(test.name, func(t *testing.T) {
 			tmpDir := t.TempDir()
 			sourceDir := filepath.Join(tmpDir, "source")
 			outputDir := filepath.Join(tmpDir, "output")
@@ -142,7 +142,7 @@ func TestGenerateRepoMetadata(t *testing.T) {
 			}
 			api := &request.API{
 				Path:          "google/cloud/testlib/v1",
-				ServiceConfig: tc.serviceConfig,
+				ServiceConfig: test.serviceConfig,
 			}
 			moduleConfig := &config.ModuleConfig{
 				Name: "testlib",
@@ -157,7 +157,7 @@ func TestGenerateRepoMetadata(t *testing.T) {
 			}
 
 			filePath := filepath.Join(outputDir, "cloud.google.com/go/testlib/apiv1/.repo-metadata.json")
-			if !tc.expectFile {
+			if !test.expectFile {
 				if _, err := os.Stat(filePath); !os.IsNotExist(err) {
 					t.Errorf("expected file to not exist, but it does")
 				}
@@ -174,7 +174,7 @@ func TestGenerateRepoMetadata(t *testing.T) {
 				t.Fatalf("json.Unmarshal() failed: %v", err)
 			}
 
-			if diff := cmp.Diff(tc.expectedContent, gotEntry); diff != "" {
+			if diff := cmp.Diff(test.expectedContent, gotEntry); diff != "" {
 				t.Errorf("generateRepoMetadata() mismatch (-want +got):\n%s", diff)
 			}
 		})
