@@ -1,6 +1,6 @@
-# Librarianx
+# Librarian
 
-Librarianx is a tool for managing Google Cloud client libraries across multiple
+Librarian is a tool for managing Google Cloud client libraries across multiple
 languages. It handles code generation from API definitions, version management,
 and publishing to package registries.
 
@@ -10,10 +10,10 @@ fully handwritten, and hybrid (a mix of both).
 
 ## Installation
 
-Start by installing librarianx:
+Start by installing librarian:
 
 ```
-$ go install github.com/julieqiu/librarianx@latest
+$ go install github.com/julieqiu/librarian@latest
 ```
 
 ## Your First Library: Go Secret Manager
@@ -30,10 +30,10 @@ $ cd google-cloud-go
 
 ### Initialize the Repository
 
-Initialize a Go repository with `librarianx init`:
+Initialize a Go repository with `librarian init`:
 
 ```
-$ librarianx init go
+$ librarian init go
 Created librarian.yaml
 ```
 
@@ -62,7 +62,7 @@ directory (`generate.dir`) for generated libraries.
 
 ### Library Types
 
-Librarianx supports three types of libraries, distinguished by the keys used in
+Librarian supports three types of libraries, distinguished by the keys used in
 their `librarian.yaml` entry.
 
 #### 1. Fully Handwritten
@@ -112,7 +112,7 @@ Create the Secret Manager library. Since we are not providing a `--path` flag,
 it will be created in the default `generate.dir` (`./secretmanager/`).
 
 ```
-$ librarianx create secretmanager --apis google/cloud/secretmanager/v1
+$ librarian create secretmanager --apis google/cloud/secretmanager/v1
 Added library "secretmanager" to librarian.yaml
 Generated secretmanager/
 Successfully created library "secretmanager"
@@ -144,7 +144,7 @@ $ echo "package pubsub\n\nfunc NewClient() {}" > pubsub/client.go
 
 Add the handwritten library to your configuration:
 ```
-$ librarianx add pubsub --path pubsub/
+$ librarian add pubsub --path pubsub/
 Added library "pubsub" to librarian.yaml
 ```
 
@@ -159,7 +159,7 @@ add a `patch` section to `librarian.yaml` to protect the files you intend to
 customize.
 
 ```
-$ librarianx create bigquery --apis google/cloud/bigquery/storage/v1
+$ librarian create bigquery --apis google/cloud/bigquery/storage/v1
 ```
 
 Now, edit `librarian.yaml` to add the `patch` section:
@@ -173,7 +173,7 @@ Now, edit `librarian.yaml` to add the `patch` section:
     - bigquery/client.go # This file will now be protected
 ```
 
-Now, when you run `librarianx generate bigquery`, `bigquery/client.go` will be
+Now, when you run `librarian generate bigquery`, `bigquery/client.go` will be
 left untouched.
 
 ## Python Libraries
@@ -183,7 +183,7 @@ will set `generate.dir` to `packages/`.
 
 Initialize a Python repository:
 ```
-$ librarianx init python
+$ librarian init python
 Created librarian.yaml
 ```
 Your `librarian.yaml` will look like this:
@@ -196,7 +196,7 @@ generate:
 
 Create a fully generated Python library. It will be placed in `packages/google-cloud-secret-manager/` by default.
 ```
-$ librarianx create google-cloud-secret-manager --apis google/cloud/secretmanager/v1
+$ librarian create google-cloud-secret-manager --apis google/cloud/secretmanager/v1
 ```
 
 This creates the following entry in `librarian.yaml`:

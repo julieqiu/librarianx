@@ -23,7 +23,7 @@ type Library struct {
 ```yaml
 generate:
   output: '{name}/'
-librarys:
+libraries:
   - name: secretmanager
     apis:
       - google/cloud/secretmanager/v1
@@ -35,7 +35,7 @@ librarys:
 ```yaml
 generate:
   output: 'packages/{name}/'
-librarys:
+libraries:
   - name: google-cloud-secretmanager
     apis:
       - google/cloud/secretmanager/v1
@@ -47,7 +47,7 @@ librarys:
 ```yaml
 generate:
   output: 'src/generated/{api.path}/'
-librarys:
+libraries:
   - name: google-cloud-secretmanager-v1
     apis:
       - google/cloud/secretmanager/v1
@@ -59,9 +59,9 @@ librarys:
 # Generates to: src/generated/google/cloud/secretmanager/v1beta2/
 ```
 
-**Handwritten librarys:**
+**Handwritten libraries:**
 ```yaml
-librarys:
+libraries:
   - name: storage
     location: storage/
 # No apis field = handwritten, uses explicit location
@@ -69,14 +69,14 @@ librarys:
 
 ## Original Problem
 
-Need to support two types of librarys:
+Need to support two types of libraries:
 
-1. **Generated librarys** (from googleapis)
+1. **Generated libraries** (from googleapis)
    - Input: googleapis path (e.g., `google/cloud/secretmanager/v1`)
    - Output: filesystem location (language-dependent)
    - Example: `librarian add secretmanager google/cloud/secretmanager/v1`
 
-2. **Handwritten/release-only librarys**
+2. **Handwritten/release-only libraries**
    - No googleapis path (no generation needed)
    - Code already exists at specific filesystem location
    - Example: `librarian add storage --location storage/`
@@ -114,10 +114,10 @@ Need to support two types of librarys:
 
 3. **Command syntax:**
    ```bash
-   # Generated librarys
+   # Generated libraries
    librarian add secretmanager google/cloud/secretmanager/v1
 
-   # Handwritten librarys - how to specify filesystem path?
+   # Handwritten libraries - how to specify filesystem path?
    librarian add storage --location storage/
    # OR
    librarian add storage storage/
@@ -129,7 +129,7 @@ Need to support two types of librarys:
 
    **Option A:**
    ```yaml
-   librarys:
+   libraries:
      - name: secretmanager
        googleapis: google/cloud/secretmanager/v1
        # path inferred: <generate.output>/<name>
@@ -141,7 +141,7 @@ Need to support two types of librarys:
 
    **Option B:**
    ```yaml
-   librarys:
+   libraries:
      - name: secretmanager
        source: google/cloud/secretmanager/v1  # googleapis
        location: generated/secretmanager       # optional, inferred if not set
@@ -158,7 +158,7 @@ Need to support two types of librarys:
    - Returns error if validation fails
 
 2. **`Library.GeneratedLocation(generateOutput string) (string, error)`**
-   - Returns explicit `Location` if set (for handwritten librarys)
+   - Returns explicit `Location` if set (for handwritten libraries)
    - Otherwise expands `generate.output` template
    - Returns error if template validation fails
 
