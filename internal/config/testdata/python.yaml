@@ -27,13 +27,13 @@ libraries:
         - path: google/cloud/secretmanager/v1beta2
 
   # --- Hybrid ---
-  # Defined by having `name`, `path`, `generate`, and `patch`.
+  # Defined by having `name`, `path`, `generate`, and `keep`.
   - name: google-cloud-bigquery
     path: packages/google-cloud-bigquery/
     generate:
       apis:
         - path: google/cloud/bigquery/v2
-    patch:
+    keep:
       - google/cloud/bigquery/client.py
       - google/cloud/bigquery/dataset.py
       - tests/unit/

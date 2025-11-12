@@ -91,8 +91,8 @@ every run.
 
 #### 3. Hybrid (Generated + Handwritten)
 
-A library is a **Hybrid** if it has `name`, `path`, `generate`, and a `patch`
-block. The `patch` block lists files and directories to protect from being
+A library is a **Hybrid** if it has `name`, `path`, `generate`, and a `keep`
+block. The `keep` block lists files and directories to protect from being
 overwritten during generation.
 
 ```yaml
@@ -101,7 +101,7 @@ overwritten during generation.
   generate:
     apis:
       - path: google/cloud/bigquery/storage/v1
-  patch:
+  keep:
     - bigquery/client.go
     - bigquery/samples/
 ```
@@ -155,21 +155,21 @@ This adds a simple entry to `librarian.yaml`:
 ```
 
 Next, add a hybrid BigQuery library. You can start by generating it, and then
-add a `patch` section to `librarian.yaml` to protect the files you intend to
+add a `keep` section to `librarian.yaml` to protect the files you intend to
 customize.
 
 ```
 $ librarian create bigquery --apis google/cloud/bigquery/storage/v1
 ```
 
-Now, edit `librarian.yaml` to add the `patch` section:
+Now, edit `librarian.yaml` to add the `keep` section:
 ```yaml
 - name: bigquery
   path: bigquery/
   generate:
     apis:
       - path: google/cloud/bigquery/storage/v1
-  patch:
+  keep:
     - bigquery/client.go # This file will now be protected
 ```
 
@@ -226,7 +226,7 @@ libraries.
 The type of a library is determined by its structure in `librarian.yaml`:
 - **Handwritten**: `name` + `path`
 - **Generated**: `name` + `path` + `generate`
-- **Hybrid**: `name` + `path` + `generate` + `patch`
+- **Hybrid**: `name` + `path` + `generate` + `keep`
 
 This design gives you both convenience and full control over the location and
 content of your libraries.
