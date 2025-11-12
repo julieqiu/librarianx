@@ -22,7 +22,7 @@ import (
 	"github.com/googleapis/librarian/internal/bazel"
 )
 
-// Example_parseGo demonstrates parsing Go API configuration from BUILD.bazel
+// Example_parseGo demonstrates parsing Go API configuration from BUILD.bazel.
 func Example_parseGo() {
 	// Create a temporary directory with a BUILD.bazel file
 	tmpDir := setupTestDir()
@@ -64,7 +64,7 @@ func Example_parseGo() {
 	// Has Metadata: true
 }
 
-// Example_parsePython demonstrates parsing Python API configuration from BUILD.bazel
+// Example_parsePython demonstrates parsing Python API configuration from BUILD.bazel.
 func Example_parsePython() {
 	// Create a temporary directory with a BUILD.bazel file
 	tmpDir := setupPythonTestDir()
@@ -102,7 +102,7 @@ func Example_parsePython() {
 	//   - python-gapic-namespace=google.cloud
 }
 
-// Example_multipleAPIs demonstrates parsing multiple APIs for batch processing
+// Example_multipleAPIs demonstrates parsing multiple APIs for batch processing.
 func Example_multipleAPIs() {
 	tmpDir := setupMultiAPITestDir()
 	defer os.RemoveAll(tmpDir)
@@ -129,7 +129,7 @@ func Example_multipleAPIs() {
 	// google/cloud/secretmanager/v1beta1: grpc+rest
 }
 
-// setupTestDir creates a temporary directory with a Go BUILD.bazel file
+// setupTestDir creates a temporary directory with a Go BUILD.bazel file.
 func setupTestDir() string {
 	tmpDir, _ := os.MkdirTemp("", "bazel-example-")
 	apiDir := filepath.Join(tmpDir, "google/cloud/asset/v1")
@@ -152,7 +152,7 @@ go_gapic_library(
 	return tmpDir
 }
 
-// setupPythonTestDir creates a temporary directory with a Python BUILD.bazel file
+// setupPythonTestDir creates a temporary directory with a Python BUILD.bazel file.
 func setupPythonTestDir() string {
 	tmpDir, _ := os.MkdirTemp("", "bazel-python-")
 	apiDir := filepath.Join(tmpDir, "google/cloud/secretmanager/v1")
@@ -176,7 +176,7 @@ py_gapic_library(
 	return tmpDir
 }
 
-// setupMultiAPITestDir creates a temporary directory with multiple API versions
+// setupMultiAPITestDir creates a temporary directory with multiple API versions.
 func setupMultiAPITestDir() string {
 	tmpDir, _ := os.MkdirTemp("", "bazel-multi-")
 
