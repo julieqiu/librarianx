@@ -116,10 +116,7 @@ func TestGo_Release(t *testing.T) {
 			}
 
 			// Verify changelog
-			changelogPath, err := r.changelogPath(test.library)
-			if err != nil {
-				t.Fatal(err)
-			}
+			changelogPath := r.changelogPath(test.library)
 			changelog, err := os.ReadFile(changelogPath)
 			if err != nil {
 				t.Fatal(err)
@@ -129,10 +126,7 @@ func TestGo_Release(t *testing.T) {
 			}
 
 			// Verify version file
-			libPath, err := r.libraryPath(test.library)
-			if err != nil {
-				t.Fatal(err)
-			}
+			libPath := r.libraryPath(test.library)
 			versionPath := filepath.Join(libPath, "internal", "version.go")
 			assertVersion(t, versionPath, test.wantVersion)
 
@@ -388,10 +382,7 @@ func TestGo_libraryPath(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			repoRoot := t.TempDir()
 			r := &releaser{repoRoot: repoRoot}
-			got, err := r.libraryPath(test.library)
-			if err != nil {
-				t.Fatal(err)
-			}
+			got := r.libraryPath(test.library)
 			want := filepath.Join(repoRoot, test.wantPath)
 			if got != want {
 				t.Errorf("libraryPath() = %q, want %q", got, want)

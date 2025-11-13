@@ -178,7 +178,7 @@ func TestConfig_Unset_InvalidField(t *testing.T) {
 func TestConfig_Add(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("google/cloud/secretmanager/v1", nil); err != nil {
+	if err := cfg.Add("secretmanager", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -186,8 +186,8 @@ func TestConfig_Add(t *testing.T) {
 		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
 	}
 
-	if cfg.Libraries[0].APIPath != "google/cloud/secretmanager/v1" {
-		t.Errorf("got API path %q, want %q", cfg.Libraries[0].APIPath, "google/cloud/secretmanager/v1")
+	if cfg.Libraries[0].Name != "secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "secretmanager")
 	}
 
 	if cfg.Libraries[0].Config != nil {
@@ -198,24 +198,24 @@ func TestConfig_Add(t *testing.T) {
 func TestConfig_Add_Duplicate(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("google/cloud/secretmanager/v1", nil); err != nil {
+	if err := cfg.Add("secretmanager", nil); err != nil {
 		t.Fatal(err)
 	}
 
-	err := cfg.Add("google/cloud/secretmanager/v1", nil)
+	err := cfg.Add("secretmanager", nil)
 	if err == nil {
-		t.Error("Add() should fail when library with same API path already exists")
+		t.Error("Add() should fail when library with same name already exists")
 	}
 }
 
-func TestConfig_Add_DifferentApiPaths(t *testing.T) {
+func TestConfig_Add_DifferentNames(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("google/cloud/secretmanager/v1", nil); err != nil {
+	if err := cfg.Add("secretmanager", nil); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := cfg.Add("google/cloud/secretmanager/v1beta2", nil); err != nil {
+	if err := cfg.Add("storage", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -224,22 +224,22 @@ func TestConfig_Add_DifferentApiPaths(t *testing.T) {
 	}
 }
 
-func TestConfig_Add_EmptyAPIPath(t *testing.T) {
+func TestConfig_Add_EmptyName(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
 	err := cfg.Add("", nil)
 	if err == nil {
-		t.Error("Add() should fail when API path is empty")
+		t.Error("Add() should fail when library name is empty")
 	}
 }
 
-func TestConfig_Add_WithNameOverride(t *testing.T) {
+func TestConfig_Add_WithAPIConfig(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
 	config := &LibraryConfig{
-		Name: "google-cloud-secretmanager",
+		API: "google/cloud/secretmanager/v1",
 	}
-	if err := cfg.Add("google/cloud/secretmanager/v1", config); err != nil {
+	if err := cfg.Add("secretmanager", config); err != nil {
 		t.Fatal(err)
 	}
 
@@ -251,8 +251,8 @@ func TestConfig_Add_WithNameOverride(t *testing.T) {
 		t.Fatal("library config is nil")
 	}
 
-	if cfg.Libraries[0].Config.Name != "google-cloud-secretmanager" {
-		t.Errorf("got name %q, want %q", cfg.Libraries[0].Config.Name, "google-cloud-secretmanager")
+	if apiStr, ok := cfg.Libraries[0].Config.API.(string); !ok || apiStr != "google/cloud/secretmanager/v1" {
+		t.Errorf("got API %v, want %q", cfg.Libraries[0].Config.API, "google/cloud/secretmanager/v1")
 	}
 }
 
@@ -422,33 +422,35 @@ func TestLibraryEntry_UnmarshalYAML(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "short_syntax",
-			yaml: `google/cloud/secretmanager/v1`,
+			name: "wildcard",
+			yaml: `"*"`,
 			want: LibraryEntry{
-				APIPath: "google/cloud/secretmanager/v1",
-				Config:  nil,
+				Name:   "*",
+				Config: nil,
 			},
 		},
 		{
-			name: "extended_syntax_with_name",
-			yaml: `google/cloud/bigquery/storage/v1:
-  name: google-cloud-bigquerystorage`,
+			name: "simple_name",
+			yaml: `secretmanager:
+  api: google/cloud/secretmanager/v1`,
 			want: LibraryEntry{
-				APIPath: "google/cloud/bigquery/storage/v1",
+				Name: "secretmanager",
 				Config: &LibraryConfig{
-					Name: "google-cloud-bigquerystorage",
+					API: "google/cloud/secretmanager/v1",
 				},
 			},
 		},
 		{
-			name: "extended_syntax_with_keep",
-			yaml: `google/cloud/bigquery/storage/v1:
+			name: "with_keep",
+			yaml: `google-cloud-bigquerystorage:
+  api: google/cloud/bigquery/storage/v1
   keep:
     - google/cloud/bigquery_storage_v1/client.py
     - google/cloud/bigquery_storage_v1/reader.py`,
 			want: LibraryEntry{
-				APIPath: "google/cloud/bigquery/storage/v1",
+				Name: "google-cloud-bigquerystorage",
 				Config: &LibraryConfig{
+					API: "google/cloud/bigquery/storage/v1",
 					Keep: []string{
 						"google/cloud/bigquery_storage_v1/client.py",
 						"google/cloud/bigquery_storage_v1/reader.py",
@@ -457,13 +459,15 @@ func TestLibraryEntry_UnmarshalYAML(t *testing.T) {
 			},
 		},
 		{
-			name: "extended_syntax_with_disabled",
-			yaml: `google/cloud/broken/v1:
+			name: "with_disabled",
+			yaml: `google-cloud-broken:
+  api: google/cloud/broken/v1
   disabled: true
   reason: "Missing BUILD.bazel configuration"`,
 			want: LibraryEntry{
-				APIPath: "google/cloud/broken/v1",
+				Name: "google-cloud-broken",
 				Config: &LibraryConfig{
+					API:      "google/cloud/broken/v1",
 					Disabled: true,
 					Reason:   "Missing BUILD.bazel configuration",
 				},
@@ -498,34 +502,35 @@ func TestLibraryEntry_MarshalYAML(t *testing.T) {
 		want  string
 	}{
 		{
-			name: "short_syntax",
+			name: "wildcard",
 			entry: LibraryEntry{
-				APIPath: "google/cloud/secretmanager/v1",
-				Config:  nil,
+				Name:   "*",
+				Config: nil,
 			},
-			want: "google/cloud/secretmanager/v1\n",
+			want: "'*'\n",
 		},
 		{
-			name: "extended_syntax_with_name",
+			name: "with_api",
 			entry: LibraryEntry{
-				APIPath: "google/cloud/bigquery/storage/v1",
+				Name: "secretmanager",
 				Config: &LibraryConfig{
-					Name: "google-cloud-bigquerystorage",
+					API: "google/cloud/secretmanager/v1",
 				},
 			},
-			want: "google/cloud/bigquery/storage/v1:\n    name: google-cloud-bigquerystorage\n",
+			want: "secretmanager:\n    api: google/cloud/secretmanager/v1\n",
 		},
 		{
-			name: "extended_syntax_with_keep",
+			name: "with_keep",
 			entry: LibraryEntry{
-				APIPath: "google/cloud/bigquery/storage/v1",
+				Name: "google-cloud-bigquerystorage",
 				Config: &LibraryConfig{
+					API: "google/cloud/bigquery/storage/v1",
 					Keep: []string{
 						"google/cloud/bigquery_storage_v1/client.py",
 					},
 				},
 			},
-			want: "google/cloud/bigquery/storage/v1:\n    keep:\n        - google/cloud/bigquery_storage_v1/client.py\n",
+			want: "google-cloud-bigquerystorage:\n    api: google/cloud/bigquery/storage/v1\n    keep:\n        - google/cloud/bigquery_storage_v1/client.py\n",
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {

@@ -60,10 +60,7 @@ func Release(ctx context.Context, repoRoot string, lib *config.Library, version 
 // releaseWithOptions performs Go-specific release preparation with options.
 // This is used by tests to skip running actual Go tests.
 func (r *releaser) releaseWithOptions(ctx context.Context, lib *config.Library, version string, changes []*Change, runTests bool) error {
-	libPath, err := r.libraryPath(lib)
-	if err != nil {
-		return err
-	}
+	libPath := r.libraryPath(lib)
 
 	// 1. Run Go tests
 	if runTests {
@@ -122,10 +119,7 @@ var changelogSections = []struct {
 
 // updateChangelog updates CHANGES.md with Google Cloud Go changelog format.
 func (r *releaser) updateChangelog(lib *config.Library, version string, changes []*Change, t time.Time) error {
-	changelogPath, err := r.changelogPath(lib)
-	if err != nil {
-		return err
-	}
+	changelogPath := r.changelogPath(lib)
 
 	slog.Info("updating changelog", "path", changelogPath)
 
@@ -325,7 +319,7 @@ func (r *releaser) updateSnippetMetadata(lib *config.Library, version string) er
 }
 
 // verifyPkgGoDev verifies that the release is indexed on pkg.go.dev.
-func (r *releaser) verifyPkgGoDev(ctx context.Context, lib *config.Library, version string) error {
+func (r *releaser) verifyPkgGoDev(_ context.Context, lib *config.Library, version string) error {
 	tag := r.formatTag(lib, version)
 	slog.Info("verifying pkg.go.dev indexing", "tag", tag)
 
@@ -344,27 +338,24 @@ func (r *releaser) verifyPkgGoDev(ctx context.Context, lib *config.Library, vers
 }
 
 // libraryPath returns the filesystem path for the library.
-func (r *releaser) libraryPath(lib *config.Library) (string, error) {
+func (r *releaser) libraryPath(lib *config.Library) string {
 	if isRootRepoModule(lib) {
-		return r.repoRoot, nil
+		return r.repoRoot
 	}
 	if lib.Location != "" {
-		return filepath.Join(r.repoRoot, lib.Location), nil
+		return filepath.Join(r.repoRoot, lib.Location)
 	}
 	// Default: use library name as path
-	return filepath.Join(r.repoRoot, lib.Name), nil
+	return filepath.Join(r.repoRoot, lib.Name)
 }
 
 // changelogPath returns the path to the CHANGES.md file for the library.
-func (r *releaser) changelogPath(lib *config.Library) (string, error) {
+func (r *releaser) changelogPath(lib *config.Library) string {
 	if isRootRepoModule(lib) {
-		return filepath.Join(r.repoRoot, "CHANGES.md"), nil
+		return filepath.Join(r.repoRoot, "CHANGES.md")
 	}
-	libPath, err := r.libraryPath(lib)
-	if err != nil {
-		return "", err
-	}
-	return filepath.Join(libPath, "CHANGES.md"), nil
+	libPath := r.libraryPath(lib)
+	return filepath.Join(libPath, "CHANGES.md")
 }
 
 // formatTag formats a git tag for the library according to the tag format.

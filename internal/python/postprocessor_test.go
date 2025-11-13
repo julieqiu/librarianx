@@ -63,17 +63,3 @@ func TestCopyREADME_NoSourceFile(t *testing.T) {
 		t.Fatalf("expected no error when README.rst does not exist, got: %v", err)
 	}
 }
-
-func TestPostProcessorConfig(t *testing.T) {
-	cfg := &postProcessorConfig{
-		OutputDir:   "/output",
-		LibraryPath: "packages/google-cloud-language",
-	}
-
-	if cfg.OutputDir != "/output" {
-		t.Errorf("got OutputDir %q, want %q", cfg.OutputDir, "/output")
-	}
-	if cfg.LibraryPath != "packages/google-cloud-language" {
-		t.Errorf("got LibraryPath %q, want %q", cfg.LibraryPath, "packages/google-cloud-language")
-	}
-}

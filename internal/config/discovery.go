@@ -21,6 +21,8 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+
+	"github.com/googleapis/librarian/internal/naming"
 )
 
 // DiscoveredAPI represents a discovered API from the googleapis filesystem.
@@ -174,7 +176,7 @@ func (c *Config) FilterDiscoveredAPIs(discovered []*DiscoveredAPI) []*Discovered
 	// Check if wildcard is enabled
 	hasWildcard := false
 	for _, entry := range c.Libraries {
-		if entry.APIPath == "*" {
+		if entry.Name == "*" {
 			hasWildcard = true
 			break
 		}
@@ -185,10 +187,21 @@ func (c *Config) FilterDiscoveredAPIs(discovered []*DiscoveredAPI) []*Discovered
 	}
 
 	// Build a set of explicitly configured API paths
+	// We need to extract API paths from library configs
 	configured := make(map[string]bool)
 	for _, entry := range c.Libraries {
-		if entry.APIPath != "*" {
-			configured[entry.APIPath] = true
+		if entry.Name != "*" && entry.Config != nil {
+			// Extract API path from config
+			if entry.Config.API != nil {
+				if apiStr, ok := entry.Config.API.(string); ok {
+					configured[apiStr] = true
+				}
+			}
+			if len(entry.Config.APIs) > 0 {
+				for _, api := range entry.Config.APIs {
+					configured[api] = true
+				}
+			}
 		}
 	}
 
@@ -209,7 +222,7 @@ func (c *Config) GetAllLibraries(googleapisRoot string) ([]LibraryEntry, error) 
 	// Check if wildcard is present
 	hasWildcard := false
 	for _, entry := range c.Libraries {
-		if entry.APIPath == "*" {
+		if entry.Name == "*" {
 			hasWildcard = true
 			break
 		}
@@ -218,16 +231,14 @@ func (c *Config) GetAllLibraries(googleapisRoot string) ([]LibraryEntry, error) 
 	// If wildcard is not present, return only explicit libraries
 	if !hasWildcard {
 		libraries := make([]LibraryEntry, 0, len(c.Libraries))
-		for _, entry := range c.Libraries {
-			libraries = append(libraries, entry)
-		}
+		libraries = append(libraries, c.Libraries...)
 		return libraries, nil
 	}
 
 	// Wildcard mode: start with non-wildcard entries
 	libraries := make([]LibraryEntry, 0, len(c.Libraries))
 	for _, entry := range c.Libraries {
-		if entry.APIPath != "*" {
+		if entry.Name != "*" {
 			libraries = append(libraries, entry)
 		}
 	}
@@ -242,10 +253,15 @@ func (c *Config) GetAllLibraries(googleapisRoot string) ([]LibraryEntry, error) 
 	filtered := c.FilterDiscoveredAPIs(discovered)
 
 	// Add discovered APIs as library entries
+	// Derive library name from API path using language conventions
+	packaging := c.GetOneLibraryPer()
 	for _, api := range filtered {
+		name := naming.DeriveLibraryName(api.Path, c.Language, packaging)
 		libraries = append(libraries, LibraryEntry{
-			APIPath: api.Path,
-			Config:  nil, // Use all defaults
+			Name: name,
+			Config: &LibraryConfig{
+				API: api.Path,
+			},
 		})
 	}
 
@@ -262,36 +278,38 @@ func (c *Config) GetLibrariesForGeneration(googleapisRoot string) ([]*Library, e
 	}
 
 	packaging := c.GetOneLibraryPer()
-	language := c.Language
 
 	// For version-level packaging, each entry becomes a separate library
 	if packaging == "version" {
 		var libraries []*Library
 		for i := range entries {
 			entry := &entries[i]
-			name := entry.GetLibraryName(language, packaging)
-			libraries = append(libraries, entry.ToLibrary(name))
+			libraries = append(libraries, entry.ToLibrary())
 		}
 		return libraries, nil
 	}
 
-	// For service-level packaging, group entries by service
+	// For service-level packaging, group entries by service name
 	serviceGroups := make(map[string]*Library)
-	serviceAPIs := make(map[string][]string)
 
 	for i := range entries {
 		entry := &entries[i]
-		name := entry.GetLibraryName(language, packaging)
+		name := entry.Name
 
 		if lib, exists := serviceGroups[name]; exists {
 			// Add this API to existing service group
-			lib.Apis = append(lib.Apis, entry.APIPath)
-			serviceAPIs[name] = append(serviceAPIs[name], entry.APIPath)
+			if entry.Config != nil && entry.Config.API != nil {
+				if apiStr, ok := entry.Config.API.(string); ok {
+					lib.Apis = append(lib.Apis, apiStr)
+				}
+			}
+			if entry.Config != nil && len(entry.Config.APIs) > 0 {
+				lib.Apis = append(lib.Apis, entry.Config.APIs...)
+			}
 		} else {
 			// Create new service group
-			lib := entry.ToLibrary(name)
+			lib := entry.ToLibrary()
 			serviceGroups[name] = lib
-			serviceAPIs[name] = []string{entry.APIPath}
 		}
 	}
 

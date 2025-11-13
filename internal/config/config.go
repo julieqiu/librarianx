@@ -19,7 +19,6 @@ import (
 	"os"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/bazel"
 	"gopkg.in/yaml.v3"
 )
 
@@ -160,11 +159,12 @@ type Release struct {
 
 // LibraryEntry represents a single library configuration entry.
 // It can be either:
-// - Short syntax: just an API path string (e.g., "google/cloud/secretmanager/v1")
-// - Extended syntax: a map with API path as key and LibraryConfig as value
+// - Short syntax: just a wildcard string ("*")
+// - Extended syntax: a map with library name as key and LibraryConfig as value.
 type LibraryEntry struct {
-	// APIPath is the API path (e.g., "google/cloud/secretmanager/v1")
-	APIPath string
+	// Name is the library name (package name), e.g., "google-cloud-secretmanager"
+	// For wildcard entries, this is "*"
+	Name string
 
 	// Config contains optional configuration overrides.
 	// If nil, all defaults are used.
@@ -173,10 +173,18 @@ type LibraryEntry struct {
 
 // LibraryConfig contains configuration overrides for a library.
 type LibraryConfig struct {
-	// Name overrides the default derived library name.
-	Name string `yaml:"name,omitempty"`
+	// API specifies which googleapis API to generate from (for generated libraries).
+	// Can be a string (protobuf API path) or an APIObject (for discovery APIs).
+	// If both API and APIs are empty, this is a handwritten library.
+	API interface{} `yaml:"api,omitempty"`
 
-	// Path overrides the default derived library path.
+	// APIs specifies multiple API versions to bundle into one library (for multi-version libraries).
+	// Alternative to API field for libraries that bundle multiple versions.
+	APIs []string `yaml:"apis,omitempty"`
+
+	// Path specifies the filesystem location (overrides computed location from defaults.output).
+	// For generated libraries: overrides where code is generated to.
+	// For handwritten libraries: specifies the source directory.
 	Path string `yaml:"path,omitempty"`
 
 	// Keep lists files/directories to preserve during regeneration.
@@ -187,9 +195,6 @@ type LibraryConfig struct {
 
 	// Reason explains why the library is disabled (required if disabled=true).
 	Reason string `yaml:"reason,omitempty"`
-
-	// Versions specifies which API versions to include (for multi-version services).
-	Versions []string `yaml:"versions,omitempty"`
 
 	// Transport overrides the default transport.
 	Transport string `yaml:"transport,omitempty"`
@@ -202,9 +207,6 @@ type LibraryConfig struct {
 
 	// Release contains per-library release configuration.
 	Release *LibraryRelease `yaml:"release,omitempty"`
-
-	// SourceRoots are the source directories for this library (for handwritten libraries).
-	SourceRoots []string `yaml:"source_roots,omitempty"`
 
 	// Rust contains Rust-specific library configuration.
 	Rust *RustLibrary `yaml:"rust,omitempty"`
@@ -271,13 +273,13 @@ type GoLibrary struct {
 
 // UnmarshalYAML implements custom unmarshaling for LibraryEntry.
 // It supports both:
-// - String syntax: "google/cloud/secretmanager/v1"
-// - Map syntax: {"google/cloud/secretmanager/v1": {keep: [...]}}
+// - String syntax: "*" (wildcard for auto-discovery)
+// - Map syntax: {"google-cloud-secretmanager": {api: "google/cloud/secretmanager/v1", ...}}.
 func (e *LibraryEntry) UnmarshalYAML(unmarshal func(interface{}) error) error {
-	// Try to unmarshal as a string first
-	var apiPath string
-	if err := unmarshal(&apiPath); err == nil {
-		e.APIPath = apiPath
+	// Try to unmarshal as a string first (for wildcard)
+	var name string
+	if err := unmarshal(&name); err == nil {
+		e.Name = name
 		e.Config = nil
 		return nil
 	}
@@ -285,16 +287,16 @@ func (e *LibraryEntry) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	// Try to unmarshal as a map with single key
 	var m map[string]LibraryConfig
 	if err := unmarshal(&m); err != nil {
-		return fmt.Errorf("library entry must be either a string (API path) or a map with API path as key")
+		return fmt.Errorf("library entry must be either a string (wildcard) or a map with library name as key")
 	}
 
 	if len(m) != 1 {
-		return fmt.Errorf("library entry map must have exactly one key (API path), got %d keys", len(m))
+		return fmt.Errorf("library entry map must have exactly one key (library name), got %d keys", len(m))
 	}
 
 	// Extract the single key-value pair
-	for apiPath, config := range m {
-		e.APIPath = apiPath
+	for name, config := range m {
+		e.Name = name
 		e.Config = &config
 		return nil
 	}
@@ -304,14 +306,14 @@ func (e *LibraryEntry) UnmarshalYAML(unmarshal func(interface{}) error) error {
 
 // MarshalYAML implements custom marshaling for LibraryEntry.
 func (e LibraryEntry) MarshalYAML() (interface{}, error) {
-	// If no config overrides, use string syntax
+	// If no config overrides (e.g., wildcard), use string syntax
 	if e.Config == nil {
-		return e.APIPath, nil
+		return e.Name, nil
 	}
 
-	// Use map syntax with API path as key
+	// Use map syntax with library name as key
 	return map[string]LibraryConfig{
-		e.APIPath: *e.Config,
+		e.Name: *e.Config,
 	}, nil
 }
 
@@ -527,31 +529,31 @@ func (c *Config) GetOneLibraryPer() string {
 	}
 }
 
-// Add adds a library to the config using the new API-path-based format.
-// apiPath is the API path (e.g., "google/cloud/secretmanager/v1").
+// Add adds a library to the config using the new name-based format.
+// name is the library name (package name), e.g., "google-cloud-secretmanager".
 // config contains optional overrides (can be nil for default configuration).
-func (c *Config) Add(apiPath string, config *LibraryConfig) error {
-	if apiPath == "" {
-		return fmt.Errorf("API path cannot be empty")
+func (c *Config) Add(name string, config *LibraryConfig) error {
+	if name == "" {
+		return fmt.Errorf("library name cannot be empty")
 	}
 
-	// Check if library with same API path already exists
+	// Check if library with same name already exists
 	for _, entry := range c.Libraries {
-		if entry.APIPath == apiPath {
-			return fmt.Errorf("library with API path %q already exists", apiPath)
+		if entry.Name == name {
+			return fmt.Errorf("library with name %q already exists", name)
 		}
 	}
 
 	c.Libraries = append(c.Libraries, LibraryEntry{
-		APIPath: apiPath,
-		Config:  config,
+		Name:   name,
+		Config: config,
 	})
 
 	return nil
 }
 
-// AddLegacy adds a library using the old name-based format (for backward compatibility).
-// Deprecated: Use Add with API path instead.
+// AddLegacy adds a library using the old format (for backward compatibility).
+// Deprecated: Use Add with proper API configuration instead.
 func (c *Config) AddLegacy(name string, apis []string, location string, googleapisRoot string) error {
 	if name == "" {
 		return fmt.Errorf("library name cannot be empty")
@@ -561,38 +563,22 @@ func (c *Config) AddLegacy(name string, apis []string, location string, googleap
 		return fmt.Errorf("library must have at least one API or a location")
 	}
 
-	// For now, use the first API as the identifier
-	// TODO: Implement proper conversion from old to new format
-	apiPath := ""
-	if len(apis) > 0 {
-		apiPath = apis[0]
-	} else {
-		// Handwritten library - use name as path
-		apiPath = name
-	}
+	config := &LibraryConfig{}
 
-	config := &LibraryConfig{
-		Name: name,
+	if len(apis) == 1 {
+		// Single API - use `api` field
+		config.API = apis[0]
+	} else if len(apis) > 1 {
+		// Multiple APIs - use `apis` field
+		config.APIs = apis
 	}
+	// If no APIs, this is a handwritten library
 
 	if location != "" {
 		config.Path = location
 	}
 
-	return c.Add(apiPath, config)
-}
-
-// stringSliceEqual checks if two string slices are equal.
-func stringSliceEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if a[i] != b[i] {
-			return false
-		}
-	}
-	return true
+	return c.Add(name, config)
 }
 
 // ExpandTemplate expands template keywords in a string.
@@ -631,21 +617,25 @@ func (e *Library) GeneratedLocation(generateOutput string) (string, error) {
 
 // ToLibrary converts a LibraryEntry to a Library for backward compatibility.
 // This is a temporary method to help with migration to the new config format.
-func (e *LibraryEntry) ToLibrary(derivedName string) *Library {
+func (e *LibraryEntry) ToLibrary() *Library {
 	lib := &Library{
-		Name: derivedName,
-		Apis: []string{e.APIPath},
+		Name: e.Name,
 	}
 
 	if e.Config != nil {
-		if e.Config.Name != "" {
-			lib.Name = e.Config.Name
+		// Extract API paths
+		if e.Config.API != nil {
+			// Single API (string or object)
+			if apiStr, ok := e.Config.API.(string); ok {
+				lib.Apis = []string{apiStr}
+			}
+		} else if len(e.Config.APIs) > 0 {
+			// Multiple APIs
+			lib.Apis = e.Config.APIs
 		}
+
 		if e.Config.Path != "" {
 			lib.Location = e.Config.Path
-		}
-		if len(e.Config.SourceRoots) > 0 {
-			lib.SourceRoots = e.Config.SourceRoots
 		}
 		if e.Config.Release != nil {
 			lib.Release = e.Config.Release
@@ -661,54 +651,14 @@ func (e *LibraryEntry) ToLibrary(derivedName string) *Library {
 	return lib
 }
 
-// FindLibraryByName finds a library entry by name (checks both APIPath and Config.Name).
+// FindLibraryByName finds a library entry by name.
 // Returns the library entry and its index, or nil and -1 if not found.
 func (c *Config) FindLibraryByName(name string) (*LibraryEntry, int) {
 	for i := range c.Libraries {
 		entry := &c.Libraries[i]
-		// Check if the API path matches the name
-		if entry.APIPath == name {
-			return entry, i
-		}
-		// Check if the config name matches
-		if entry.Config != nil && entry.Config.Name == name {
+		if entry.Name == name {
 			return entry, i
 		}
 	}
 	return nil, -1
-}
-
-// parseAPIs parses BUILD.bazel files for the given API paths and returns API configurations.
-func (c *Config) parseAPIs(apiPaths []string, googleapisRoot string) ([]API, error) {
-	var apiConfigs []API
-
-	for _, apiPath := range apiPaths {
-		// Parse the BUILD.bazel file for this API
-		bazelCfg, err := bazel.ParseAPI(googleapisRoot, apiPath, c.Language)
-		if err != nil {
-			return nil, fmt.Errorf("failed to parse BUILD.bazel for %s: %w", apiPath, err)
-		}
-
-		// Convert bazel.APIConfig to config.API
-		apiConfig := API{
-			Path:              apiPath,
-			HasGAPIC:          bazelCfg.HasGAPIC,
-			GRPCServiceConfig: bazelCfg.GRPCServiceConfig,
-			ServiceYAML:       bazelCfg.ServiceYAML,
-			Transport:         bazelCfg.Transport,
-			RestNumericEnums:  bazelCfg.RestNumericEnums,
-			ReleaseLevel:      bazelCfg.ReleaseLevel,
-		}
-
-		// Add language-specific configuration
-		if c.Language == "python" && bazelCfg.Python != nil {
-			apiConfig.Python = &PythonAPI{
-				OptArgs: bazelCfg.Python.OptArgs,
-			}
-		}
-
-		apiConfigs = append(apiConfigs, apiConfig)
-	}
-
-	return apiConfigs, nil
 }

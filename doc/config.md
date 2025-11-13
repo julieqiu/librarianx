@@ -37,7 +37,8 @@ libraries:
   - '*'  # Generate all discovered APIs
 
   # Exception: has handwritten code
-  - packages/google-cloud-bigquery-storage:
+  - google-cloud-bigquery-storage:
+      api: google/cloud/bigquery/storage/v1
       keep:
         - google/cloud/bigquery_storage_v1/client.py
 ```
@@ -64,10 +65,14 @@ release:
 
 libraries:
   # Explicitly list what to generate
-  - generated/google_api
-  - generated/google_iam_v1
-  - generated/google_cloud_secretmanager_v1
-  - generated/google_cloud_functions_v2
+  - google_api:
+      api: google/api
+  - google_iam_v1:
+      api: google/iam/v1
+  - google_cloud_secretmanager_v1:
+      api: google/cloud/secretmanager/v1
+  - google_cloud_functions_v2:
+      api: google/cloud/functions/v2
 ```
 
 **Result**: Only generates the 4 explicitly listed libraries.
@@ -134,6 +139,11 @@ sources:
 
 Default settings applied to all libraries.
 
+The precendence is this:
+- Library-level overrides
+- Language defaults
+- Defaults block
+
 **Common fields:**
 - `output` (string) - Output directory for generated code
 - `one_library_per` (string) - Bundling strategy: `service` or `version`
@@ -187,28 +197,36 @@ release:
 **Type:** array
 **Required:** No
 
-Library configurations. Libraries are identified by their filesystem path.
+Library configurations. Each library is identified by its **name** (the package name published to registries).
 
 **Two modes:**
+
+If the libraries array contains `'*'`, librarian auto-discovers APIs from googleapis and generates them with default settings. Otherwise, only explicitly listed libraries are generated.
 
 **1. Generate everything (wildcard mode)**
 ```yaml
 libraries:
-  - '*'  # Generate all discovered APIs
+  - '*'  # Auto-discover and generate all APIs
 
-  # Only list exceptions
-  - packages/google-cloud-vision:
+  # Add config to specific libraries
+  - google-cloud-vision:
+      api: google/cloud/vision/v1
       keep: [...]
 ```
 
-**2. Generate only listed libraries**
+**2. Generate only listed libraries (explicit mode)**
 ```yaml
 libraries:
-  # Explicitly list paths
-  - packages/google-cloud-secretmanager
-  - packages/google-cloud-vision
-  - packages/google-cloud-translate
+  # Must specify api for each generated library
+  - google-cloud-secretmanager:
+      api: google/cloud/secretmanager/v1
+  - google-cloud-vision:
+      api: google/cloud/vision/v1
+  - google-cloud-translate:
+      api: google/cloud/translate/v3
 ```
+
+**Key principle:** Wildcard discovers APIs and applies defaults. Explicit entries use the same defaults plus your overrides. Being explicit doesn't change behavior—it lets you add configuration.
 
 ---
 
@@ -216,49 +234,73 @@ libraries:
 
 ### Identifying Libraries
 
-Libraries are identified by their **filesystem path**:
+Libraries use their **name** (package name) as the YAML key. The `api` field specifies which googleapis API to generate from.
 
 **Generated libraries** (from googleapis):
 ```yaml
-- packages/google-cloud-vision       # Python: packages/{derived-name}
-- secretmanager                      # Go: {derived-name}
-- src/generated/google-cloud-vision-v1   # Rust: src/generated/{derived-name}
+- google-cloud-vision:      # Python package name
+    api: google/cloud/vision/v1    # googleapis API path
+
+- secretmanager:            # Go module name
+    api: google/cloud/secretmanager/v1
+
+- google-cloud-vision-v1:   # Rust crate name
+    api: google/cloud/vision/v1
 ```
 
-**Handwritten libraries** (custom code):
+**Handwritten libraries** (no googleapis API):
+
+Handwritten libraries have no `api` field. They must always be listed explicitly.
+
 ```yaml
-- pubsub/          # Path relative to repo root
-- auth/
-- compute/metadata/
+- pubsub:
+    path: pubsub         # Source directory
+
+- auth:
+    path: auth
+
+- compute-metadata:
+    path: compute/metadata
 ```
 
-### Short Syntax (Path Only)
+### Minimal Syntax
 
-For libraries that follow all defaults:
+For generated libraries that follow all defaults:
 
 ```yaml
 libraries:
-  - packages/google-cloud-secretmanager
-  - packages/google-cloud-vision
-  - pubsub/
+  - google-cloud-secretmanager:
+      api: google/cloud/secretmanager/v1
+
+  - google-cloud-vision:
+      api: google/cloud/vision/v1
 ```
 
-### Extended Syntax (With Overrides)
+Output locations are computed from `defaults.output` + API path.
 
-For libraries that need customization:
+### With Overrides
+
+Add configuration to libraries as needed:
 
 ```yaml
 libraries:
-  - packages/google-cloud-vision:
+  # Generated with handwritten additions
+  - google-cloud-vision:
+      api: google/cloud/vision/v1
       keep:
         - google/cloud/vision_v1/helpers.py
         - tests/unit/test_helpers.py
 
-  - packages/google-cloud-bigquery-storage:
-      keep:
-        - google/cloud/bigquery_storage_v1/client.py
+  # Generated with path override
+  - google-cloud-firestore:
+      api: google/cloud/firestore/v1
+      path: src/firestore/src/generated/gapic
+      rust:
+        template_override: templates/grpc-client
 
-  - pubsub/:
+  # Handwritten
+  - pubsub:
+      path: pubsub
       release:
         disabled: true
 ```
@@ -266,6 +308,85 @@ libraries:
 ---
 
 ## Library Fields
+
+Library entries use the **library name** as the YAML key. This is the package
+name published to registries (PyPI, crates.io, pub.dev, etc.).
+
+```yaml
+- google-cloud-secretmanager:  # Python: package name
+- secretmanager:               # Go: module name
+- google-cloud-vision-v1:      # Rust: crate name
+- google_cloud_functions_v2:   # Dart: package name
+```
+
+---
+
+### `api`
+
+**Type:** string or object
+**Required:** Yes (for generated libraries)
+
+The googleapis API path to generate from. Can be a simple string or an object for non-protobuf APIs.
+
+**Simple syntax (protobuf APIs):**
+```yaml
+- name: google-cloud-secretmanager
+  api: google/cloud/secretmanager/v1
+```
+
+**Object syntax (discovery APIs):**
+```yaml
+- name: google-cloud-compute-v1
+  api:
+    path: discoveries/compute.v1.json
+    source: discovery
+```
+
+---
+
+### `apis`
+
+**Type:** array of strings
+**Required:** No (use instead of `api` for multi-API libraries)
+
+For libraries that bundle multiple API versions.
+
+```yaml
+- name: google-cloud-vision
+  apis:
+    - google/cloud/vision/v1
+    - google/cloud/vision/v1p1beta1
+```
+
+---
+
+### `path`
+
+**Type:** string
+**Required:** No
+
+Explicit filesystem path override. If not specified, the path is computed from `defaults.output` + API path.
+
+```yaml
+# Uses defaults.output pattern
+- name: google-cloud-aiplatform-v1
+  api: google/cloud/aiplatform/v1
+  # → generates to: src/generated/cloud/aiplatform/v1
+
+# Explicit path override
+- name: google-cloud-firestore
+  api: google/cloud/firestore/v1
+  path: src/firestore/src/generated/gapic
+  # → generates to: src/firestore/src/generated/gapic
+```
+
+For handwritten libraries, `path` specifies the source directory:
+```yaml
+- name: auth
+  path: auth
+```
+
+---
 
 ### `keep`
 

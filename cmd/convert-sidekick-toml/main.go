@@ -204,7 +204,7 @@ func convertAll(rootDir, outputPath string) error {
 			IgnoredChanges: rootConfig.Release.IgnoredChanges,
 		},
 		Libraries: []config.LibraryEntry{
-			{APIPath: "*"}, // Add wildcard to generate everything
+			{Name: "*"}, // Add wildcard to generate everything
 		},
 	}
 
@@ -281,29 +281,41 @@ func processLibraryConfig(configPath, rootDir, language string) (*config.Library
 		return nil, nil
 	}
 
-	// Derive library path from directory relative to root
+	// API path comes from specification-source
+	apiPath := libConfig.General.SpecificationSource
+
+	// Derive library name from API path using Rust conventions (one_library_per: version)
+	// Example: google/longrunning -> google-longrunning
+	// Example: google/cloud/secretmanager/v1 -> google-cloud-secretmanager-v1
+	libraryName := strings.ReplaceAll(apiPath, "/", "-")
+
+	// Derive filesystem path from directory relative to root
 	relPath, err := filepath.Rel(rootDir, filepath.Dir(configPath))
 	if err != nil {
 		return nil, err
 	}
 
-	// Use the relative path as the library identifier
-	libraryPath := relPath
 	// All library paths should have trailing slash to indicate they're directories
+	libraryPath := relPath
 	if !strings.HasSuffix(libraryPath, "/") {
 		libraryPath = libraryPath + "/"
 	}
 
 	// Build library config if there are any overrides
-	var cfg *config.LibraryConfig
+	// Always add API field for generated libraries
+	cfg := &config.LibraryConfig{
+		API: apiPath,
+	}
+
+	// Add path override if it differs from expected location
+	// Expected: defaults.output (src/generated/) + API path pattern
+	// We always add path since we're converting from existing structure
+	cfg.Path = libraryPath
 
 	// Extract Rust-specific configuration
 	if language == "rust" {
 		rustCfg := extractRustLibraryConfig(libConfig.Codec, libConfig.Source)
 		if rustCfg != nil {
-			if cfg == nil {
-				cfg = &config.LibraryConfig{}
-			}
 			cfg.Rust = rustCfg
 		}
 	}
@@ -312,22 +324,14 @@ func processLibraryConfig(configPath, rootDir, language string) (*config.Library
 	if language == "dart" {
 		dartCfg := extractDartLibraryConfig(libConfig.Codec)
 		if dartCfg != nil {
-			if cfg == nil {
-				cfg = &config.LibraryConfig{}
-			}
 			cfg.Dart = dartCfg
 		}
 	}
 
-	// Only return entry if it has config (is an exception to wildcard)
-	// Otherwise it will be covered by the '*' wildcard
-	if cfg == nil {
-		return nil, nil
-	}
-
+	// Return library entry with name as identifier
 	entry := &config.LibraryEntry{
-		APIPath: libraryPath,
-		Config:  cfg,
+		Name:   libraryName,
+		Config: cfg,
 	}
 
 	return entry, nil
@@ -531,119 +535,6 @@ func parsePackageDependency(name, value string) config.PackageDependency {
 		}
 	}
 	return dep
-}
-
-func extractRustGenerate(codec map[string]any, source map[string]any) *config.RustGenerate {
-	rust := &config.RustGenerate{}
-
-	// Add source filtering fields directly (flattened, not nested)
-	if len(source) > 0 {
-		rust.Roots = getStringSlice(source, "roots")
-		rust.IncludedIDs = getStringSlice(source, "included-ids")
-		rust.SkippedIDs = getStringSlice(source, "skipped-ids")
-		rust.IncludeList = getStringSlice(source, "include-list")
-		rust.TitleOverride = getStringFromMap(source, "title-override")
-		rust.DescriptionOverride = getStringFromMap(source, "description-override")
-		rust.ProjectRoot = getStringFromMap(source, "project-root")
-	}
-
-	rust.ModulePath = getStringFromMap(codec, "module-path")
-	rust.RootName = getStringFromMap(codec, "root-name")
-	rust.PerServiceFeatures = getBoolFromMap(codec, "per-service-features")
-	rust.DefaultFeatures = getStringSlice(codec, "default-features")
-	rust.ExtraModules = getStringSlice(codec, "extra-modules")
-	rust.HasVeneer = getBoolFromMap(codec, "has-veneer")
-	rust.RoutingRequired = getBoolFromMap(codec, "routing-required")
-	rust.IncludeGrpcOnlyMethods = getBoolFromMap(codec, "include-grpc-only-methods")
-	rust.GenerateSetterSamples = getBoolFromMap(codec, "generate-setter-samples")
-	rust.PostProcessProtos = getBoolFromMap(codec, "post-process-protos")
-	rust.DetailedTracingAttributes = getBoolFromMap(codec, "detailed-tracing-attributes")
-
-	if disabledRustdoc, ok := codec["disabled-rustdoc-warnings"].(string); ok {
-		rust.DisabledRustdocWarnings = strings.Split(disabledRustdoc, ",")
-	}
-	if disabledClippy, ok := codec["disabled-clippy-warnings"].(string); ok {
-		rust.DisabledClippyWarnings = strings.Split(disabledClippy, ",")
-	}
-
-	// Extract name overrides
-	if nameOverrides, ok := codec["name-overrides"].(string); ok {
-		rust.NameOverrides = parseNameOverrides(nameOverrides)
-	}
-
-	// Extract package dependencies
-	rust.PackageDependencies = extractPackageDependencies(codec)
-
-	// Return nil if the struct is empty (all fields are zero values)
-	if len(rust.Roots) == 0 &&
-		len(rust.IncludedIDs) == 0 &&
-		len(rust.SkippedIDs) == 0 &&
-		len(rust.IncludeList) == 0 &&
-		rust.TitleOverride == "" &&
-		rust.DescriptionOverride == "" &&
-		rust.ProjectRoot == "" &&
-		rust.ModulePath == "" &&
-		rust.RootName == "" &&
-		!rust.PerServiceFeatures &&
-		!rust.HasVeneer &&
-		!rust.RoutingRequired &&
-		!rust.IncludeGrpcOnlyMethods &&
-		!rust.GenerateSetterSamples &&
-		!rust.PostProcessProtos &&
-		!rust.DetailedTracingAttributes &&
-		len(rust.DefaultFeatures) == 0 &&
-		len(rust.ExtraModules) == 0 &&
-		len(rust.DisabledRustdocWarnings) == 0 &&
-		len(rust.DisabledClippyWarnings) == 0 &&
-		len(rust.NameOverrides) == 0 &&
-		len(rust.PackageDependencies) == 0 {
-		return nil
-	}
-
-	return rust
-}
-
-func parseNameOverrides(value string) map[string]string {
-	overrides := make(map[string]string)
-	parts := strings.Split(value, ",")
-	for _, part := range parts {
-		kv := strings.SplitN(part, "=", 2)
-		if len(kv) == 2 {
-			overrides[strings.TrimSpace(kv[0])] = strings.TrimSpace(kv[1])
-		}
-	}
-	return overrides
-}
-
-func extractPollers(discovery map[string]any) []config.DiscoveryPoller {
-	var pollers []config.DiscoveryPoller
-	if pollersRaw, ok := discovery["pollers"].([]any); ok {
-		for _, p := range pollersRaw {
-			if pollerMap, ok := p.(map[string]any); ok {
-				poller := config.DiscoveryPoller{
-					Prefix:   getStringFromMap(pollerMap, "prefix"),
-					MethodID: getStringFromMap(pollerMap, "method-id"),
-				}
-				pollers = append(pollers, poller)
-			}
-		}
-	}
-	return pollers
-}
-
-func convertTools(tools map[string][]ToolConfig) map[string][]config.Tool {
-	result := make(map[string][]config.Tool)
-	for key, toolList := range tools {
-		converted := make([]config.Tool, len(toolList))
-		for i, t := range toolList {
-			converted[i] = config.Tool{
-				Name:    t.Name,
-				Version: t.Version,
-			}
-		}
-		result[key] = converted
-	}
-	return result
 }
 
 func getString(m map[string]any, key string) string {

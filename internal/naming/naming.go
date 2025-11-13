@@ -23,8 +23,8 @@ import (
 //
 // Python (service-level): google/cloud/secretmanager/v1 → google-cloud-secretmanager
 // Go (service-level): google/cloud/secretmanager/v1 → secretmanager
-// Rust (version-level): google/cloud/secretmanager/v1 → google-cloud-secretmanager-v1
-// Dart (version-level): google/cloud/secretmanager/v1 → google_cloud_secretmanager_v1
+// Rust (version-level): google/cloud/secretmanager/v1 → google-cloud-secretmanager-v1.
+// Dart (version-level): google/cloud/secretmanager/v1 → google_cloud_secretmanager_v1.
 func DeriveLibraryName(apiPath, language, packaging string) string {
 	switch language {
 	case "python":
@@ -43,8 +43,8 @@ func DeriveLibraryName(apiPath, language, packaging string) string {
 }
 
 // derivePythonName derives a Python library name from an API path.
-// Service-level packaging: google/cloud/secretmanager/v1 → google-cloud-secretmanager
-// Version-level packaging: google/cloud/secretmanager/v1 → google-cloud-secretmanager-v1
+// Service-level packaging: google/cloud/secretmanager/v1 → google-cloud-secretmanager.
+// Version-level packaging: google/cloud/secretmanager/v1 → google-cloud-secretmanager-v1.
 func derivePythonName(apiPath, packaging string) string {
 	service, namespace, version := ParseAPIPath(apiPath)
 
@@ -67,8 +67,8 @@ func derivePythonName(apiPath, packaging string) string {
 }
 
 // deriveGoName derives a Go library name from an API path.
-// Service-level packaging: google/cloud/secretmanager/v1 → secretmanager
-// Version-level packaging: google/cloud/secretmanager/v1 → secretmanager-v1
+// Service-level packaging: google/cloud/secretmanager/v1 → secretmanager.
+// Version-level packaging: google/cloud/secretmanager/v1 → secretmanager-v1.
 func deriveGoName(apiPath, packaging string) string {
 	service, _, version := ParseAPIPath(apiPath)
 
@@ -85,8 +85,8 @@ func deriveGoName(apiPath, packaging string) string {
 }
 
 // deriveRustName derives a Rust library name from an API path.
-// Version-level packaging: google/cloud/secretmanager/v1 → google-cloud-secretmanager-v1
-func deriveRustName(apiPath, packaging string) string {
+// Version-level packaging: google/cloud/secretmanager/v1 → google-cloud-secretmanager-v1.
+func deriveRustName(apiPath, _ string) string {
 	service, namespace, version := ParseAPIPath(apiPath)
 
 	// Build name: google-{namespace}-{service}-{version}
@@ -104,8 +104,8 @@ func deriveRustName(apiPath, packaging string) string {
 }
 
 // deriveDartName derives a Dart library name from an API path.
-// Version-level packaging: google/cloud/secretmanager/v1 → google_cloud_secretmanager_v1
-func deriveDartName(apiPath, packaging string) string {
+// Version-level packaging: google/cloud/secretmanager/v1 → google_cloud_secretmanager_v1.
+func deriveDartName(apiPath, _ string) string {
 	service, namespace, version := ParseAPIPath(apiPath)
 
 	// Build name: google_{namespace}_{service}_{version}

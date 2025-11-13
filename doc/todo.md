@@ -17,6 +17,12 @@ This document tracks tasks and design decisions that need to be addressed.
 - [ ] https://github.com/googleapis/librarian/commit/99e1dc14d2d25f4a4ed777fd04c3324d2646a5b6
 - [ ] caching of tarball
 - [ ] caching of tree traversal
+- [ ] error handling:
+    - Unknown library paths in explicit mode → error
+    - Unknown overrides in wildcard mode → warning (ignored)
+    - Invalid 'keep' patterns → error
+    - Missing or malformed googleapis tarball → error
+
 
 ## Configuration
 

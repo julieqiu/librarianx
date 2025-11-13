@@ -123,8 +123,13 @@ func TestGroupByService(t *testing.T) {
 func TestFilterDiscoveredAPIs(t *testing.T) {
 	cfg := &Config{
 		Libraries: []LibraryEntry{
-			{APIPath: "*"},
-			{APIPath: "google/cloud/secretmanager/v1"},
+			{Name: "*"},
+			{
+				Name: "secretmanager",
+				Config: &LibraryConfig{
+					API: "google/cloud/secretmanager/v1",
+				},
+			},
 		},
 	}
 
@@ -160,7 +165,12 @@ func TestFilterDiscoveredAPIs(t *testing.T) {
 func TestFilterDiscoveredAPIs_AutoDiscoverDisabled(t *testing.T) {
 	cfg := &Config{
 		Libraries: []LibraryEntry{
-			{APIPath: "google/cloud/secretmanager/v1"},
+			{
+				Name: "secretmanager",
+				Config: &LibraryConfig{
+					API: "google/cloud/secretmanager/v1",
+				},
+			},
 		},
 	}
 
@@ -204,7 +214,7 @@ func TestGetLibrariesForGeneration_ServiceLevel(t *testing.T) {
 			OneLibraryPer: "service",
 		},
 		Libraries: []LibraryEntry{
-			{APIPath: "*"},
+			{Name: "*"},
 		},
 	}
 
@@ -264,7 +274,7 @@ func TestGetLibrariesForGeneration_VersionLevel(t *testing.T) {
 			OneLibraryPer: "version",
 		},
 		Libraries: []LibraryEntry{
-			{APIPath: "*"},
+			{Name: "*"},
 		},
 	}
 

@@ -66,10 +66,14 @@ func TestConvert(t *testing.T) {
 			TagFormat: "{name}/v{version}",
 		},
 		Libraries: []config.LibraryEntry{
-			{APIPath: "*"},
+			{Name: "*"},
 			{
-				APIPath: "secretmanager/",
+				Name: "secretmanager",
 				Config: &config.LibraryConfig{
+					APIs: []string{
+						"google/cloud/secretmanager/v1",
+						"google/cloud/secretmanager/v1beta2",
+					},
 					Keep: []string{
 						"secretmanager/CHANGES.md",
 						"secretmanager/aliasshim/aliasshim.go",

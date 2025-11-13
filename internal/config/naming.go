@@ -17,21 +17,12 @@ package config
 import (
 	"path"
 	"strings"
-
-	"github.com/googleapis/librarian/internal/naming"
 )
 
 // GetLibraryName returns the effective library name for a LibraryEntry.
-// If a name override is specified in the config, it uses that.
-// Otherwise, it derives the name from the API path based on language conventions.
+// In the new format, the library name is stored directly in e.Name.
 func (e *LibraryEntry) GetLibraryName(language, packaging string) string {
-	// Use explicit name if provided
-	if e.Config != nil && e.Config.Name != "" {
-		return e.Config.Name
-	}
-
-	// Derive from API path
-	return naming.DeriveLibraryName(e.APIPath, language, packaging)
+	return e.Name
 }
 
 // GetLibraryPath returns the effective library path for a LibraryEntry.
@@ -43,13 +34,20 @@ func (e *LibraryEntry) GetLibraryPath(language, packaging, generateDir string) (
 		return e.Config.Path, nil
 	}
 
-	// Get library name
-	name := e.GetLibraryName(language, packaging)
+	// Get API path from config
+	apiPath := ""
+	if e.Config != nil && e.Config.API != nil {
+		if apiStr, ok := e.Config.API.(string); ok {
+			apiPath = apiStr
+		}
+	}
 
 	// Expand generate_dir template
 	result := generateDir
-	result = strings.ReplaceAll(result, "{name}", name)
-	result = strings.ReplaceAll(result, "{api.path}", e.APIPath)
+	result = strings.ReplaceAll(result, "{name}", e.Name)
+	if apiPath != "" {
+		result = strings.ReplaceAll(result, "{api.path}", apiPath)
+	}
 
 	// Clean up the path
 	return path.Clean(result), nil

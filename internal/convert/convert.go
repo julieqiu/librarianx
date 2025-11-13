@@ -240,7 +240,7 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 
 	// Add wildcard to generate everything
 	newConfig.Libraries = append(newConfig.Libraries, config.LibraryEntry{
-		APIPath: "*",
+		Name: "*",
 	})
 
 	// Add global files allowlist
@@ -373,9 +373,10 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 		}
 
 		// Convert Library to LibraryEntry
-		// Use source_roots to determine filesystem path
-		// For Python: packages/google-cloud-vision
-		// For Go: batch
+		// Library name comes from oldLib.ID
+		libraryName := oldLib.ID
+
+		// Determine filesystem path for generated code
 		libraryPath := oldLib.ID
 		if len(oldLib.SourceRoots) > 0 {
 			// Use first source root as the library path
@@ -388,6 +389,36 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 
 		// Build library config for exceptions
 		var cfg *config.LibraryConfig
+
+		// Extract API paths from the library
+		var apiPaths []string
+		if len(oldLib.APIs) > 0 {
+			for _, api := range oldLib.APIs {
+				apiPaths = append(apiPaths, api.Path)
+			}
+		}
+
+		// Determine if we need to add API config
+		// Generated libraries need api or apis field
+		// Handwritten libraries don't have APIs
+		if len(apiPaths) > 0 {
+			if cfg == nil {
+				cfg = &config.LibraryConfig{}
+			}
+			if len(apiPaths) == 1 {
+				cfg.API = apiPaths[0]
+			} else {
+				cfg.APIs = apiPaths
+			}
+		}
+
+		// Add path override if library path differs from name
+		if libraryPath != libraryName+"/" {
+			if cfg == nil {
+				cfg = &config.LibraryConfig{}
+			}
+			cfg.Path = libraryPath
+		}
 
 		// Add keep patterns if present
 		if len(oldLib.PreserveRegex) > 0 {
@@ -402,16 +433,6 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 			}
 		}
 
-		// Add source roots if present and different from library path
-		// Since we use source_roots[0] as the library path identifier,
-		// only add source_roots if there are multiple or if they're unusual
-		if len(newLib.SourceRoots) > 1 {
-			if cfg == nil {
-				cfg = &config.LibraryConfig{}
-			}
-			cfg.SourceRoots = newLib.SourceRoots
-		}
-
 		// Add release config if present
 		if newLib.Release != nil {
 			if cfg == nil {
@@ -423,8 +444,8 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 		// Only add library entry if it has config (is an exception to wildcard)
 		if cfg != nil {
 			entry := config.LibraryEntry{
-				APIPath: libraryPath,
-				Config:  cfg,
+				Name:   libraryName,
+				Config: cfg,
 			}
 			newConfig.Libraries = append(newConfig.Libraries, entry)
 		}
@@ -481,7 +502,7 @@ func deduplicateKeepPatterns(patterns []string, libraryPath string) []string {
 }
 
 // detectLanguageFromImage extracts the language from the container image name.
-// Example: "librarian-go" -> "go", "python-librarian-generator" -> "python"
+// Example: "librarian-go" -> "go", "python-librarian-generator" -> "python".
 func detectLanguageFromImage(image string) string {
 	// Get the last path component
 	parts := strings.Split(image, "/")

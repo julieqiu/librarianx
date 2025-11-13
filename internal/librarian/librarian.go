@@ -290,7 +290,7 @@ func configureLibrary(cfg *config.Config, libraryName string) error {
 	}
 
 	// Convert to Library for backward compatibility
-	library := entry.ToLibrary(libraryName)
+	library := entry.ToLibrary()
 
 	// Dispatch to language-specific configurator
 	switch cfg.Language {
@@ -507,7 +507,7 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	}
 
 	// Convert to Library for backward compatibility
-	library := entry.ToLibrary(libraryName)
+	library := entry.ToLibrary()
 
 	// Check if this is a handwritten library (no APIs)
 	if len(library.Apis) == 0 {
