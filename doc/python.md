@@ -401,12 +401,7 @@ if err := runPythonTests(ctx, lib.Path); err != nil {
 - Needed: Update monorepo `CHANGELOG.md` at repository root
 - Python monorepos maintain a global changelog with sections per library
 
-**4. Snippet Metadata Update (Not Implemented)**
-- Current: No snippet metadata handling
-- Needed: Update `internal/generated/snippets/.../snippet_metadata.*.json`
-- Updates `clientVersion` field in JSON files
-
-**5. PEP 440 Version Normalization (Not Implemented)**
+**4. PEP 440 Version Normalization (Not Implemented)**
 - Current: Uses version string as-is
 - Needed: Normalize pre-release versions
   - `1.16.0-rc.1` → `1.16.0rc1`
