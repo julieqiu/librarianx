@@ -10,6 +10,8 @@ Your job is to help me think through architectural decisions, propose improvemen
 * `doc/alternatives-considered.md` contains options I've already evaluated so I do **not** need to revisit them.
 * `doc/todo.md` is the active implementation plan.
 * `README.md` is the high-level overview.
+* `data/{language}/librarian.md` contains sample data for each language.
+* The code is located at `/Users/julieqiu/code/googleapis/{repo}`.
 
 **How to respond**
 
