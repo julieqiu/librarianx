@@ -19,6 +19,8 @@ Librarian code generation system and explains why they were not chosen.
 12. [Last Generated Commit in Library Configuration](#last-generated-commit-in-library-configuration)
 13. [Remove Patterns in Library Configuration](#remove-patterns-in-library-configuration)
 14. [Release Exclude Paths in Library Configuration](#release-exclude-paths-in-library-configuration)
+15. [Single All-In-One Release Command](#single-all-in-one-release-command)
+16. [Three-Command Release Process (prepare/tag/publish)](#three-command-release-process-preparetagpublish)
 
 ## Single Container Invocation with Configuration-Based Interface
 
@@ -544,3 +546,95 @@ libraries only specify `source_roots` when they differ from this pattern (8 exce
 and the librarian.yaml configuration remains focused on non-standard configurations.
 This reduces the configuration file from ~350 lines of source roots to only
 the 8 exceptions that need explicit configuration.
+
+## Single All-In-One Release Command
+
+We considered a single `librarian release` command that does everything (commit + tag + push + publish) with flags to skip parts because of simplicity and matching cargo release's pattern.
+
+**How it would work:**
+
+```bash
+# Dry-run (default)
+librarian release secretmanager
+
+# Execute everything
+librarian release secretmanager --execute
+
+# Skip publishing
+librarian release secretmanager --execute --no-publish
+
+# Skip tagging
+librarian release secretmanager --execute --no-tag
+```
+
+All steps (prepare files, commit, tag, push, publish) happen in one command by default.
+
+However, this approach had these costs:
+
+1. **Confusing negative flags** - Users must understand what `--no-publish` and `--no-tag` mean and what the default behavior is
+2. **Unclear semantics** - Does the command publish by default? Is tagging included? Not obvious from the command name alone
+3. **All-or-nothing retry** - If publish fails, users need to skip earlier steps (`--no-tag`) which is confusing
+4. **Hidden behavior** - Too much happens invisibly in one command (commit AND tag AND push AND publish)
+5. **Language differences obscured** - For Go, publishing is verification (pkg.go.dev). For Python/Rust, publishing uploads to registries. One command hides this distinction.
+
+**Alternative considered: Positive flags instead of negative**
+
+```bash
+librarian release secretmanager --execute --push --publish
+```
+
+This approach had these costs:
+
+1. **More flags required** - Full release requires multiple flags (`--push --publish`)
+2. **Unclear defaults** - What does `--execute` alone do without other flags?
+3. **Flag order matters** - Must understand that `--push` is needed before `--publish`
+
+We ultimately went with two separate commands (`librarian release` and `librarian publish`) because of clarity and separation of concerns. Each command has one clear purpose:
+- `release` = version control operations (git commit, tag, push)
+- `publish` = distribution operations (PyPI, crates.io, or pkg.go.dev verification)
+
+No confusing flags are needed. The commands are composable (`librarian release X && librarian publish X`), retryable independently, and follow Russ Cox's philosophy of simplicity and explicitness. For Go libraries where tagging IS the release, users just skip `librarian publish`. For Python/Rust where registry upload is required, both commands are used.
+
+## Three-Command Release Process (prepare/tag/publish)
+
+We considered three separate commands for maximum granularity because of allowing users to review at each step.
+
+**How it would work:**
+
+```bash
+# Prepare files and create commit
+librarian release prepare secretmanager --execute
+
+# Create and push tag
+librarian release tag secretmanager --execute
+
+# Publish to registry
+librarian release publish secretmanager --execute
+```
+
+Each phase is a separate subcommand that must be run sequentially.
+
+However, this approach had these costs:
+
+1. **Too many commands** - Three commands to release is excessive for the common case
+2. **Verbose** - Users must type more for standard releases
+3. **More to remember** - Three command names instead of two
+4. **Sequential dependency confusion** - Users must remember the order: prepare before tag, tag before publish
+5. **Subcommand inconsistency** - Using `librarian release <phase>` makes `release` feel like a namespace rather than a command
+6. **Over-engineering** - Most users want to review the commit, then complete the release (tag + publish). Three phases is unnecessarily granular.
+
+**Why prepare/tag/publish was considered:**
+
+This design came from early exploration of cargo-release patterns and trying to provide maximum control. However, in practice:
+- Reviewing files happens before creating the commit (git diff)
+- Once files are committed, users rarely need to pause between tagging and publishing
+- The tag and publish steps are typically done together or not at all
+
+We ultimately went with two commands (`librarian release` and `librarian publish`) because of matching actual workflows. The two-command design:
+- Provides the key decision point: release (commit+tag) vs publish (registry)
+- Aligns with Russ Cox's principle of minimal expressiveness
+- Separates version control from distribution
+- Allows retry of publish without re-creating tags
+- Reduces cognitive load (two concepts instead of three)
+
+The two-command design provides sufficient control without excessive granularity. Users can review changes with `git show HEAD` after `librarian release`, and retry publish independently if it fails. No sequential dependencies to remember, no subcommand namespace confusion, and the common case (release + publish) is just two simple commands.
