@@ -1,6 +1,7 @@
 # Alternatives Considered
 
-This document describes alternative designs that were considered for the Librarian code generation system and explains why they were not chosen.
+This document describes alternative designs that were considered for the
+Librarian code generation system and explains why they were not chosen.
 
 ## Table of Contents
 
@@ -21,11 +22,15 @@ This document describes alternative designs that were considered for the Librari
 
 ## Single Container Invocation with Configuration-Based Interface
 
-We considered calling the container once per library generation with a configuration-based interface because of reduced Docker startup overhead and conceptual simplicity (one call instead of three).
+We considered calling the container once per library generation with a configuration-based
+interface because of reduced Docker startup overhead and conceptual simplicity
+(one call instead of three).
 
 **How it would work:**
 
-Container receives `/config/generate.json` containing what to generate, executes the full pipeline (protoc → formatters → tests), and writes to `/output`.
+Container receives `/config/generate.json` containing what to generate,
+executes the full pipeline (protoc → formatters → tests),
+and writes to `/output`.
 
 **Example `generate.json`:**
 ```json
@@ -48,16 +53,26 @@ Container receives `/config/generate.json` containing what to generate, executes
 
 However, this approach had these costs:
 
-1. **Language-specific logic in Go** - The librarian team would own Go code that needs to know how to construct protoc commands, which formatters to run, which tests to run, and the order of operations for each language
+1. **Language-specific logic in Go** - The librarian team would own Go code
+that needs to know how to construct protoc commands,
+which formatters to run, which tests to run,
+and the order of operations for each language
 2. **Ownership confusion** - Container logic lives in librarian repo but requires Python/Go/Rust expertise to maintain
 3. **Harder to debug** - Configuration goes in, code comes out - can't easily see what commands ran
 4. **Less flexible** - Adding new generation steps requires changing Go code in the librarian repo
 
-We ultimately went with a command-based interface where the container receives explicit commands to execute (`/commands/commands.json`) because of clearer ownership and simpler implementation. The command-based design keeps the container language-agnostic (~30 lines of Go), makes commands explicit and visible for debugging, and pushes language-specific knowledge to BUILD.bazel configuration (owned by language teams).
+We ultimately went with a command-based interface where the container receives
+explicit commands to execute (`/commands/commands.json`) because of clearer
+ownership and simpler implementation.
+The command-based design keeps the container language-agnostic (~30 lines of Go),
+makes commands explicit and visible for debugging,
+and pushes language-specific knowledge to BUILD.bazel configuration (owned by language teams).
 
 ## Multiple Container Images per Language
 
-We considered using separate container images for each phase (python-generator, python-formatter, python-tester) because of clearer separation of concerns and potentially smaller image sizes.
+We considered using separate container images for each phase (python-generator,
+python-formatter, python-tester) because of clearer separation of concerns
+and potentially smaller image sizes.
 
 However, this approach had these costs:
 
@@ -66,24 +81,36 @@ However, this approach had these costs:
 3. **Version synchronization** - Need to keep all images in sync
 4. **More orchestration complexity** - CLI needs to know which image to use for which phase
 
-We ultimately went with a single container image per language because of simpler maintenance and deployment. A single image contains all dependencies for all phases, requires only one Dockerfile per language, and simplifies version management (one image version instead of three).
+We ultimately went with a single container image per language because of
+simpler maintenance and deployment.
+A single image contains all dependencies for all phases,
+requires only one Dockerfile per language,
+and simplifies version management (one image version instead of three).
 
 ## Request-Based Interface
 
-We considered using a request-based interface where the container receives `/request/generate-request.json` because of similarity to RPC patterns and potential for richer request metadata.
+We considered using a request-based interface where the container receives
+`/request/generate-request.json` because of similarity to RPC patterns and
+potential for richer request metadata.
 
 However, this approach had these costs:
 
-1. **Same issues as configuration-based** - Container still needs to interpret the request and decide what commands to run
+1. **Same issues as configuration-based** - Container still needs to interpret
+the request and decide what commands to run
 2. **Inconsistency in design docs** - Request-based mentioned in doc/newconfig.md while doc/generate.md used commands
 3. **Less explicit** - Request describes what to generate, not how (commands to run)
 4. **Harder to debug** - Can't easily see what commands ran
 
-We ultimately went with a command-based interface (`/commands/commands.json`) because of explicitness and debuggability. Commands show exactly what will run, making it easy to inspect commands.json to see the exact commands that executed.
+We ultimately went with a command-based interface (`/commands/commands.json`)
+because of explicitness and debuggability.
+Commands show exactly what will run, making it easy to inspect commands.json
+to see the exact commands that executed.
 
 ## Removing Version from librarian.yaml
 
-We considered removing the `version` field from library configurations in `librarian.yaml` and using language-specific version files (version.go, pyproject.toml, Cargo.toml) as the single source of truth because of eliminating duplication.
+We considered removing the `version` field from library configurations in
+`librarian.yaml` and using language-specific version files (version.go,
+pyproject.toml, Cargo.toml) as the single source of truth because of eliminating duplication.
 
 However, this approach had these costs:
 
@@ -91,11 +118,18 @@ However, this approach had these costs:
 2. **Slower reads** - Reading version requires parsing language-specific file formats
 3. **Added complexity** - Different parsing logic for each language
 
-We ultimately went with keeping `version` in library configurations in `librarian.yaml` as a cache for fast access because of simplicity and performance. The librarian tool manages version consistency between `librarian.yaml` and language-specific files, providing fast YAML-based reads without language-specific knowledge.
+We ultimately went with keeping `version` in library configurations in `librarian.yaml`
+as a cache for fast access because of simplicity and performance.
+The librarian tool manages version consistency between `librarian.yaml`
+and language-specific files,
+providing fast YAML-based reads without language-specific knowledge.
 
 ## Renaming `generate` to `infrastructure`
 
-We considered renaming the top-level `generate` section to `infrastructure` because of distinguishing between "how to generate" (infrastructure: container, googleapis) and "what to generate" (APIs, metadata in libraries).
+We considered renaming the top-level `generate` section to `infrastructure`
+because of distinguishing between "how to generate" (infrastructure:
+container, googleapis) and "what to generate" (APIs,
+metadata in libraries).
 
 However, this approach had these costs:
 
@@ -105,11 +139,15 @@ However, this approach had these costs:
 
 User feedback: "I do not like the name infrastructure. The design is called generate."
 
-We ultimately went with using `generate` at both top level and library level because of consistency and user expectations. The distinction is clear from context: top level contains output directory and defaults (how), library level contains APIs and metadata (what).
+We ultimately went with using `generate` at both top level and library level
+because of consistency and user expectations.
+The distinction is clear from context: top level contains output directory and defaults (how),
+library level contains APIs and metadata (what).
 
 ## Flat Release Commands (prepare/tag/publish)
 
-We considered using flat command names without the `release` prefix (`librarian prepare`, `librarian tag`, `librarian publish`) because of shorter command names.
+We considered using flat command names without the `release` prefix (`librarian prepare`,
+`librarian tag`, `librarian publish`) because of shorter command names.
 
 However, this approach had these costs:
 
@@ -118,11 +156,16 @@ However, this approach had these costs:
 3. **Discoverability** - `librarian release --help` wouldn't show these commands
 4. **Inconsistency** - Other multi-step operations use subcommands (e.g., `librarian config set`)
 
-We ultimately went with subcommand structure (`librarian release <phase>`) because of clarity and discoverability. All release operations are grouped under the `release` namespace, `librarian release --help` shows all phases, and the pattern matches other multi-step commands.
+We ultimately went with subcommand structure (`librarian release <phase>`)
+because of clarity and discoverability.
+All release operations are grouped under the `release` namespace,
+`librarian release --help` shows all phases,
+and the pattern matches other multi-step commands.
 
 ## Two-Phase vs Three-Phase Release Process
 
-We considered consolidating into two phases (combine `tag` and `publish` into one command) because of fewer commands to remember.
+We considered consolidating into two phases (combine `tag` and `publish`
+into one command) because of fewer commands to remember.
 
 However, this approach had these costs:
 
@@ -131,11 +174,18 @@ However, this approach had these costs:
 3. **Less CI/CD friendly** - May want to run tag and publish in different jobs/environments
 4. **Harder rollback** - Can't tag first, verify, then decide whether to publish
 
-We ultimately went with three separate phases (`release prepare`, `release tag`, `release publish`) because of flexibility and clear separation of concerns. Each phase maps to a distinct operation (commit, git tag, registry push), users can prepare locally and review before tagging, and each phase can run in different CI/CD jobs for better control.
+We ultimately went with three separate phases (`release prepare`,
+`release tag`, `release publish`) because of flexibility and clear separation of concerns.
+Each phase maps to a distinct operation (commit,
+git tag, registry push), users can prepare locally and review before tagging,
+and each phase can run in different CI/CD jobs for better control.
 
 ## Multiple Configuration Files (Per-Library Config Files)
 
-We considered using multiple configuration files where each library has its own configuration file (e.g., `librarian.yaml` for repository settings and `<library>/.librarian.yaml` for library-specific settings) because of separation of concerns and reduced merge conflicts.
+We considered using multiple configuration files where each library has
+its own configuration file (e.g.,
+`librarian.yaml` for repository settings and `<library>/.librarian.yaml`
+for library-specific settings) because of separation of concerns and reduced merge conflicts.
 
 **How it would work:**
 
@@ -177,7 +227,17 @@ However, this approach had these costs:
 4. **More file operations** - CLI needs to read N+1 files for N libraries
 5. **Git history fragmentation** - Changes to library configs spread across many files
 
-We ultimately went with a single `librarian.yaml` file containing all repository and library configuration because of ease of discovery and auditing. All configuration is in one place, making it easy to understand the entire repository state at a glance. The single file serves as a litmus test for complexity: if `librarian.yaml` becomes very long (e.g., thousands of lines), this is a sign that the configuration language may be too verbose and needs to be redesigned with better defaults, conventions, or abstractions. A well-designed configuration language should support 50-100+ libraries in a readable single file.
+We ultimately went with a single `librarian.yaml` file containing all repository
+and library configuration because of ease of discovery and auditing.
+All configuration is in one place, making it easy to understand the entire
+repository state at a glance.
+The single file serves as a litmus test for complexity:
+if `librarian.yaml` becomes very long (e.g.,
+thousands of lines), this is a sign that the configuration language may
+be too verbose and needs to be redesigned with better defaults,
+conventions, or abstractions.
+A well-designed configuration language should support 50-100+ libraries
+in a readable single file.
 
 ## Naming: Libraries vs Modules vs Packages vs Editions
 
@@ -206,11 +266,19 @@ However, this approach had these costs:
 2. **Metaphor disconnect** - Client libraries aren't really "editions" of anything
 3. **Less intuitive** - Developers naturally think in terms of "libraries"
 
-We ultimately went with "libraries" because of familiarity and accuracy. "Libraries" is the standard term developers use when talking about client libraries (e.g., "the google-cloud-secretmanager library"). While "library" does have language-specific connotations, this is actually appropriate since librarian manages language-specific artifacts (Python packages, Go modules, Rust crates). The term accurately captures what librarian manages without introducing unfamiliar abstractions.
+We ultimately went with "libraries" because of familiarity and accuracy.
+"Libraries" is the standard term developers use when talking about client libraries (e.g.,
+"the google-cloud-secretmanager library").
+While "library" does have language-specific connotations,
+this is actually appropriate since librarian manages language-specific artifacts (Python packages,
+Go modules, Rust crates).
+The term accurately captures what librarian manages without introducing
+unfamiliar abstractions.
 
 ## Global Keep/Remove in Defaults
 
-We considered adding `keep` and `remove` as global defaults that would apply to all libraries because of providing default file filtering behavior across the repository.
+We considered adding `keep` and `remove` as global defaults that would apply
+to all libraries because of providing default file filtering behavior across the repository.
 
 **How it would work:**
 
@@ -232,15 +300,23 @@ Libraries could override these defaults with their own keep/remove settings.
 However, this approach had these costs:
 
 1. **Confusing ownership** - Unclear whether files are kept/removed due to global defaults or library-specific rules
-2. **Debugging difficulty** - When a file is unexpectedly kept or removed, need to check both global and library-specific settings
-3. **Merge complexity** - Global and library-specific keep/remove rules would need to be merged, requiring decisions about precedence
+2. **Debugging difficulty** - When a file is unexpectedly kept or removed,
+need to check both global and library-specific settings
+3. **Merge complexity** - Global and library-specific keep/remove rules
+would need to be merged,
+requiring decisions about precedence
 4. **Limited benefit** - Most keep/remove patterns are library-specific, making global defaults less useful
 
-We ultimately went with library-level keep/remove only because of clearer ownership and simpler configuration. Each library explicitly declares what to keep and remove, default file filtering logic lives in the generator (not configuration), and there's no ambiguity about where filtering rules come from.
+We ultimately went with library-level keep/remove only because of clearer
+ownership and simpler configuration.
+Each library explicitly declares what to keep and remove,
+default file filtering logic lives in the generator (not configuration),
+and there's no ambiguity about where filtering rules come from.
 
 ## Service Config in API Configuration
 
-We considered adding a `service_config` field to each API in the library configuration because of allowing per-API service configuration overrides.
+We considered adding a `service_config` field to each API in the library
+configuration because of allowing per-API service configuration overrides.
 
 **How it would work:**
 
@@ -259,15 +335,25 @@ However, this approach had these costs:
 
 1. **Configuration verbosity** - Most APIs follow a standard naming pattern for service config files
 2. **Repetitive data** - Service config file names are predictable from API paths in most cases
-3. **Duplication with overrides** - The old `.librarian` format had this in `state.yaml`, but it's already captured in `service_config_overrides.yaml`
+3. **Duplication with overrides** - The old `.librarian` format had this in `state.yaml`,
+but it's already captured in `service_config_overrides.yaml`
 4. **Mixed concerns** - Mixes structural API information with override details
 5. **Harder to maintain** - Service config overrides would be scattered across all library definitions
 
-We ultimately went with using the existing `service_config_overrides.yaml` file in `internal/generate` because of simplicity and avoiding duplication. The generator uses convention-based defaults for service config file paths, overrides are centralized in `service_config_overrides.yaml` for easy discovery, and the librarian.yaml configuration remains focused on structural information (which APIs to generate). This keeps the configuration file simpler and avoids duplicating information that's already maintained in the override file.
+We ultimately went with using the existing `service_config_overrides.yaml`
+file in `internal/generate` because of simplicity and avoiding duplication.
+The generator uses convention-based defaults for service config file paths,
+overrides are centralized in `service_config_overrides.yaml` for easy discovery,
+and the librarian.yaml configuration remains focused on structural information
+(which APIs to generate).
+This keeps the configuration file simpler and avoids duplicating information
+that's already maintained in the override file.
 
 ## Last Generated Commit in Library Configuration
 
-We considered adding a `last_generated_commit` field to track the last commit hash when each library was generated because of providing traceability for when code was last generated.
+We considered adding a `last_generated_commit` field to track the last commit
+hash when each library was generated because of providing traceability for
+when code was last generated.
 
 **How it would work:**
 
@@ -285,17 +371,26 @@ The field would be updated each time the library is regenerated.
 
 However, this approach had these costs:
 
-1. **Runtime state in configuration** - `last_generated_commit` is runtime state that changes with each generation, not static configuration
+1. **Runtime state in configuration** - `last_generated_commit` is runtime
+state that changes with each generation,
+not static configuration
 2. **Git already tracks this** - Git history shows when files were last modified, making this field redundant
 3. **Unnecessary noise in diffs** - Every generation would update all library commit hashes, cluttering git diffs
 4. **No practical use** - The commit hash doesn't affect generation behavior or release decisions
 5. **Creates merge conflicts** - Multiple generations would conflict on this field
 
-We ultimately went with not including `last_generated_commit` in `librarian.yaml` because of separation of configuration and state. The librarian.yaml file contains configuration (what to generate, how to release), while git history tracks state (when files were last modified). Users can determine when a library was last generated using `git log` on the library's directory, avoiding redundant state tracking in configuration files.
+We ultimately went with not including `last_generated_commit` in `librarian.yaml`
+because of separation of configuration and state.
+The librarian.yaml file contains configuration (what to generate,
+how to release), while git history tracks state (when files were last modified).
+Users can determine when a library was last generated using `git log` on
+the library's directory,
+avoiding redundant state tracking in configuration files.
 
 ## Remove Patterns in Library Configuration
 
-We considered adding a `remove` field to each library to specify regex patterns for files to delete after generation because of providing cleanup control.
+We considered adding a `remove` field to each library to specify regex patterns
+for files to delete after generation because of providing cleanup control.
 
 **How it would work:**
 
@@ -323,7 +418,8 @@ Each library would specify which files to remove after generation.
 
 However, this approach had these costs:
 
-1. **Massive duplication** - The old `.librarian/state.yaml` has ~10 nearly identical patterns per library × 183 libraries = ~1,830 lines of duplicated regex
+1. **Massive duplication** - The old `.librarian/state.yaml` has ~10 nearly
+identical patterns per library × 183 libraries = ~1,830 lines of duplicated regex
 2. **Identical patterns** - The patterns are the same for every library, just with the library name substituted
 3. **Configuration verbosity** - Adding these patterns to every library makes `librarian.yaml` extremely verbose
 4. **Maintenance burden** - Updating the removal logic requires editing 183 library definitions
@@ -346,11 +442,20 @@ Nearly every library has this identical pattern (with `{library}` substituted):
 ^{library}/apiv1/\.repo-metadata\.json$
 ```
 
-We ultimately went with implementing default removal patterns in the generator because of avoiding duplication and simplifying configuration. The generator implements standard cleanup patterns with variable substitution (e.g., `{library}`, `{api.version}`), libraries only specify `remove` for non-standard cleanup needs, and the librarian.yaml configuration remains focused on structure rather than implementation details. This reduces the configuration file from ~2,000+ lines of remove patterns to effectively zero for standard libraries.
+We ultimately went with implementing default removal patterns in the generator
+because of avoiding duplication and simplifying configuration.
+The generator implements standard cleanup patterns with variable substitution (e.g.,
+`{library}`, `{api.version}`), libraries only specify `remove` for non-standard cleanup needs,
+and the librarian.yaml configuration remains focused on structure rather
+than implementation details.
+This reduces the configuration file from ~2,000+ lines of remove patterns
+to effectively zero for standard libraries.
 
 ## Release Exclude Paths in Library Configuration
 
-We considered adding a `release.exclude_paths` field to each library to specify which paths to exclude from releases because of providing control over what gets released.
+We considered adding a `release.exclude_paths` field to each library to
+specify which paths to exclude from releases because of providing control
+over what gets released.
 
 **How it would work:**
 
@@ -379,11 +484,22 @@ Every library has this identical pattern (with `{library}` substituted):
 internal/generated/snippets/{library}/
 ```
 
-We ultimately went with implementing default release exclusion patterns in the release tooling because of avoiding duplication and simplifying configuration. The release tooling implements standard exclusion patterns with variable substitution (e.g., `internal/generated/snippets/{library}/`), libraries only specify `release.exclude_paths` for non-standard exclusions (e.g., specific test files, internal directories), and the librarian.yaml configuration remains focused on structure rather than implementation details. This reduces the configuration file from 175+ lines of exclude paths to effectively zero for standard libraries.
+We ultimately went with implementing default release exclusion patterns
+in the release tooling because of avoiding duplication and simplifying configuration.
+The release tooling implements standard exclusion patterns with variable substitution (e.g.,
+`internal/generated/snippets/{library}/`),
+libraries only specify `release.exclude_paths` for non-standard exclusions (e.g.,
+specific test files, internal directories),
+and the librarian.yaml configuration remains focused on structure rather
+than implementation details.
+This reduces the configuration file from 175+ lines of exclude paths to
+effectively zero for standard libraries.
 
 ## Source Roots in Library Configuration
 
-We considered adding a `source_roots` field to each library to specify which directories contain code for that library because of providing explicit source directory configuration.
+We considered adding a `source_roots` field to each library to specify which
+directories contain code for that library because of providing explicit
+source directory configuration.
 
 **How it would work:**
 
@@ -400,8 +516,10 @@ Each library would explicitly list its source directories.
 However, this approach had these costs:
 
 1. **Massive duplication** - The old `.librarian/state.yaml` has 175 out of 183 libraries with identical pattern
-2. **Identical pattern** - 175 libraries (95.6%) follow the exact same pattern: `[{name}, internal/generated/snippets/{name}]`
-3. **Configuration verbosity** - Adding this to every library adds ~350 lines of duplicated configuration (175 libraries × 2 lines)
+2. **Identical pattern** - 175 libraries (95.6%) follow the exact same pattern:
+`[{name}, internal/generated/snippets/{name}]`
+3. **Configuration verbosity** - Adding this to every library adds ~350
+lines of duplicated configuration (175 libraries × 2 lines)
 4. **Same problem as remove_regex and release_exclude_paths** - This is another case of template-based duplication
 5. **Predictable structure** - For generated libraries, the source structure follows a consistent convention
 
@@ -414,7 +532,15 @@ However, this approach had these costs:
 ```
 
 **Only 8 libraries (4.4%) differ from this pattern:**
-- Handwritten libraries: `auth`, `auth/oauth2adapt`, `bigtable`, `compute/metadata`, `grafeas`, `profiler`, `vertexai` (single source root only)
+- Handwritten libraries: `auth`, `auth/oauth2adapt`,
+  `bigtable`, `compute/metadata`, `grafeas`,
+  `profiler`, `vertexai` (single source root only)
 - Special multi-source module: `root-module` with `[civil, httpreplay, internal, rpcreplay]`
 
-We ultimately went with implementing default source root patterns in the tooling because of avoiding duplication and simplifying configuration. The tooling implements the standard pattern `[{name}, internal/generated/snippets/{name}]` as the default, libraries only specify `source_roots` when they differ from this pattern (8 exceptions), and the librarian.yaml configuration remains focused on non-standard configurations. This reduces the configuration file from ~350 lines of source roots to only the 8 exceptions that need explicit configuration.
+We ultimately went with implementing default source root patterns in the
+tooling because of avoiding duplication and simplifying configuration.
+The tooling implements the standard pattern `[{name}, internal/generated/snippets/{name}]` as the default,
+libraries only specify `source_roots` when they differ from this pattern (8 exceptions),
+and the librarian.yaml configuration remains focused on non-standard configurations.
+This reduces the configuration file from ~350 lines of source roots to only
+the 8 exceptions that need explicit configuration.

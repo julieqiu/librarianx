@@ -5,20 +5,21 @@ languages. It handles code generation from API definitions, version management,
 and publishing to package registries.
 
 This tour walks through realistic workflows for Go and Python libraries,
-highlighting how to manage different types of libraries: fully generated,
-fully handwritten, and hybrid (a mix of both).
+highlighting how to manage different types of libraries: fully generated, fully
+handwritten, and hybrid (a mix of both).
 
 ## Installation
 
 Start by installing librarian:
 
 ```
-$ go install github.com/julieqiu/librarian@latest
+$ go install github.com/julieqiu/librarian/cmd/librarian@latest
 ```
 
 ### Prerequisites for Python Generation
 
-If you plan to generate Python libraries, you need to install the following tools:
+If you plan to generate Python libraries, you need to install the following
+tools:
 
 #### 1. Install pandoc
 
@@ -44,11 +45,13 @@ $ pipx install gapic-generator
 $ pip3 install --user gapic-generator
 ```
 
-This installs the `protoc-gen-python_gapic` plugin that protoc uses to generate Python client libraries.
+This installs the `protoc-gen-python_gapic` plugin that protoc uses to generate
+Python client libraries.
 
 #### 3. (Optional) Install synthtool for post-processing
 
-The Python generator can optionally run synthtool to post-process generated code. This is currently disabled by default. If you want to enable it:
+The Python generator can optionally run synthtool to post-process generated
+code. This is currently disabled by default. If you want to enable it:
 
 ```bash
 # Install synthtool
@@ -57,18 +60,17 @@ $ pip3 install --user --break-system-packages gcp-synthtool
 # Note: synthtool is an older package and may not work with all Python versions
 ```
 
-The post-processor is disabled by default because synthtool is no longer actively maintained.
+The post-processor is disabled by default because synthtool is no longer
+actively maintained.
 
 ## Your First Library: Go Secret Manager
 
-Let's build a Go client library for Google Cloud Secret Manager. First,
-create a workspace:
+Let's build a Go client library for Google Cloud Secret Manager. First, create
+a workspace:
 
 ```
-$ mkdir libraries
-$ cd libraries
-$ mkdir google-cloud-go
-$ cd google-cloud-go
+$ mkdir -p libraries/google-cloud-go
+$ cd libraries/google-cloud-go
 ```
 
 ### Initialize the Repository
@@ -225,11 +227,14 @@ The workflow is the same for Python. A typical `librarian.yaml` for Python
 will set `generate.dir` to `packages/`.
 
 Initialize a Python repository:
+
 ```
 $ librarian init python
 Created librarian.yaml
 ```
+
 Your `librarian.yaml` will look like this:
+
 ```yaml
 ...
 generate:
@@ -237,12 +242,15 @@ generate:
 ...
 ```
 
-Create a fully generated Python library. It will be placed in `packages/google-cloud-secret-manager/` by default.
+Create a fully generated Python library. It will be placed in
+`packages/google-cloud-secret-manager/` by default.
+
 ```
 $ librarian create google-cloud-secret-manager --apis google/cloud/secretmanager/v1
 ```
 
 This creates the following entry in `librarian.yaml`:
+
 ```yaml
 - name: google-cloud-secret-manager
   path: packages/google-cloud-secret-manager/
@@ -262,7 +270,7 @@ libraries.
 1.  **Initialize** - `librarian init <language>`
 2.  **Create** - `librarian create <name> --apis <apis...>` (uses default path)
 3.  **Create (override path)** - `librarian create <name> --path <path> --apis <apis...>`
-4.  **Add Handwritten** - `librarian add <name> --path <path>`
+4.  **Add** - `librarian add <name> [apis...]` or `librarian add <name> --path <path>`
 5.  **Regenerate** - `librarian generate <name>` or `librarian generate --all`
 6.  **Release** - `librarian release <name>`
 
@@ -273,7 +281,8 @@ The type of a library is determined by its structure in `librarian.yaml`:
 
 ### Disabling Broken Libraries
 
-If a library's generation is broken, you can temporarily disable it while preserving its configuration:
+If a library's generation is broken, you can temporarily disable it while
+preserving its configuration:
 
 ```yaml
 # Disabled: Generator fails on proto field validation
@@ -285,7 +294,8 @@ If a library's generation is broken, you can temporarily disable it while preser
       - path: google/cloud/aiplatform/v1
 ```
 
-When disabled, `librarian generate --all` skips the library, but you can still release it (only generation is disabled).
+When disabled, `librarian generate --all` skips the library, but you can still
+release it (only generation is disabled).
 
 This design gives you both convenience and full control over the location and
 content of your libraries.
