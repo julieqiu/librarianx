@@ -82,11 +82,11 @@ func generateAPIFromConfig(ctx context.Context, sourceDir, outputDir string, api
 		return fmt.Errorf("failed to get absolute path for output directory: %w", err)
 	}
 
-	var cmd *ProtocCommand
+	var cmd *protocCommand
 
 	if apiConfig.HasGAPIC {
 		// Build GAPIC command using parsed configuration
-		opts := &GapicOptions{
+		opts := &gapicOptions{
 			GrpcServiceConfig: apiConfig.GRPCServiceConfig,
 			ServiceYAML:       apiConfig.ServiceYAML,
 			Transport:         apiConfig.Transport,
@@ -95,10 +95,10 @@ func generateAPIFromConfig(ctx context.Context, sourceDir, outputDir string, api
 		if apiConfig.Python != nil {
 			opts.OptArgs = apiConfig.Python.OptArgs
 		}
-		cmd, err = BuildGapicCommand(apiConfig.Path, sourceDir, absOutputDir, opts)
+		cmd, err = buildGapicCommand(apiConfig.Path, sourceDir, absOutputDir, opts)
 	} else {
 		// Build proto-only command
-		cmd, err = BuildProtoCommand(apiConfig.Path, sourceDir, absOutputDir)
+		cmd, err = buildProtoCommand(apiConfig.Path, sourceDir, absOutputDir)
 	}
 
 	if err != nil {
@@ -134,18 +134,18 @@ func generateAPI(ctx context.Context, sourceDir, outputDir, apiPath string) erro
 	// TODO: Parse BUILD.bazel to determine library type
 	isGapic := true
 
-	var cmd *ProtocCommand
+	var cmd *protocCommand
 
 	if isGapic {
 		// Build GAPIC command
-		opts := &GapicOptions{
+		opts := &gapicOptions{
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,
 		}
-		cmd, err = BuildGapicCommand(apiPath, sourceDir, absOutputDir, opts)
+		cmd, err = buildGapicCommand(apiPath, sourceDir, absOutputDir, opts)
 	} else {
 		// Build proto-only command
-		cmd, err = BuildProtoCommand(apiPath, sourceDir, absOutputDir)
+		cmd, err = buildProtoCommand(apiPath, sourceDir, absOutputDir)
 	}
 
 	if err != nil {

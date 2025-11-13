@@ -35,7 +35,7 @@ func TestCopyREADME(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := CopyREADME(tmpDir, libraryPath); err != nil {
+	if err := copyREADME(tmpDir, libraryPath); err != nil {
 		t.Fatal(err)
 	}
 
@@ -59,13 +59,13 @@ func TestCopyREADME_NoSourceFile(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := CopyREADME(tmpDir, libraryPath); err != nil {
+	if err := copyREADME(tmpDir, libraryPath); err != nil {
 		t.Fatalf("expected no error when README.rst does not exist, got: %v", err)
 	}
 }
 
 func TestPostProcessorConfig(t *testing.T) {
-	cfg := &PostProcessorConfig{
+	cfg := &postProcessorConfig{
 		OutputDir:   "/output",
 		LibraryPath: "packages/google-cloud-language",
 	}

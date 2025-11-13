@@ -23,8 +23,8 @@ import (
 	"github.com/googleapis/librarian/internal/golang/execv"
 )
 
-// PostProcessorConfig holds configuration for post-processing.
-type PostProcessorConfig struct {
+// postProcessorConfig holds configuration for post-processing.
+type postProcessorConfig struct {
 	// OutputDir is the directory containing the generated code.
 	OutputDir string
 	// LibraryPath is the relative path to the library (e.g., "packages/google-cloud-language").
@@ -33,7 +33,7 @@ type PostProcessorConfig struct {
 
 // RunSynthtool runs synthtool to post-process generated code.
 // It applies templates, runs formatters, and copies code from staging to final location.
-func RunSynthtool(ctx context.Context, cfg *PostProcessorConfig) error {
+func runSynthtool(ctx context.Context, cfg *postProcessorConfig) error {
 	// Check if custom owlbot.py exists
 	owlbotPath := filepath.Join(cfg.OutputDir, "owlbot.py")
 	if _, err := os.Stat(owlbotPath); err == nil {
@@ -91,7 +91,7 @@ func runFormatters(ctx context.Context, outputDir, libraryPath string) error {
 }
 
 // CopyREADME copies README.rst from the library root to the docs/ directory.
-func CopyREADME(outputDir, libraryPath string) error {
+func copyREADME(outputDir, libraryPath string) error {
 	readmeSrc := filepath.Join(outputDir, libraryPath, "README.rst")
 	readmeDst := filepath.Join(outputDir, libraryPath, "docs", "README.rst")
 

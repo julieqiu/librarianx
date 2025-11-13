@@ -20,13 +20,13 @@ import (
 )
 
 // ProtocCommand represents a protoc command with its arguments.
-type ProtocCommand struct {
+type protocCommand struct {
 	Command string
 	Args    []string
 }
 
 // BuildGapicCommand constructs the protoc command for GAPIC generation.
-func BuildGapicCommand(apiPath, sourceDir, outputDir string, opts *GapicOptions) (*ProtocCommand, error) {
+func buildGapicCommand(apiPath, sourceDir, outputDir string, opts *gapicOptions) (*protocCommand, error) {
 	if apiPath == "" {
 		return nil, fmt.Errorf("API path cannot be empty")
 	}
@@ -82,14 +82,14 @@ func BuildGapicCommand(apiPath, sourceDir, outputDir string, opts *GapicOptions)
 	// Add all proto files
 	args = append(args, protoFiles...)
 
-	return &ProtocCommand{
+	return &protocCommand{
 		Command: "protoc",
 		Args:    args,
 	}, nil
 }
 
 // BuildProtoCommand constructs the protoc command for proto-only generation.
-func BuildProtoCommand(apiPath, sourceDir, outputDir string) (*ProtocCommand, error) {
+func buildProtoCommand(apiPath, sourceDir, outputDir string) (*protocCommand, error) {
 	if apiPath == "" {
 		return nil, fmt.Errorf("API path cannot be empty")
 	}
@@ -113,14 +113,14 @@ func BuildProtoCommand(apiPath, sourceDir, outputDir string) (*ProtocCommand, er
 	}
 	args = append(args, protoFiles...)
 
-	return &ProtocCommand{
+	return &protocCommand{
 		Command: "protoc",
 		Args:    args,
 	}, nil
 }
 
 // GapicOptions contains options for GAPIC generation.
-type GapicOptions struct {
+type gapicOptions struct {
 	GrpcServiceConfig string
 	ServiceYAML       string
 	Transport         string

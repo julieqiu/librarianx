@@ -24,7 +24,7 @@ import (
 
 func TestConvert(t *testing.T) {
 	// Use the existing testdata from generate/golang
-	inputDir := filepath.Join("..", "generate", "golang", "testdata", "generate")
+	inputDir := filepath.Join("..", "golang", "testdata", "generate")
 
 	// Create a temporary output directory
 	tmpDir := t.TempDir()

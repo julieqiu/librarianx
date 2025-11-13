@@ -30,7 +30,7 @@ import (
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/fetch"
-	"github.com/googleapis/librarian/internal/generate/python"
+	"github.com/googleapis/librarian/internal/python"
 	"github.com/googleapis/librarian/internal/sidekick/sidekick"
 	"github.com/urfave/cli/v3"
 )
