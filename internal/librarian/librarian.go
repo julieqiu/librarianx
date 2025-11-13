@@ -16,23 +16,15 @@
 package librarian
 
 import (
-	"archive/tar"
-	"compress/gzip"
 	"context"
-	"crypto/sha256"
-	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
-	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/fetch"
 	"github.com/googleapis/librarian/internal/golang"
-	"github.com/googleapis/librarian/internal/golang/generate"
 	"github.com/googleapis/librarian/internal/python"
 	"github.com/googleapis/librarian/internal/rust"
 	"github.com/urfave/cli/v3"
@@ -195,7 +187,7 @@ func runAdd(name string, apis []string, location string) error {
 	var googleapisRoot string
 	if len(apis) > 0 && cfg.Sources.Googleapis != nil {
 		var err error
-		googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+		googleapisRoot, err = fetch.DownloadAndExtractTarball(cfg.Sources.Googleapis)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Warning: failed to download googleapis: %v\n", err)
 			fmt.Fprintf(os.Stderr, "Library will be added without parsed BUILD.bazel configuration\n")
@@ -473,126 +465,6 @@ func runUnset(key string) error {
 	return nil
 }
 
-func downloadAndExtractTarball(source *config.Source) (string, error) {
-	// Create a temporary directory for extraction
-	tmpDir, err := os.MkdirTemp("", "googleapis-")
-	if err != nil {
-		return "", fmt.Errorf("failed to create temp directory: %w", err)
-	}
-
-	// Download the tarball
-	resp, err := http.Get(source.URL)
-	if err != nil {
-		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to download tarball: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to download tarball: HTTP %d - %s", resp.StatusCode, resp.Status)
-	}
-
-	// Verify SHA256
-	hasher := sha256.New()
-	teeReader := io.TeeReader(resp.Body, hasher)
-
-	tarballPath := filepath.Join(tmpDir, "source.tar.gz")
-	file, err := os.Create(tarballPath)
-	if err != nil {
-		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to create tarball file: %w", err)
-	}
-	defer file.Close()
-
-	if _, err := io.Copy(file, teeReader); err != nil {
-		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to write tarball to file: %w", err)
-	}
-
-	if fmt.Sprintf("%x", hasher.Sum(nil)) != source.SHA256 {
-		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("SHA256 checksum mismatch for %s", source.URL)
-	}
-
-	// Extract the tarball
-	if err := extractTarball(tarballPath, tmpDir); err != nil {
-		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to extract tarball: %w", err)
-	}
-
-	// The tarball usually extracts into a directory named after the archive, e.g., googleapis-sha
-	// Find the actual extracted directory
-	entries, err := os.ReadDir(tmpDir)
-	if err != nil {
-		os.RemoveAll(tmpDir)
-		return "", fmt.Errorf("failed to read temp directory after extraction: %w", err)
-	}
-	for _, entry := range entries {
-		if entry.IsDir() && strings.HasPrefix(entry.Name(), "googleapis-") {
-			return filepath.Join(tmpDir, entry.Name()), nil
-		}
-	}
-
-	os.RemoveAll(tmpDir)
-	return "", fmt.Errorf("could not find extracted googleapis directory in %s", tmpDir)
-}
-
-// extractTarball extracts a gzipped tarball to a destination directory.
-func extractTarball(tarballPath, destDir string) error {
-	file, err := os.Open(tarballPath)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	gzr, err := gzip.NewReader(file)
-	if err != nil {
-		return err
-	}
-	defer gzr.Close()
-
-	tr := tar.NewReader(gzr)
-
-	for {
-		header, err := tr.Next()
-		if err == io.EOF {
-			break // End of archive
-		}
-		if err != nil {
-			return err
-		}
-
-		target := filepath.Join(destDir, header.Name)
-
-		switch header.Typeflag {
-		case tar.TypeDir:
-			if _, err := os.Stat(target); err != nil {
-				if err := os.MkdirAll(target, 0755); err != nil {
-					return err
-				}
-			}
-		case tar.TypeReg:
-			// Ensure parent directory exists
-			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
-				return err
-			}
-			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
-			if err != nil {
-				return err
-			}
-			defer f.Close()
-
-			if _, err := io.Copy(f, tr); err != nil {
-				return err
-			}
-			f.Close()
-		}
-	}
-
-	return nil
-}
-
 // generateCommand generates code for librarys.
 func generateCommand() *cli.Command {
 	return &cli.Command{
@@ -653,13 +525,17 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	// Dispatch to language-specific generator
 	switch cfg.Language {
 	case "go":
-		return generateGo(ctx, cfg, library)
+		if err := golang.Generate(ctx, cfg, library); err != nil {
+			return err
+		}
+		fmt.Printf("Generated Go library %q at %s\n", library.Name, library.Name)
+		return nil
 	case "rust":
 		// Download and extract googleapis if available
 		var googleapisRoot string
 		if cfg.Sources.Googleapis != nil {
 			var err error
-			googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+			googleapisRoot, err = fetch.DownloadAndExtractTarball(cfg.Sources.Googleapis)
 			if err != nil {
 				return fmt.Errorf("failed to download and extract googleapis: %w", err)
 			}
@@ -676,115 +552,6 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	default:
 		return fmt.Errorf("unsupported language: %s", cfg.Language)
 	}
-}
-
-func generateGo(ctx context.Context, cfg *config.Config, library *config.Library) (err error) {
-	// Determine output directory
-	outputDir := "{name}/"
-	if cfg.Generate != nil && cfg.Generate.Output != "" {
-		outputDir = cfg.Generate.Output
-	}
-
-	location, err := library.GeneratedLocation(outputDir)
-	if err != nil {
-		return fmt.Errorf("failed to determine output location: %w", err)
-	}
-
-	// Convert to absolute path
-	absLocation, err := filepath.Abs(location)
-	if err != nil {
-		return fmt.Errorf("failed to get absolute path for %s: %w", location, err)
-	}
-
-	// Download googleapis if available
-	if cfg.Sources.Googleapis == nil {
-		return fmt.Errorf("googleapis source is not configured in librarian.yaml")
-	}
-
-	var googleapisRoot string
-	googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
-	if err != nil {
-		err = fmt.Errorf("failed to download and extract googleapis: %w", err)
-		return
-	}
-	defer func() {
-		cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
-		if err == nil {
-			err = cerr
-		}
-	}()
-
-	// Create temporary librarian directory structure
-	librarianDir, err := os.MkdirTemp("", "librarian-go-*")
-	if err != nil {
-		return fmt.Errorf("failed to create temporary librarian directory: %w", err)
-	}
-	defer func() {
-		cerr := os.RemoveAll(librarianDir)
-		if err == nil {
-			err = cerr
-		}
-	}()
-
-	// Create generator-input directory
-	generatorInputDir := filepath.Join(librarianDir, "generator-input")
-	if err := os.MkdirAll(generatorInputDir, 0755); err != nil {
-		return fmt.Errorf("failed to create generator-input directory: %w", err)
-	}
-
-	// Create minimal repo-config.yaml
-	repoConfigPath := filepath.Join(generatorInputDir, "repo-config.yaml")
-	repoConfigContent := "modules: []\n"
-	if err := os.WriteFile(repoConfigPath, []byte(repoConfigContent), 0644); err != nil {
-		return fmt.Errorf("failed to write repo-config.yaml: %w", err)
-	}
-
-	// Create generate-request.json
-	generateRequest := struct {
-		ID   string `json:"id"`
-		APIs []struct {
-			Path string `json:"path"`
-		} `json:"apis"`
-	}{
-		ID: library.Name,
-	}
-
-	for _, apiPath := range library.Apis {
-		generateRequest.APIs = append(generateRequest.APIs, struct {
-			Path string `json:"path"`
-		}{Path: apiPath})
-	}
-
-	requestJSON, err := json.Marshal(generateRequest)
-	if err != nil {
-		return fmt.Errorf("failed to marshal generate request: %w", err)
-	}
-
-	requestPath := filepath.Join(librarianDir, "generate-request.json")
-	if err := os.WriteFile(requestPath, requestJSON, 0644); err != nil {
-		return fmt.Errorf("failed to write generate-request.json: %w", err)
-	}
-
-	// Create output directory if it doesn't exist
-	if err := os.MkdirAll(absLocation, 0755); err != nil {
-		return fmt.Errorf("failed to create output directory: %w", err)
-	}
-
-	// Call golang.Generate
-	genCfg := &generate.Config{
-		LibrarianDir:         librarianDir,
-		InputDir:             generatorInputDir,
-		OutputDir:            absLocation,
-		SourceDir:            googleapisRoot,
-		DisablePostProcessor: false,
-	}
-
-	if err := golang.Generate(ctx, genCfg); err != nil {
-		return fmt.Errorf("go generation failed: %w", err)
-	}
-
-	fmt.Printf("Generated Go library %q at %s\n", library.Name, location)
-	return nil
 }
 
 func generatePython(ctx context.Context, cfg *config.Config, library *config.Library) (err error) {
@@ -810,7 +577,7 @@ func generatePython(ctx context.Context, cfg *config.Config, library *config.Lib
 	}
 
 	var googleapisRoot string
-	googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+	googleapisRoot, err = fetch.DownloadAndExtractTarball(cfg.Sources.Googleapis)
 	if err != nil {
 		err = fmt.Errorf("failed to download and extract googleapis: %w", err)
 		return

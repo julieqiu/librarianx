@@ -17,16 +17,125 @@ package golang
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
+	"os"
+	"path/filepath"
 
 	"github.com/googleapis/librarian/internal/config"
+	"github.com/googleapis/librarian/internal/fetch"
 	"github.com/googleapis/librarian/internal/golang/generate"
 	"github.com/googleapis/librarian/internal/golang/release"
 )
 
 // Generate generates Go client libraries from API definitions.
-// It is a thin wrapper around generate.Generate.
-func Generate(ctx context.Context, cfg *generate.Config) error {
-	return generate.Generate(ctx, cfg)
+// It downloads googleapis, sets up the generation environment, and runs the generator.
+func Generate(ctx context.Context, cfg *config.Config, library *config.Library) (err error) {
+	// Determine output directory
+	outputDir := "{name}/"
+	if cfg.Generate != nil && cfg.Generate.Output != "" {
+		outputDir = cfg.Generate.Output
+	}
+
+	location, err := library.GeneratedLocation(outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to determine output location: %w", err)
+	}
+
+	// Convert to absolute path
+	absLocation, err := filepath.Abs(location)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for %s: %w", location, err)
+	}
+
+	// Download googleapis if available
+	if cfg.Sources.Googleapis == nil {
+		return fmt.Errorf("googleapis source is not configured in librarian.yaml")
+	}
+
+	var googleapisRoot string
+	googleapisRoot, err = fetch.DownloadAndExtractTarball(cfg.Sources.Googleapis)
+	if err != nil {
+		err = fmt.Errorf("failed to download and extract googleapis: %w", err)
+		return
+	}
+	defer func() {
+		cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// Create temporary librarian directory structure
+	librarianDir, err := os.MkdirTemp("", "librarian-go-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary librarian directory: %w", err)
+	}
+	defer func() {
+		cerr := os.RemoveAll(librarianDir)
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// Create generator-input directory
+	generatorInputDir := filepath.Join(librarianDir, "generator-input")
+	if err := os.MkdirAll(generatorInputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create generator-input directory: %w", err)
+	}
+
+	// Create minimal repo-config.yaml
+	repoConfigPath := filepath.Join(generatorInputDir, "repo-config.yaml")
+	repoConfigContent := "modules: []\n"
+	if err := os.WriteFile(repoConfigPath, []byte(repoConfigContent), 0644); err != nil {
+		return fmt.Errorf("failed to write repo-config.yaml: %w", err)
+	}
+
+	// Create generate-request.json
+	generateRequest := struct {
+		ID   string `json:"id"`
+		APIs []struct {
+			Path string `json:"path"`
+		} `json:"apis"`
+	}{
+		ID: library.Name,
+	}
+
+	for _, apiPath := range library.Apis {
+		generateRequest.APIs = append(generateRequest.APIs, struct {
+			Path string `json:"path"`
+		}{Path: apiPath})
+	}
+
+	requestJSON, err := json.Marshal(generateRequest)
+	if err != nil {
+		return fmt.Errorf("failed to marshal generate request: %w", err)
+	}
+
+	requestPath := filepath.Join(librarianDir, "generate-request.json")
+	if err := os.WriteFile(requestPath, requestJSON, 0644); err != nil {
+		return fmt.Errorf("failed to write generate-request.json: %w", err)
+	}
+
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(absLocation, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Call generate.Generate
+	genCfg := &generate.Config{
+		LibrarianDir:         librarianDir,
+		InputDir:             generatorInputDir,
+		OutputDir:            absLocation,
+		SourceDir:            googleapisRoot,
+		DisablePostProcessor: false,
+	}
+
+	if err := generate.Generate(ctx, genCfg); err != nil {
+		return fmt.Errorf("go generation failed: %w", err)
+	}
+
+	return nil
 }
 
 // Release performs Go-specific release preparation.

@@ -16,10 +16,15 @@
 package fetch
 
 import (
+	"archive/tar"
+	"compress/gzip"
 	"crypto/sha256"
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
+	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 )
@@ -86,4 +91,128 @@ func LatestGoogleapis() (*config.Source, error) {
 		URL:    tarballURL,
 		SHA256: sha256sum,
 	}, nil
+}
+
+// DownloadAndExtractTarball downloads a tarball from the given source,
+// verifies its SHA256 checksum, and extracts it to a temporary directory.
+// It returns the path to the extracted googleapis directory.
+// The caller is responsible for cleaning up the temporary directory.
+func DownloadAndExtractTarball(source *config.Source) (string, error) {
+	// Create a temporary directory for extraction
+	tmpDir, err := os.MkdirTemp("", "googleapis-")
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp directory: %w", err)
+	}
+
+	// Download the tarball
+	resp, err := http.Get(source.URL)
+	if err != nil {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("failed to download tarball: %w", err)
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("failed to download tarball: HTTP %d - %s", resp.StatusCode, resp.Status)
+	}
+
+	// Verify SHA256
+	hasher := sha256.New()
+	teeReader := io.TeeReader(resp.Body, hasher)
+
+	tarballPath := filepath.Join(tmpDir, "source.tar.gz")
+	file, err := os.Create(tarballPath)
+	if err != nil {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("failed to create tarball file: %w", err)
+	}
+	defer file.Close()
+
+	if _, err := io.Copy(file, teeReader); err != nil {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("failed to write tarball to file: %w", err)
+	}
+
+	if fmt.Sprintf("%x", hasher.Sum(nil)) != source.SHA256 {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("SHA256 checksum mismatch for %s", source.URL)
+	}
+
+	// Extract the tarball
+	if err := extractTarball(tarballPath, tmpDir); err != nil {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("failed to extract tarball: %w", err)
+	}
+
+	// The tarball usually extracts into a directory named after the archive, e.g., googleapis-sha
+	// Find the actual extracted directory
+	entries, err := os.ReadDir(tmpDir)
+	if err != nil {
+		os.RemoveAll(tmpDir)
+		return "", fmt.Errorf("failed to read temp directory after extraction: %w", err)
+	}
+	for _, entry := range entries {
+		if entry.IsDir() && strings.HasPrefix(entry.Name(), "googleapis-") {
+			return filepath.Join(tmpDir, entry.Name()), nil
+		}
+	}
+
+	os.RemoveAll(tmpDir)
+	return "", fmt.Errorf("could not find extracted googleapis directory in %s", tmpDir)
+}
+
+// extractTarball extracts a gzipped tarball to a destination directory.
+func extractTarball(tarballPath, destDir string) error {
+	file, err := os.Open(tarballPath)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+
+	gzr, err := gzip.NewReader(file)
+	if err != nil {
+		return err
+	}
+	defer gzr.Close()
+
+	tr := tar.NewReader(gzr)
+
+	for {
+		header, err := tr.Next()
+		if err == io.EOF {
+			break // End of archive
+		}
+		if err != nil {
+			return err
+		}
+
+		target := filepath.Join(destDir, header.Name)
+
+		switch header.Typeflag {
+		case tar.TypeDir:
+			if _, err := os.Stat(target); err != nil {
+				if err := os.MkdirAll(target, 0755); err != nil {
+					return err
+				}
+			}
+		case tar.TypeReg:
+			// Ensure parent directory exists
+			if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+				return err
+			}
+			f, err := os.OpenFile(target, os.O_CREATE|os.O_RDWR, os.FileMode(header.Mode))
+			if err != nil {
+				return err
+			}
+			defer f.Close()
+
+			if _, err := io.Copy(f, tr); err != nil {
+				return err
+			}
+			f.Close()
+		}
+	}
+
+	return nil
 }
