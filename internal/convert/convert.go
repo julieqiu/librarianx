@@ -163,6 +163,17 @@ func Convert(inputDir, outputFile string) error {
 	// Convert to new format
 	newConfig := convertToNewFormat(oldConfig, oldState, oldRepoConfig)
 
+	// Enrich with BUILD.bazel metadata
+	googleapisRoot := os.ExpandEnv("$HOME/code/googleapis/googleapis")
+	if err := config.EnrichWithBazelMetadata(newConfig, googleapisRoot); err != nil {
+		return fmt.Errorf("failed to enrich with bazel metadata: %w", err)
+	}
+
+	// Enrich with service config settings
+	if err := config.EnrichWithServiceConfigSettings(newConfig, googleapisRoot); err != nil {
+		return fmt.Errorf("failed to enrich with service config settings: %w", err)
+	}
+
 	// Create output directory if it does not exist
 	outputDir := filepath.Dir(outputFile)
 	if err := os.MkdirAll(outputDir, 0755); err != nil {

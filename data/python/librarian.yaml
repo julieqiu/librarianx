@@ -37,6 +37,8 @@ libraries:
             - tests/unit/gapic/sheets/test_sheets.py
             - tests/unit/gapic/slides/test_slides.py
             - tests/unit/gapic/type/test_type.py
+        bazel_metadata:
+            transport: grpc
     - google-cloud-alloydb-connectors:
         apis:
             - google/cloud/alloydb/connectors/v1
@@ -44,10 +46,18 @@ libraries:
             - google/cloud/alloydb/connectors/v1beta
         keep:
             - tests/unit/gapic/connectors_v1/test_connectors.py
+        python: {}
     - google-cloud-appengine-logging:
         api: google/appengine/logging/v1
         keep:
             - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
+        bazel_metadata:
+            transport: grpc
+            python:
+                opt_args:
+                    - warehouse-package-name=google-cloud-appengine-logging
+                    - python-gapic-namespace=google.cloud
+                    - python-gapic-name=appengine_logging
     - google-cloud-automl:
         apis:
             - google/cloud/automl/v1beta1
@@ -62,6 +72,13 @@ libraries:
         api: google/cloud/bigquery/logging/v1
         keep:
             - tests/unit/gapic/bigquery_logging_v1/test_bigquery_logging_v1.py
+        bazel_metadata:
+            transport: grpc
+            python:
+                opt_args:
+                    - warehouse-package-name=google-cloud-bigquery-logging
+                    - python-gapic-namespace=google.cloud
+                    - python-gapic-name=bigquery_logging
     - google-cloud-bigquery-storage:
         apis:
             - google/cloud/bigquery/storage/v1beta2
@@ -89,14 +106,27 @@ libraries:
             - scripts/readme-gen
             - testing/.gitignore
             - tests/unit/.*.py
+        bazel_metadata:
+            transport: grpc
+            python:
+                opt_args:
+                    - python-gapic-namespace=google.cloud
+                    - python-gapic-name=bigquery_storage
     - google-cloud-common:
         api: google/cloud/common
         keep:
             - tests/unit/gapic/common/test_common.py
+        bazel_metadata:
+            transport: grpc
     - google-cloud-containeranalysis:
         api: google/devtools/containeranalysis/v1
         keep:
             - tests/unit/test_get_grafeas_client.py
+        bazel_metadata:
+            python:
+                opt_args:
+                    - python-gapic-namespace=google.cloud.devtools
+                    - warehouse-package-name=google-cloud-containeranalysis
     - google-cloud-gke-hub:
         apis:
             - google/cloud/gkehub/v1
@@ -106,10 +136,21 @@ libraries:
             - docs/gkehub_v1/multiclusteringress_v1
             - google/cloud/gkehub_v1/configmanagement_v1
             - google/cloud/gkehub_v1/multiclusteringress_v1
+        bazel_metadata:
+            python:
+                opt_args:
+                    - warehouse-package-name=google-cloud-gke-hub
     - google-cloud-iam-logging:
         api: google/iam/v1/logging
         keep:
             - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
+        bazel_metadata:
+            transport: grpc
+            python:
+                opt_args:
+                    - warehouse-package-name=google-cloud-iam-logging
+                    - python-gapic-namespace=google.cloud
+                    - python-gapic-name=iam_logging
     - google-cloud-monitoring:
         api: google/monitoring/v3
         keep:
@@ -118,11 +159,22 @@ libraries:
             - google/cloud/monitoring_v3/query.py
             - tests/unit/test__dataframe.py
             - tests/unit/test_query.py
+        bazel_metadata:
+            transport: grpc
+            python:
+                opt_args:
+                    - python-gapic-namespace=google.cloud
     - google-cloud-monitoring-dashboards:
         api: google/monitoring/dashboard/v1
         keep:
             - google/monitoring
             - tests/unit/gapic/dashboard_v1
+        bazel_metadata:
+            python:
+                opt_args:
+                    - python-gapic-name=monitoring_dashboard
+                    - python-gapic-namespace=google.cloud
+                    - warehouse-package-name=google-cloud-monitoring-dashboards
     - google-cloud-org-policy:
         apis:
             - google/cloud/orgpolicy/v1
@@ -136,10 +188,22 @@ libraries:
         keep:
             - google/cloud/oslogin_v1/common
             - docs/oslogin_v1/common/types.rst
+        bazel_metadata:
+            python:
+                opt_args:
+                    - warehouse-package-name=google-cloud-os-login
+                    - proto-plus-deps=google.cloud.oslogin.common
     - google-cloud-source-context:
         api: google/devtools/source/v1
         keep:
             - tests/unit/gapic/source_context_v1/test_source_context_v1.py
+        bazel_metadata:
+            transport: grpc
+            python:
+                opt_args:
+                    - warehouse-package-name=google-cloud-source-context
+                    - python-gapic-namespace=google.cloud
+                    - python-gapic-name=source_context
     - google-cloud-speech:
         apis:
             - google/cloud/speech/v1
@@ -161,6 +225,7 @@ libraries:
             - google/cloud/telcoautomation/v1alpha1
         keep:
             - snippets/README.md
+        python: {}
     - google-cloud-translate:
         apis:
             - google/cloud/translate/v3beta1
@@ -170,6 +235,10 @@ libraries:
             - docs/v2.rst
             - google/cloud/translate_v2
             - tests/unit/v2
+        bazel_metadata:
+            python:
+                opt_args:
+                    - python-gapic-name=translate
     - google-cloud-vision:
         apis:
             - google/cloud/vision/v1p3beta1
@@ -185,10 +254,13 @@ libraries:
         api: google/geo/type
         keep:
             - tests/unit/gapic/type/test_type.py
+        bazel_metadata:
+            transport: grpc
     - google-maps-routeoptimization:
         api: google/maps/routeoptimization/v1
         keep:
             - samples/README.rst
+        python: {}
     - google-shopping-type:
         api: google/shopping/type
         keep:
@@ -199,3 +271,8 @@ libraries:
             - grafeas/grafeas.py
             - grafeas/grafeas/__init__.py
             - grafeas/grafeas/grafeas_v1/types.py
+        bazel_metadata:
+            python:
+                opt_args:
+                    - python-gapic-namespace=grafeas
+                    - warehouse-package-name=grafeas

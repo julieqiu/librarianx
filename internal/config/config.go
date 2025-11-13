@@ -208,17 +208,22 @@ type LibraryConfig struct {
 	// Release contains per-library release configuration.
 	Release *LibraryRelease `yaml:"release,omitempty"`
 
-	// Rust contains Rust-specific library configuration.
-	Rust *RustLibrary `yaml:"rust,omitempty"`
-
-	// Dart contains Dart-specific library configuration.
-	Dart *DartLibrary `yaml:"dart,omitempty"`
-
-	// Python contains Python-specific library configuration.
+	// Language-specific library configurations
+	Rust   *RustLibrary   `yaml:"rust,omitempty"`
+	Dart   *DartLibrary   `yaml:"dart,omitempty"`
 	Python *PythonLibrary `yaml:"python,omitempty"`
+	Go     *GoLibrary     `yaml:"go,omitempty"`
+	Java   *JavaLibrary   `yaml:"java,omitempty"`
+	Node   *NodeLibrary   `yaml:"node,omitempty"`
+	Dotnet *DotnetLibrary `yaml:"dotnet,omitempty"`
 
-	// Go contains Go-specific library configuration.
-	Go *GoLibrary `yaml:"go,omitempty"`
+	// Overrides for derived fields
+	LaunchStage  string   `yaml:"launch_stage,omitempty"`
+	Destinations []string `yaml:"destinations,omitempty"`
+
+	// BazelMetadata contains metadata extracted from BUILD.bazel files.
+	// This is populated automatically during conversion or when adding a library.
+	BazelMetadata *BazelMetadata `yaml:"bazel_metadata,omitempty"`
 }
 
 // RustLibrary contains Rust-specific library configuration.
@@ -263,12 +268,90 @@ type DartLibrary struct {
 
 // PythonLibrary contains Python-specific library configuration.
 type PythonLibrary struct {
-	// Additional Python-specific fields can be added as needed
+	// RestAsyncIOEnabled enables async I/O for REST transport.
+	RestAsyncIOEnabled bool `yaml:"rest_async_io_enabled,omitempty"`
+
+	// UnversionedPackageDisabled disables unversioned package generation.
+	UnversionedPackageDisabled bool `yaml:"unversioned_package_disabled,omitempty"`
 }
 
 // GoLibrary contains Go-specific library configuration.
 type GoLibrary struct {
-	// Additional Go-specific fields can be added as needed
+	// RenamedServices maps original service names to renamed versions.
+	// Example: {"Publisher": "TopicAdmin", "Subscriber": "SubscriptionAdmin"}
+	RenamedServices map[string]string `yaml:"renamed_services,omitempty"`
+}
+
+// JavaLibrary contains Java-specific library configuration.
+type JavaLibrary struct {
+	// Package specifies the Java package name.
+	// Example: "com.google.cloud.logging.v2"
+	Package string `yaml:"package,omitempty"`
+
+	// ServiceClassNames maps proto service names to generated class names.
+	// Example: {"google.logging.v2.LoggingServiceV2": "Logging"}
+	ServiceClassNames map[string]string `yaml:"service_class_names,omitempty"`
+}
+
+// NodeLibrary contains Node.js-specific library configuration.
+type NodeLibrary struct {
+	// SelectiveMethods lists method selectors for selective generation.
+	// Example: ["google.storage.v2.Storage.GetBucket", "google.storage.v2.Storage.CreateBucket"]
+	SelectiveMethods []string `yaml:"selective_methods,omitempty"`
+}
+
+// DotnetLibrary contains .NET-specific library configuration.
+type DotnetLibrary struct {
+	// RenamedServices maps original service names to renamed versions.
+	// Example: {"Subscriber": "SubscriberServiceApi", "Publisher": "PublisherServiceApi"}
+	RenamedServices map[string]string `yaml:"renamed_services,omitempty"`
+
+	// RenamedResources maps resource names to renamed versions for disambiguation.
+	// Example: {"datalabeling.googleapis.com/Dataset": "DataLabelingDataset"}
+	RenamedResources map[string]string `yaml:"renamed_resources,omitempty"`
+}
+
+// BazelMetadata contains metadata extracted from googleapis BUILD.bazel files.
+// This metadata is populated automatically during conversion or when adding a library,
+// and is cached here so that BUILD.bazel files don't need to be parsed repeatedly.
+type BazelMetadata struct {
+	// Transport is the transport protocol (e.g., "grpc", "rest", "grpc+rest").
+	Transport string `yaml:"transport,omitempty"`
+
+	// RestNumericEnums indicates whether to use numeric enums in REST.
+	RestNumericEnums bool `yaml:"rest_numeric_enums,omitempty"`
+
+	// ReleaseLevel is the release level (e.g., "ga", "beta", "alpha").
+	ReleaseLevel string `yaml:"release_level,omitempty"`
+
+	// GRPCServiceConfig is the gRPC service config JSON file path.
+	GRPCServiceConfig string `yaml:"grpc_service_config,omitempty"`
+
+	// Go contains Go-specific metadata from BUILD.bazel.
+	Go *BazelGoMetadata `yaml:"go,omitempty"`
+
+	// Python contains Python-specific metadata from BUILD.bazel.
+	Python *BazelPythonMetadata `yaml:"python,omitempty"`
+}
+
+// BazelGoMetadata contains Go-specific metadata from BUILD.bazel.
+type BazelGoMetadata struct {
+	// ImportPath is the Go package import path.
+	// Example: "cloud.google.com/go/batch/apiv1;batchpb"
+	ImportPath string `yaml:"import_path,omitempty"`
+
+	// Metadata indicates whether to generate gapic_metadata.json.
+	Metadata bool `yaml:"metadata,omitempty"`
+
+	// Diregapic indicates whether this is a DIREGAPIC (Discovery REST GAPIC).
+	Diregapic bool `yaml:"diregapic,omitempty"`
+}
+
+// BazelPythonMetadata contains Python-specific metadata from BUILD.bazel.
+type BazelPythonMetadata struct {
+	// OptArgs contains additional options passed to the generator.
+	// Example: ["warehouse-package-name=google-cloud-batch"]
+	OptArgs []string `yaml:"opt_args,omitempty"`
 }
 
 // UnmarshalYAML implements custom unmarshaling for LibraryEntry.
@@ -576,6 +659,33 @@ func (c *Config) AddLegacy(name string, apis []string, location string, googleap
 
 	if location != "" {
 		config.Path = location
+	}
+
+	// Extract language-specific settings from service config if available
+	if len(apis) > 0 && googleapisRoot != "" && c.Language != "" {
+		// Use the first API to find service config
+		apiPath := apis[0]
+		if extracted, err := ExtractServiceConfigSettings(googleapisRoot, apiPath, c.Language); err != nil {
+			// Don't fail if extraction fails - just log and continue
+			fmt.Fprintf(os.Stderr, "Warning: failed to extract service config settings: %v\n", err)
+		} else if extracted != nil {
+			// Merge extracted settings into config
+			if extracted.Java != nil {
+				config.Java = extracted.Java
+			}
+			if extracted.Python != nil {
+				config.Python = extracted.Python
+			}
+			if extracted.Go != nil {
+				config.Go = extracted.Go
+			}
+			if extracted.Node != nil {
+				config.Node = extracted.Node
+			}
+			if extracted.Dotnet != nil {
+				config.Dotnet = extracted.Dotnet
+			}
+		}
 	}
 
 	return c.Add(name, config)

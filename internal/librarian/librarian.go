@@ -205,6 +205,23 @@ func runAdd(name string, apis []string, location string) error {
 		return err
 	}
 
+	// Enrich with BUILD.bazel metadata if we have googleapis available
+	if googleapisRoot != "" {
+		if err := config.EnrichWithBazelMetadata(cfg, googleapisRoot); err != nil {
+			// Don't fail if enrichment fails - it's supplementary
+			fmt.Fprintf(os.Stderr, "Warning: failed to enrich with bazel metadata: %v\n", err)
+		}
+	} else {
+		// Try using local googleapis clone as fallback
+		localGoogleapis := os.ExpandEnv("$HOME/code/googleapis/googleapis")
+		if _, err := os.Stat(localGoogleapis); err == nil {
+			if err := config.EnrichWithBazelMetadata(cfg, localGoogleapis); err != nil {
+				// Silently skip - enrichment is optional
+				fmt.Fprintf(os.Stderr, "Warning: failed to enrich with bazel metadata: %v\n", err)
+			}
+		}
+	}
+
 	if err := cfg.Write(configPath); err != nil {
 		return fmt.Errorf("failed to write config: %w", err)
 	}

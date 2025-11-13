@@ -218,6 +218,17 @@ func ConvertSidekick(inputDir, outputFile string) error {
 		}
 	}
 
+	// Enrich with BUILD.bazel metadata
+	googleapisRoot := os.ExpandEnv("$HOME/code/googleapis/googleapis")
+	if err := config.EnrichWithBazelMetadata(libConfig, googleapisRoot); err != nil {
+		return fmt.Errorf("failed to enrich with bazel metadata: %w", err)
+	}
+
+	// Enrich with service config settings
+	if err := config.EnrichWithServiceConfigSettings(libConfig, googleapisRoot); err != nil {
+		return fmt.Errorf("failed to enrich with service config settings: %w", err)
+	}
+
 	// Create output directory if it does not exist
 	outputDir := filepath.Dir(outputFile)
 	if err := os.MkdirAll(outputDir, 0755); err != nil {
@@ -321,25 +332,12 @@ func processLibraryConfig(configPath, rootDir, language string) (*config.Library
 	}
 
 	// Check if there's any custom config beyond just API field
-	hasCustomConfig := false
-	if cfg.Path != "" {
-		hasCustomConfig = true
-	}
-	if cfg.Rust != nil {
-		hasCustomConfig = true
-	}
-	if cfg.Dart != nil {
-		hasCustomConfig = true
-	}
-	if cfg.Keep != nil && len(cfg.Keep) > 0 {
-		hasCustomConfig = true
-	}
-	if cfg.Release != nil {
-		hasCustomConfig = true
-	}
-	if cfg.Disabled {
-		hasCustomConfig = true
-	}
+	hasCustomConfig := cfg.Path != "" ||
+		cfg.Rust != nil ||
+		cfg.Dart != nil ||
+		len(cfg.Keep) > 0 ||
+		cfg.Release != nil ||
+		cfg.Disabled
 
 	// Only return library entry if it has custom config beyond just API
 	// Libraries with only api field can be auto-discovered

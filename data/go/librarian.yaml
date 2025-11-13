@@ -28,6 +28,12 @@ libraries:
         api: google/cloud/batch/v1
         keep:
             - ^batch/apiv1/iam_policy_client\.go$
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: batch_v1_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/batch/apiv1;batch
+                metadata: true
     - bigquery:
         apis:
             - google/cloud/bigquery/analyticshub/v1
@@ -53,16 +59,33 @@ libraries:
             - ^internal/generated/snippets/bigquery/v2/
         release:
             disabled: true
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: analyticshub_v1_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/bigquery/analyticshub/apiv1;analyticshub
+                metadata: true
     - bigquery/v2:
         api: google/cloud/bigquery/v2
         release:
             disabled: true
+        bazel_metadata:
+            release_level: alpha
+            grpc_service_config: bigquery_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/bigquery/v2/apiv2;bigquery
+                metadata: true
     - bigtable:
         apis:
             - google/bigtable/admin/v2
             - google/bigtable/v2
         release:
             disabled: true
+        bazel_metadata:
+            transport: grpc
+            grpc_service_config: bigtableadmin_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/bigtable/admin/apiv2;admin
     - compute/metadata:
         release:
             disabled: true
@@ -73,36 +96,78 @@ libraries:
             - google/cloud/datacatalog/v1beta1
         keep:
             - ^datacatalog/apiv1/iam_policy_client\.go$
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: lineage_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/datacatalog/lineage/apiv1;lineage
+                metadata: true
     - datastore:
         apis:
             - google/datastore/admin/v1
             - google/datastore/v1
         release:
             disabled: true
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: datastore_admin_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/datastore/admin/apiv1;admin
+                metadata: true
     - datastream:
         apis:
             - google/cloud/datastream/v1
             - google/cloud/datastream/v1alpha1
         keep:
             - ^datastream/apiv1/iam_policy_client\.go$
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: datastream_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/datastream/apiv1;datastream
+                metadata: true
     - errorreporting:
         api: google/devtools/clouderrorreporting/v1beta1
         release:
             disabled: true
+        bazel_metadata:
+            release_level: beta
+            grpc_service_config: errorreporting_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/errorreporting/apiv1beta1;errorreporting
+                metadata: true
     - firestore:
         apis:
             - google/firestore/admin/v1
             - google/firestore/v1
         release:
             disabled: true
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: firestore_admin_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/firestore/apiv1/admin;apiv1
+                metadata: true
     - logging:
         api: google/logging/v2
         release:
             disabled: true
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: logging_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/logging/apiv2;logging
+                metadata: true
     - longrunning:
         api: google/longrunning
         release:
             disabled: true
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: longrunning_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/longrunning/autogen;longrunning
+                metadata: true
     - profiler:
         release:
             disabled: true
@@ -113,10 +178,22 @@ libraries:
         api: google/pubsub/v1
         release:
             disabled: true
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: pubsub_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/pubsub/v2/apiv1;pubsub
     - pubsublite:
         api: google/cloud/pubsublite/v1
         release:
             disabled: true
+        bazel_metadata:
+            transport: grpc
+            release_level: ga
+            grpc_service_config: pubsublite_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/pubsublite/apiv1;pubsublite
+                metadata: true
     - root-module:
         path: civil/
         release:
@@ -125,6 +202,12 @@ libraries:
         api: google/cloud/run/v2
         keep:
             - ^run/apiv2/locations_client\.go$
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: run_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/run/apiv2;run
+                metadata: true
     - spanner:
         apis:
             - google/spanner/adapter/v1
@@ -134,12 +217,24 @@ libraries:
             - google/spanner/executor/v1
         release:
             disabled: true
+        bazel_metadata:
+            release_level: beta
+            grpc_service_config: spanner_adapter_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/spanner/adapter/apiv1;adapter
+                metadata: true
     - storage:
         apis:
             - google/storage/control/v2
             - google/storage/v2
         release:
             disabled: true
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: storage_control_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/storage/control/apiv2;control
+                metadata: true
     - vertexai:
         release:
             disabled: true
@@ -147,3 +242,9 @@ libraries:
         api: google/cloud/vmmigration/v1
         keep:
             - ^vmmigration/apiv1/iam_policy_client\.go$
+        bazel_metadata:
+            release_level: ga
+            grpc_service_config: vmmigration_v1_grpc_service_config.json
+            go:
+                import_path: cloud.google.com/go/vmmigration/apiv1;vmmigration
+                metadata: true
