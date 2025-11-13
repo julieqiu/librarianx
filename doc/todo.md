@@ -16,6 +16,7 @@ This document tracks tasks and design decisions that need to be addressed.
 - [ ] internal/release/rust
 - [ ] internal/release/python
 - [ ] internal/release/go
+- [ ] https://github.com/googleapis/librarian/commit/99e1dc14d2d25f4a4ed777fd04c3324d2646a5b6
 
 ## Configuration
 
