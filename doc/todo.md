@@ -11,12 +11,12 @@ This document tracks tasks and design decisions that need to be addressed.
   This makes disabling libraries easier and ensures the issue link requirement is always met.
   The inverse command `librarian enable <library>` should remove the `disabled`
   field and the associated comment.
-- [ ] internal/generate/rust
-- [ ] internal/generate/python
 - [ ] internal/release/rust
 - [ ] internal/release/python
 - [ ] internal/release/go
 - [ ] https://github.com/googleapis/librarian/commit/99e1dc14d2d25f4a4ed777fd04c3324d2646a5b6
+- [ ] caching of tarball
+- [ ] caching of tree traversal
 
 ## Configuration
 
