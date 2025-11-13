@@ -24,6 +24,7 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/librarian/internal/config"
+	"github.com/googleapis/librarian/internal/rust"
 )
 
 func TestRun_Version(t *testing.T) {
@@ -503,7 +504,6 @@ func TestRunGenerate_ConfigNotFound(t *testing.T) {
 
 func TestGenerateRust(t *testing.T) {
 	tmpDir := t.TempDir()
-
 	for _, test := range []struct {
 		name    string
 		cfg     *config.Config
@@ -515,7 +515,7 @@ func TestGenerateRust(t *testing.T) {
 			cfg: &config.Config{
 				Language: "rust",
 				Generate: &config.Generate{
-					Output: filepath.Join(tmpDir, "packages") + "/",
+					Output: filepath.Join(tmpDir, "packages", "/"),
 				},
 			},
 			library: &config.Library{
@@ -548,9 +548,9 @@ func TestGenerateRust(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			err := generateRust(test.cfg, test.library)
+			err := rust.Generate(t.Context(), test.cfg, test.library, "")
 			if test.wantErr && err == nil {
-				t.Error("generateRust() should fail")
+				t.Error("rust.Generate() should fail")
 			}
 			if !test.wantErr && err != nil {
 				t.Fatal(err)
@@ -568,9 +568,9 @@ func TestGenerateRust_RequiresSingleAPI(t *testing.T) {
 		Apis: []string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta2"},
 	}
 
-	err := generateRust(cfg, library)
+	err := rust.Generate(t.Context(), cfg, library, "")
 	if err == nil {
-		t.Error("generateRust() should fail with multiple APIs")
+		t.Error("rust.Generate() should fail with multiple APIs")
 	}
 	want := "rust generation requires exactly one API per library"
 	if err != nil && !strings.Contains(err.Error(), want) {

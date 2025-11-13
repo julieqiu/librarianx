@@ -34,7 +34,7 @@ import (
 	"github.com/googleapis/librarian/internal/golang"
 	"github.com/googleapis/librarian/internal/golang/generate"
 	"github.com/googleapis/librarian/internal/python"
-	"github.com/googleapis/librarian/internal/sidekick/sidekick"
+	"github.com/googleapis/librarian/internal/rust"
 	"github.com/urfave/cli/v3"
 )
 
@@ -304,7 +304,8 @@ func configureLibrary(cfg *config.Config, libraryName string) error {
 	case "go":
 		return configureGo(cfg, library)
 	case "rust":
-		return configureRust(cfg, library)
+		// Rust libraries are configured by sidekick during generation
+		return nil
 	case "python":
 		return configurePython(cfg, library)
 	default:
@@ -333,30 +334,6 @@ func configureGo(cfg *config.Config, library *config.Library) error {
 
 	fmt.Printf("Configured Go library at %s\n", outputDir)
 	// TODO(https://github.com/googleapis/librarian/issues/XXX): Create go.mod, README.md, CHANGES.md
-	return nil
-}
-
-func configureRust(cfg *config.Config, library *config.Library) error {
-	// Get the library's output location
-	var outputDir string
-	if cfg.Generate != nil && cfg.Generate.Output != "" {
-		var err error
-		outputDir, err = library.GeneratedLocation(cfg.Generate.Output)
-		if err != nil {
-			return err
-		}
-	} else {
-		// Default output location if generate.output is not set
-		outputDir = library.Name + "/"
-	}
-
-	// Create the library directory
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
-		return fmt.Errorf("failed to create directory %s: %w", outputDir, err)
-	}
-
-	fmt.Printf("Configured Rust library at %s\n", outputDir)
-	// TODO(https://github.com/googleapis/librarian/issues/XXX): Create Cargo.toml, README.md
 	return nil
 }
 
@@ -678,7 +655,22 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	case "go":
 		return generateGo(ctx, cfg, library)
 	case "rust":
-		return generateRust(cfg, library)
+		// Download and extract googleapis if available
+		var googleapisRoot string
+		if cfg.Sources.Googleapis != nil {
+			var err error
+			googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+			if err != nil {
+				return fmt.Errorf("failed to download and extract googleapis: %w", err)
+			}
+			defer func() {
+				cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
+				if err == nil {
+					err = cerr
+				}
+			}()
+		}
+		return rust.Generate(ctx, cfg, library, googleapisRoot)
 	case "python":
 		return generatePython(ctx, cfg, library)
 	default:
@@ -838,62 +830,4 @@ func generatePython(ctx context.Context, cfg *config.Config, library *config.Lib
 
 	fmt.Printf("Generated Python library %q at %s\n", library.Name, location)
 	return nil
-}
-
-func generateRust(cfg *config.Config, library *config.Library) (err error) {
-	// Validate Rust-specific requirements
-	if len(library.Apis) != 1 {
-		return fmt.Errorf("rust generation requires exactly one API per library, got %d for library %q", len(library.Apis), library.Name)
-	}
-
-	// Determine output directory
-	outputDir := "{name}/"
-	if cfg.Generate != nil && cfg.Generate.Output != "" {
-		outputDir = cfg.Generate.Output
-	}
-
-	location, err := library.GeneratedLocation(outputDir)
-	if err != nil {
-		return fmt.Errorf("failed to determine output location: %w", err)
-	}
-
-	// Build sidekick command line arguments
-	args := []string{
-		"sidekick",
-		"rust-generate",
-		"--specification-source", library.Apis[0],
-		"--output", location,
-		"--language", "rust",
-	}
-
-	// Add googleapis source if available
-	if cfg.Sources.Googleapis != nil {
-		var googleapisRoot string
-		googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
-		if err != nil {
-			err = fmt.Errorf("failed to download and extract googleapis: %w", err)
-			return
-		}
-		defer func() {
-			cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
-			if err == nil {
-				err = cerr
-			}
-		}()
-		args = append(args, "--source-option", fmt.Sprintf("googleapis-root=%s", googleapisRoot))
-	}
-
-	// Add copyright year if specified
-	if library.CopyrightYear > 0 {
-		args = append(args, "--codec-option", fmt.Sprintf("copyright-year=%d", library.CopyrightYear))
-	}
-
-	// Run sidekick
-	if runErr := sidekick.Run(args[1:]); runErr != nil {
-		err = fmt.Errorf("sidekick rust-generate failed: %w", runErr)
-		return
-	}
-
-	fmt.Printf("Generated Rust library %q at %s\n", library.Name, location)
-	return
 }
