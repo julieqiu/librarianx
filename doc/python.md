@@ -35,7 +35,8 @@ This installs the `protoc-gen-python_gapic` plugin that protoc uses to generate 
 
 ### 3. (Optional) Install synthtool
 
-The Python generator can optionally run synthtool to post-process generated code. This is currently disabled by default.
+The Python generator can optionally run synthtool to post-process generated code.
+This is currently disabled by default.
 
 ```bash
 # Install synthtool
@@ -242,7 +243,9 @@ After the container exits, the librarian CLI:
 
 ### Automatic Cleanup
 
-The generator automatically removes all `*_pb2.py` and `*_pb2.pyi` files after generation. These are protobuf-compiled files that should not be included in GAPIC-generated libraries. No configuration is needed for this behavior.
+The generator automatically removes all `*_pb2.py` and `*_pb2.pyi` files after generation.
+These are protobuf-compiled files that should not be included in GAPIC-generated libraries.
+No configuration is needed for this behavior.
 
 ### Manual Removal
 
@@ -312,58 +315,656 @@ If the repository uses a global CHANGELOG, librarian adds an entry for the new l
 
 ## Release Process
 
-Python releases follow the standard librarian release workflow with PyPI-specific steps.
+Python releases use the `librarian release` command to prepare releases:
 
-### Version Files
+1. **`librarian release`** - Prepares release (updates files, commits, tags, pushes)
 
-Librarian updates these files during release:
+**Note:** Python libraries do NOT use `librarian publish`.
+Publishing to PyPI is handled separately (typically via CI/CD automation).
 
-- `google/cloud/servicename/gapic_version.py`
-- `google/cloud/servicename/version.py`
-- `setup.py`
-- `pyproject.toml`
-- Snippet metadata JSON files
+### Current Implementation Status
 
-### Changelog Format
+**Implemented (in `internal/release/python/release.go`):**
+- ✅ Version file updates (gapic_version.py, version.py, pyproject.toml, setup.py)
+- ✅ Package CHANGELOG.md update
 
-Python changelogs use the Keep a Changelog format:
+**TODO:**
+- ⏳ Run tests (nox) before release
+- ⏳ Update docs/CHANGELOG.md (duplicate)
+- ⏳ Update global CHANGELOG.md (monorepo)
+- ⏳ Update snippet metadata JSON files
+- ⏳ PEP 440 version normalization (1.16.0-rc.1 → 1.16.0rc1)
 
-```markdown
-# Changelog
+### Python-Specific Files Updated
 
-## [1.2.0] - 2025-01-15
+When releasing a Python library, these files are updated:
 
-### Added
-- Add Secret rotation support
+```
+packages/google-cloud-secret-manager/
+├── CHANGELOG.md                               # Package changelog
+├── docs/
+│   └── CHANGELOG.md                           # Duplicate for docs
+├── google/cloud/secretmanager/
+│   ├── gapic_version.py                       # Version constant
+│   └── version.py                             # Version constant (if exists)
+├── pyproject.toml                             # Version in [project]
+└── setup.py                                   # Version (if exists, legacy)
 
-### Fixed
-- Handle nil pointers correctly in GetSecret
-
-## [1.1.0] - 2025-01-01
-...
+# Global changelog (if exists)
+CHANGELOG.md                                    # Monorepo changelog
 ```
 
-### Publishing to PyPI
+### Current Implementation Analysis
 
-The release command publishes to PyPI after creating tags:
+#### What's Working
+
+The current `internal/release/python/release.go` implements:
+
+**1. Version File Updates (`updateVersionFiles`)**
+- ✅ Finds and updates all version files using glob patterns
+- ✅ Handles `**/gapic_version.py` (recursive search)
+- ✅ Handles `**/version.py` (recursive search)
+- ✅ Handles `pyproject.toml`
+- ✅ Handles `setup.py` (legacy)
+- ✅ Uses regex replacement with correct formatting per file type
+
+**2. Changelog Updates (`updateChangelog`)**
+- ✅ Creates CHANGELOG.md if doesn't exist
+- ✅ Appends to existing CHANGELOG.md
+- ✅ Inserts new entries at top (after header)
+- ✅ Groups changes by type
+
+**Strengths:**
+- Simple, focused implementation
+- Good file pattern matching with `**` support
+- Proper handling of missing files
+
+#### What's Missing
+
+Comparing to the full design, here's what needs to be added:
+
+**1. Testing (`runPythonTests` - Not Implemented)**
+```go
+// TODO: Add before updateVersionFiles()
+if err := runPythonTests(ctx, lib.Path); err != nil {
+    return fmt.Errorf("tests failed: %w", err)
+}
+```
+
+**2. docs/CHANGELOG.md Update (Not Implemented)**
+- Current: Only updates `packages/lib/CHANGELOG.md`
+- Needed: Also update `packages/lib/docs/CHANGELOG.md`
+- Solution: Add after main changelog update
+
+**3. Global CHANGELOG.md Update (Not Implemented)**
+- Current: No global changelog support
+- Needed: Update monorepo `CHANGELOG.md` at repository root
+- Python monorepos maintain a global changelog with sections per library
+
+**4. Snippet Metadata Update (Not Implemented)**
+- Current: No snippet metadata handling
+- Needed: Update `internal/generated/snippets/.../snippet_metadata.*.json`
+- Updates `clientVersion` field in JSON files
+
+**5. PEP 440 Version Normalization (Not Implemented)**
+- Current: Uses version string as-is
+- Needed: Normalize pre-release versions
+  - `1.16.0-rc.1` → `1.16.0rc1`
+  - `1.16.0-alpha.1` → `1.16.0a1`
+  - `1.16.0-beta.1` → `1.16.0b1`
+
+#### Changelog Format Improvements
+
+**Current format:**
+```markdown
+## 1.16.0
+
+* feat: add rotation
+* fix: handle nil
+```
+
+**Google Cloud Python format (should match):**
+```markdown
+## [1.16.0](https://github.com/googleapis/google-cloud-python/releases/tag/google-cloud-secret-manager-v1.16.0) (2025-11-12)
+
+### Features
+
+* add rotation ([abc1234](https://github.com/googleapis/google-cloud-python/commit/abc1234))
+
+### Bug Fixes
+
+* handle nil ([def5678](https://github.com/googleapis/google-cloud-python/commit/def5678))
+```
+
+**Differences:**
+- Missing: Version links to GitHub releases
+- Missing: Date in heading
+- Missing: Grouped sections (Features, Bug Fixes, Documentation)
+- Missing: Commit links
+
+### Implementation: internal/release/python.go
+
+#### Release() Function - Current Implementation
+
+The current implementation is minimal and focused:
+
+```go
+package release
+
+import (
+    "context"
+    "fmt"
+    "os"
+    "path/filepath"
+)
+
+func Release(ctx context.Context, lib *config.Library, version string, changes []*Change) error {
+    // 1. Run tests
+    if err := runPythonTests(ctx, lib.Path); err != nil {
+        return fmt.Errorf("tests failed: %w", err)
+    }
+
+    // 2. Update version files
+    if err := updateVersionFiles(lib.Path, version); err != nil {
+        return fmt.Errorf("failed to update version files: %w", err)
+    }
+
+    // 3. Update changelogs
+    if err := updateChangelogs(lib, version, changes); err != nil {
+        return fmt.Errorf("failed to update changelogs: %w", err)
+    }
+
+    // 4. Update snippet metadata (if exists)
+    if err := updateSnippetMetadata(lib, version); err != nil {
+        return fmt.Errorf("failed to update snippet metadata: %w", err)
+    }
+
+    return nil
+}
+```
+
+#### 1. Running Tests
+
+```go
+func runPythonTests(ctx context.Context, libPath string) error {
+    // Run nox test session
+    cmd := exec.CommandContext(ctx, "nox", "-s", "unit")
+    cmd.Dir = libPath
+    cmd.Stdout = os.Stdout
+    cmd.Stderr = os.Stderr
+
+    if err := cmd.Run(); err != nil {
+        return fmt.Errorf("nox unit tests failed: %w", err)
+    }
+
+    return nil
+}
+```
+
+**Testing strategy:**
+- Run `nox -s unit` (fast unit tests)
+- Skip slow integration tests (run in CI instead)
+- User can skip with `--skip-tests` flag
+
+#### 2. Updating Version Files
+
+```go
+func updateVersionFiles(libPath, version string) error {
+    // Update each version file
+    files := []struct {
+        path    string
+        updater func(string, string) error
+    }{
+        {
+            path:    filepath.Join(libPath, "pyproject.toml"),
+            updater: updatePyprojectToml,
+        },
+        {
+            path:    filepath.Join(libPath, "setup.py"),
+            updater: updateSetupPy,
+        },
+        {
+            path:    findGapicVersionFile(libPath),
+            updater: updateGapicVersion,
+        },
+        {
+            path:    findVersionFile(libPath),
+            updater: updateVersionPy,
+        },
+    }
+
+    for _, f := range files {
+        if f.path == "" {
+            continue // File doesn't exist
+        }
+
+        if err := f.updater(f.path, version); err != nil {
+            return fmt.Errorf("failed to update %s: %w", f.path, err)
+        }
+    }
+
+    return nil
+}
+```
+
+##### pyproject.toml Update
+
+```go
+func updatePyprojectToml(path, version string) error {
+    content, err := os.ReadFile(path)
+    if err != nil {
+        return err
+    }
+
+    // Replace version in [project] section
+    // version = "1.15.0" -> version = "1.16.0"
+    re := regexp.MustCompile(`(?m)^version\s*=\s*"[^"]*"`)
+    updated := re.ReplaceAllString(string(content), fmt.Sprintf(`version = "%s"`, version))
+
+    return os.WriteFile(path, []byte(updated), 0644)
+}
+```
+
+##### setup.py Update (Legacy)
+
+```go
+func updateSetupPy(path, version string) error {
+    content, err := os.ReadFile(path)
+    if err != nil {
+        if os.IsNotExist(err) {
+            return nil // setup.py is optional (legacy)
+        }
+        return err
+    }
+
+    // Replace version = "1.15.0" -> version = "1.16.0"
+    re := regexp.MustCompile(`version\s*=\s*"[^"]*"`)
+    updated := re.ReplaceAllString(string(content), fmt.Sprintf(`version = "%s"`, version))
+
+    return os.WriteFile(path, []byte(updated), 0644)
+}
+```
+
+##### gapic_version.py Update
+
+```go
+func updateGapicVersion(path, version string) error {
+    content, err := os.ReadFile(path)
+    if err != nil {
+        return err
+    }
+
+    // Replace __version__ = "1.15.0" -> __version__ = "1.16.0"
+    re := regexp.MustCompile(`__version__\s*=\s*"[^"]*"`)
+    updated := re.ReplaceAllString(string(content), fmt.Sprintf(`__version__ = "%s"`, version))
+
+    return os.WriteFile(path, []byte(updated), 0644)
+}
+```
+
+##### Finding Version Files
+
+```go
+func findGapicVersionFile(libPath string) string {
+    // Search for google/cloud/*/gapic_version.py
+    pattern := filepath.Join(libPath, "google", "cloud", "*", "gapic_version.py")
+    matches, err := filepath.Glob(pattern)
+    if err != nil || len(matches) == 0 {
+        return ""
+    }
+    return matches[0]
+}
+
+func findVersionFile(libPath string) string {
+    // Search for google/cloud/*/version.py
+    pattern := filepath.Join(libPath, "google", "cloud", "*", "version.py")
+    matches, err := filepath.Glob(pattern)
+    if err != nil || len(matches) == 0 {
+        return ""
+    }
+    return matches[0]
+}
+```
+
+#### 3. Updating Changelogs
+
+```go
+func updateChangelogs(lib *config.Library, version string, changes []*Change) error {
+    // 1. Update package CHANGELOG.md
+    pkgChangelog := filepath.Join(lib.Path, "CHANGELOG.md")
+    if err := updateChangelog(pkgChangelog, version, changes); err != nil {
+        return fmt.Errorf("failed to update package changelog: %w", err)
+    }
+
+    // 2. Update docs/CHANGELOG.md (duplicate)
+    docsChangelog := filepath.Join(lib.Path, "docs", "CHANGELOG.md")
+    if err := updateChangelog(docsChangelog, version, changes); err != nil {
+        return fmt.Errorf("failed to update docs changelog: %w", err)
+    }
+
+    // 3. Update global CHANGELOG.md (if exists)
+    globalChangelog := "CHANGELOG.md"
+    if fileExists(globalChangelog) {
+        if err := updateGlobalChangelog(globalChangelog, lib.Name, version, changes); err != nil {
+            return fmt.Errorf("failed to update global changelog: %w", err)
+        }
+    }
+
+    return nil
+}
+```
+
+##### Changelog Format (Package-Level)
+
+```go
+func updateChangelog(path, version string, changes []*Change) error {
+    // Generate new changelog entry
+    entry := formatChangelogEntry(version, changes)
+
+    // Read existing changelog
+    content, err := os.ReadFile(path)
+    if err != nil {
+        return err
+    }
+
+    // Insert new entry at top (after "# Changelog" header)
+    lines := strings.Split(string(content), "\n")
+
+    // Find insertion point (after first header)
+    insertIdx := 1
+    for i, line := range lines {
+        if strings.HasPrefix(line, "#") {
+            insertIdx = i + 1
+            break
+        }
+    }
+
+    // Insert new entry
+    newLines := append(lines[:insertIdx], append([]string{"", entry, ""}, lines[insertIdx:]...)...)
+    updated := strings.Join(newLines, "\n")
+
+    return os.WriteFile(path, []byte(updated), 0644)
+}
+
+func formatChangelogEntry(version string, changes []*Change) string {
+    today := time.Now().Format("2006-01-02")
+
+    var buf strings.Builder
+    buf.WriteString(fmt.Sprintf("## [%s](https://github.com/googleapis/google-cloud-python/releases/tag/google-cloud-secret-manager-v%s) (%s)\n\n",
+        version, version, today))
+
+    // Group changes by type
+    features := filterByType(changes, "feat")
+    fixes := filterByType(changes, "fix")
+    docs := filterByType(changes, "docs")
+
+    if len(features) > 0 {
+        buf.WriteString("### Features\n\n")
+        for _, c := range features {
+            buf.WriteString(fmt.Sprintf("* %s ([%s](https://github.com/googleapis/google-cloud-python/commit/%s))\n",
+                c.Subject, c.CommitHash[:7], c.CommitHash))
+        }
+        buf.WriteString("\n")
+    }
+
+    if len(fixes) > 0 {
+        buf.WriteString("### Bug Fixes\n\n")
+        for _, c := range fixes {
+            buf.WriteString(fmt.Sprintf("* %s ([%s](https://github.com/googleapis/google-cloud-python/commit/%s))\n",
+                c.Subject, c.CommitHash[:7], c.CommitHash))
+        }
+        buf.WriteString("\n")
+    }
+
+    if len(docs) > 0 {
+        buf.WriteString("### Documentation\n\n")
+        for _, c := range docs {
+            buf.WriteString(fmt.Sprintf("* %s ([%s](https://github.com/googleapis/google-cloud-python/commit/%s))\n",
+                c.Subject, c.CommitHash[:7], c.CommitHash))
+        }
+        buf.WriteString("\n")
+    }
+
+    return buf.String()
+}
+```
+
+##### Global Changelog Update
+
+```go
+func updateGlobalChangelog(path, libName, version string, changes []*Change) error {
+    // Global changelog has entries for all libraries
+    // Format:
+    // # Changelog
+    //
+    // ## google-cloud-secret-manager
+    //
+    // ### [1.16.0] (2025-11-12)
+    // ...
+    //
+    // ## google-cloud-pubsub
+    // ...
+
+    content, err := os.ReadFile(path)
+    if err != nil {
+        return err
+    }
+
+    entry := formatGlobalChangelogEntry(libName, version, changes)
+
+    // Find section for this library, or create it
+    // Insert new version entry
+    lines := strings.Split(string(content), "\n")
+    insertIdx := findLibrarySection(lines, libName)
+
+    // Insert entry
+    newLines := append(lines[:insertIdx], append([]string{entry}, lines[insertIdx:]...)...)
+    updated := strings.Join(newLines, "\n")
+
+    return os.WriteFile(path, []byte(updated), 0644)
+}
+```
+
+#### 4. Snippet Metadata Update
+
+```go
+func updateSnippetMetadata(lib *config.Library, version string) error {
+    // Find snippet metadata files
+    pattern := filepath.Join("internal", "generated", "snippets", lib.Name, "**", "snippet_metadata.*.json")
+    matches, err := filepath.Glob(pattern)
+    if err != nil {
+        return err
+    }
+
+    for _, path := range matches {
+        if err := updateSnippetMetadataFile(path, version); err != nil {
+            return fmt.Errorf("failed to update %s: %w", path, err)
+        }
+    }
+
+    return nil
+}
+
+func updateSnippetMetadataFile(path, version string) error {
+    data, err := os.ReadFile(path)
+    if err != nil {
+        return err
+    }
+
+    var metadata map[string]interface{}
+    if err := json.Unmarshal(data, &metadata); err != nil {
+        return err
+    }
+
+    // Update version field
+    metadata["clientVersion"] = version
+
+    updated, err := json.MarshalIndent(metadata, "", "  ")
+    if err != nil {
+        return err
+    }
+
+    return os.WriteFile(path, updated, 0644)
+}
+```
+
+### Version Format Normalization
+
+Python uses PEP 440 version format, which differs from semver for pre-releases.
+
+#### Normalization Function
+
+```go
+func normalizePythonVersion(version string) string {
+    // Normalize semver pre-release to PEP 440
+    // 1.16.0-rc.1 -> 1.16.0rc1
+    // 1.16.0-alpha.1 -> 1.16.0a1
+    // 1.16.0-beta.1 -> 1.16.0b1
+
+    version = strings.ReplaceAll(version, "-rc.", "rc")
+    version = strings.ReplaceAll(version, "-alpha.", "a")
+    version = strings.ReplaceAll(version, "-beta.", "b")
+
+    return version
+}
+```
+
+#### Usage
+
+```go
+func Release(ctx context.Context, lib *config.Library, version string, changes []*Change) error {
+    // Normalize version for Python
+    pythonVersion := normalizePythonVersion(version)
+
+    // Use pythonVersion for all updates
+    if err := updateVersionFiles(lib.Path, pythonVersion); err != nil {
+        return err
+    }
+
+    // ...
+}
+```
+
+### Complete Example
+
+#### Release Command
 
 ```bash
-# Dry-run (shows what would happen)
-librarian release google-cloud-secret-manager
-
-# Actually release
 librarian release google-cloud-secret-manager --execute
 ```
 
-**Steps:**
-1. Analyze conventional commits
-2. Update version files
-3. Update changelogs
-4. Create commit
-5. Create git tag (`google-cloud-secret-manager/v1.2.0`)
-6. Push tag
-7. Build package (sdist + wheel)
-8. Publish to PyPI
+**What happens:**
+
+1. **Git Analysis**
+   ```
+   ✓ Found last tag: google-cloud-secret-manager/v2.19.0
+   ✓ Analyzed 5 commits since last release
+   ✓ Determined version bump: 2.19.0 → 2.20.0 (minor)
+   ```
+
+2. **Python Tests**
+   ```
+   ✓ Running nox -s unit...
+     (test output)
+   ✓ Tests passed
+   ```
+
+3. **File Updates**
+   ```
+   ✓ Updated packages/google-cloud-secret-manager/pyproject.toml
+   ✓ Updated packages/google-cloud-secret-manager/google/cloud/secretmanager/gapic_version.py
+   ✓ Updated packages/google-cloud-secret-manager/CHANGELOG.md
+   ✓ Updated packages/google-cloud-secret-manager/docs/CHANGELOG.md
+   ✓ Updated CHANGELOG.md (global)
+   ✓ Updated snippet metadata
+   ```
+
+4. **Git Operations**
+   ```
+   ✓ Created commit: chore(release): google-cloud-secret-manager v2.20.0
+   ✓ Created tag: google-cloud-secret-manager/v2.20.0
+   ✓ Pushed tag to origin
+   ```
+
+**Note:** Publishing to PyPI is handled separately via CI/CD automation.
+The `librarian release` command only prepares the release files and creates the git tag.
+
+### Error Handling
+
+#### Test Failures
+
+```
+Error: Tests failed for google-cloud-secret-manager
+
+--- FAIL: test_get_secret (0.00s)
+    test_client.py:42: AssertionError: expected None, got error
+
+Fix tests or use --skip-tests (not recommended).
+```
+
+#### Version File Not Found
+
+```
+Warning: gapic_version.py not found in packages/google-cloud-secret-manager/
+Skipping gapic_version.py update.
+
+This is normal for handwritten libraries.
+```
+
+### Testing the Implementation
+
+#### Unit Tests
+
+```go
+// internal/release/python_test.go
+
+func TestNormalizePythonVersion(t *testing.T) {
+    tests := []struct {
+        input string
+        want  string
+    }{
+        {"1.16.0", "1.16.0"},
+        {"1.16.0-rc.1", "1.16.0rc1"},
+        {"1.16.0-alpha.1", "1.16.0a1"},
+        {"1.16.0-beta.2", "1.16.0b2"},
+    }
+
+    for _, test := range tests {
+        got := normalizePythonVersion(test.input)
+        if got != test.want {
+            t.Errorf("normalizePythonVersion(%q) = %q, want %q", test.input, got, test.want)
+        }
+    }
+}
+
+func TestUpdatePyprojectToml(t *testing.T) {
+    content := `[project]
+name = "google-cloud-secret-manager"
+version = "2.19.0"
+`
+
+    want := `[project]
+name = "google-cloud-secret-manager"
+version = "2.20.0"
+`
+
+    tmpfile := createTempFile(t, content)
+    defer os.Remove(tmpfile)
+
+    if err := updatePyprojectToml(tmpfile, "2.20.0"); err != nil {
+        t.Fatal(err)
+    }
+
+    got, err := os.ReadFile(tmpfile)
+    if err != nil {
+        t.Fatal(err)
+    }
+
+    if string(got) != want {
+        t.Errorf("mismatch (-want +got):\n%s", diff(want, string(got)))
+    }
+}
+```
 
 ## Container Architecture
 
