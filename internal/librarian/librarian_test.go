@@ -17,6 +17,7 @@ package librarian
 import (
 	"errors"
 	"os"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"testing"
@@ -501,6 +502,8 @@ func TestRunGenerate_ConfigNotFound(t *testing.T) {
 }
 
 func TestGenerateRust(t *testing.T) {
+	tmpDir := t.TempDir()
+
 	for _, test := range []struct {
 		name    string
 		cfg     *config.Config
@@ -512,7 +515,7 @@ func TestGenerateRust(t *testing.T) {
 			cfg: &config.Config{
 				Language: "rust",
 				Generate: &config.Generate{
-					Output: "packages/",
+					Output: filepath.Join(tmpDir, "packages") + "/",
 				},
 			},
 			library: &config.Library{
