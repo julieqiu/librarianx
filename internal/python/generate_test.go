@@ -25,13 +25,9 @@ import (
 
 func TestGenerate(t *testing.T) {
 	tmpDir := t.TempDir()
-	outputDir := filepath.Join(tmpDir, "output")
 	sourceDir := filepath.Join(tmpDir, "source")
 
 	if err := os.MkdirAll(sourceDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-	if err := os.MkdirAll(outputDir, 0755); err != nil {
 		t.Fatal(err)
 	}
 
@@ -39,6 +35,13 @@ func TestGenerate(t *testing.T) {
 		Name: "google-cloud-language",
 		Apis: []string{
 			"google/cloud/language/v1",
+		},
+	}
+
+	cfg := &config.Config{
+		Language: "python",
+		Generate: &config.Generate{
+			Output: filepath.Join(tmpDir, "{name}"),
 		},
 	}
 
@@ -64,7 +67,7 @@ func TestGenerate(t *testing.T) {
 		return nil
 	}
 
-	if err := Generate(t.Context(), lib, outputDir, sourceDir, true); err != nil {
+	if err := Generate(t.Context(), cfg, lib, sourceDir); err != nil {
 		t.Fatal(err)
 	}
 }

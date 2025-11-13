@@ -23,7 +23,6 @@ import (
 	"path/filepath"
 
 	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/fetch"
 	"github.com/googleapis/librarian/internal/golang/generate"
 	"github.com/googleapis/librarian/internal/golang/release"
 )
@@ -49,23 +48,6 @@ func Generate(ctx context.Context, cfg *config.Config, library *config.Library) 
 	}
 
 	// Download googleapis if available
-	if cfg.Sources.Googleapis == nil {
-		return fmt.Errorf("googleapis source is not configured in librarian.yaml")
-	}
-
-	var googleapisRoot string
-	googleapisRoot, err = fetch.DownloadAndExtractTarball(cfg.Sources.Googleapis)
-	if err != nil {
-		err = fmt.Errorf("failed to download and extract googleapis: %w", err)
-		return
-	}
-	defer func() {
-		cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
-		if err == nil {
-			err = cerr
-		}
-	}()
-
 	// Create temporary librarian directory structure
 	librarianDir, err := os.MkdirTemp("", "librarian-go-*")
 	if err != nil {

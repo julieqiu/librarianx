@@ -31,16 +31,48 @@ var (
 	execvRun = execv.Run
 )
 
-// Generate is the main entrypoint for the Python generate command.
+// Generate generates Python client library code from configuration.
 // It orchestrates the entire generation process:
 //
-//  1. For each API in the library:
+//  1. Determine output directory from configuration
+//  2. Create output directory if it doesn't exist
+//  3. For each API in the library:
 //     - Construct protoc command
 //     - Run protoc with --python_gapic_out to generate code directly to output
-//  2. Generate .repo-metadata.json from service_yaml
-//  3. Run synthtool post-processor in place
-//  4. Copy README.rst to docs/
-func Generate(ctx context.Context, lib *config.Library, outputDir, sourceDir string, disablePostProcessor bool) error {
+//  4. Generate .repo-metadata.json from service_yaml
+//  5. Run synthtool post-processor in place (if enabled)
+//  6. Copy README.rst to docs/
+func Generate(ctx context.Context, cfg *config.Config, lib *config.Library, googleapisRoot string) error {
+	// Determine output directory
+	outputDir := "{name}/"
+	if cfg.Generate != nil && cfg.Generate.Output != "" {
+		outputDir = cfg.Generate.Output
+	}
+
+	location, err := lib.GeneratedLocation(outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to determine output location: %w", err)
+	}
+
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(location, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Run Python generator (with post-processor disabled by default)
+	// TODO(https://github.com/googleapis/librarian/issues/XXX): Make post-processor configurable via librarian.yaml
+	disablePostProcessor := true
+	if err := generate(ctx, lib, location, googleapisRoot, disablePostProcessor); err != nil {
+		return fmt.Errorf("python generation failed: %w", err)
+	}
+
+	fmt.Printf("Generated Python library %q at %s\n", lib.Name, location)
+	return nil
+}
+
+// generate is the internal implementation of Python code generation.
+// It orchestrates the protoc execution and post-processing steps.
+func generate(ctx context.Context, lib *config.Library, outputDir, sourceDir string, disablePostProcessor bool) error {
 	slog.Debug("python generate: started")
 
 	// Use parsed API configurations if available, otherwise fall back to API paths
