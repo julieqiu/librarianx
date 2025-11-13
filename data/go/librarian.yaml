@@ -10,7 +10,7 @@ global:
         - path: CHANGES.md
           permissions: read-write
 defaults:
-    output: ./
+    output: '{name}/'
     one_library_per: service
     transport: grpc+rest
     rest_numeric_enums: true
@@ -18,82 +18,132 @@ release:
     tag_format: '{name}/v{version}'
 libraries:
     - '*'
-    - auth/:
+    - auth:
         release:
             disabled: true
-    - auth/oauth2adapt/:
+    - auth/oauth2adapt:
         release:
             disabled: true
-    - batch/:
+    - batch:
+        api: google/cloud/batch/v1
         keep:
             - ^batch/apiv1/iam_policy_client\.go$
-    - bigquery/:
+    - bigquery:
+        apis:
+            - google/cloud/bigquery/analyticshub/v1
+            - google/cloud/bigquery/biglake/v1
+            - google/cloud/bigquery/biglake/v1alpha1
+            - google/cloud/bigquery/connection/v1
+            - google/cloud/bigquery/connection/v1beta1
+            - google/cloud/bigquery/dataexchange/v1beta1
+            - google/cloud/bigquery/datapolicies/v1
+            - google/cloud/bigquery/datapolicies/v1beta1
+            - google/cloud/bigquery/datapolicies/v2
+            - google/cloud/bigquery/datapolicies/v2beta1
+            - google/cloud/bigquery/datatransfer/v1
+            - google/cloud/bigquery/migration/v2
+            - google/cloud/bigquery/migration/v2alpha
+            - google/cloud/bigquery/reservation/v1
+            - google/cloud/bigquery/storage/v1
+            - google/cloud/bigquery/storage/v1alpha
+            - google/cloud/bigquery/storage/v1beta
+            - google/cloud/bigquery/storage/v1beta1
+            - google/cloud/bigquery/storage/v1beta2
         keep:
             - ^internal/generated/snippets/bigquery/v2/
         release:
             disabled: true
-    - bigquery/v2/:
+    - bigquery/v2:
+        api: google/cloud/bigquery/v2
         release:
             disabled: true
-    - bigtable/:
+    - bigtable:
+        apis:
+            - google/bigtable/admin/v2
+            - google/bigtable/v2
         release:
             disabled: true
-    - compute/metadata/:
+    - compute/metadata:
         release:
             disabled: true
-    - datacatalog/:
+    - datacatalog:
+        apis:
+            - google/cloud/datacatalog/lineage/v1
+            - google/cloud/datacatalog/v1
+            - google/cloud/datacatalog/v1beta1
         keep:
             - ^datacatalog/apiv1/iam_policy_client\.go$
-    - datastore/:
+    - datastore:
+        apis:
+            - google/datastore/admin/v1
+            - google/datastore/v1
         release:
             disabled: true
-    - datastream/:
+    - datastream:
+        apis:
+            - google/cloud/datastream/v1
+            - google/cloud/datastream/v1alpha1
         keep:
             - ^datastream/apiv1/iam_policy_client\.go$
-    - errorreporting/:
+    - errorreporting:
+        api: google/devtools/clouderrorreporting/v1beta1
         release:
             disabled: true
-    - firestore/:
+    - firestore:
+        apis:
+            - google/firestore/admin/v1
+            - google/firestore/v1
         release:
             disabled: true
-    - logging/:
+    - logging:
+        api: google/logging/v2
         release:
             disabled: true
-    - longrunning/:
+    - longrunning:
+        api: google/longrunning
         release:
             disabled: true
-    - profiler/:
+    - profiler:
         release:
             disabled: true
-    - pubsub/:
+    - pubsub:
         release:
             disabled: true
-    - pubsub/v2/:
+    - pubsub/v2:
+        api: google/pubsub/v1
         release:
             disabled: true
-    - pubsublite/:
+    - pubsublite:
+        api: google/cloud/pubsublite/v1
         release:
             disabled: true
-    - civil/:
+    - root-module:
+        path: civil/
         release:
             disabled: true
-        source_roots:
-            - civil
-            - httpreplay
-            - internal
-            - rpcreplay
-    - run/:
+    - run:
+        api: google/cloud/run/v2
         keep:
             - ^run/apiv2/locations_client\.go$
-    - spanner/:
+    - spanner:
+        apis:
+            - google/spanner/adapter/v1
+            - google/spanner/admin/database/v1
+            - google/spanner/admin/instance/v1
+            - google/spanner/v1
+            - google/spanner/executor/v1
         release:
             disabled: true
-    - storage/:
+    - storage:
+        apis:
+            - google/storage/control/v2
+            - google/storage/v2
         release:
             disabled: true
-    - vertexai/:
+    - vertexai:
         release:
             disabled: true
-    - vmmigration/:
+    - vmmigration:
+        api: google/cloud/vmmigration/v1
         keep:
             - ^vmmigration/apiv1/iam_policy_client\.go$

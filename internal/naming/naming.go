@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package naming provides library naming utilities for different languages.
 package naming
 
 import (

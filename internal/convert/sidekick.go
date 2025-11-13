@@ -12,11 +12,9 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Command convert-sidekick-toml converts sidekick.toml configuration to librarian.yaml format.
-package main
+package convert
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -26,7 +24,6 @@ import (
 
 	"github.com/googleapis/librarian/internal/config"
 	toml "github.com/pelletier/go-toml/v2"
-	"gopkg.in/yaml.v3"
 )
 
 // SidekickRootConfig represents the root .sidekick.toml configuration file structure.
@@ -95,27 +92,10 @@ type ToolConfig struct {
 	Version string `toml:"version"`
 }
 
-func main() {
-	rootDir := flag.String("root", "", "Root directory of google-cloud-rust repository")
-	outputPath := flag.String("output", "", "Path to output librarian.yaml file")
-	flag.Parse()
-
-	if *rootDir == "" || *outputPath == "" {
-		fmt.Fprintf(os.Stderr, "Usage: %s -root <google-cloud-rust-dir> -output <librarian.yaml>\n", os.Args[0])
-		flag.PrintDefaults()
-		os.Exit(1)
-	}
-
-	if err := convertAll(*rootDir, *outputPath); err != nil {
-		log.Fatalf("conversion failed: %v", err)
-	}
-
-	fmt.Printf("Successfully converted to %s\n", *outputPath)
-}
-
-func convertAll(rootDir, outputPath string) error {
+// ConvertSidekick converts .sidekick.toml configuration to librarian.yaml format.
+func ConvertSidekick(inputDir, outputFile string) error {
 	// Read root .sidekick.toml
-	rootConfigPath := filepath.Join(rootDir, ".sidekick.toml")
+	rootConfigPath := filepath.Join(inputDir, ".sidekick.toml")
 	rootConfig, err := readRootConfig(rootConfigPath)
 	if err != nil {
 		return fmt.Errorf("failed to read root config: %w", err)
@@ -210,7 +190,7 @@ func convertAll(rootDir, outputPath string) error {
 
 	// Find all library .sidekick.toml files
 	var libraryConfigs []string
-	err = filepath.Walk(rootDir, func(path string, info os.FileInfo, err error) error {
+	err = filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -228,7 +208,7 @@ func convertAll(rootDir, outputPath string) error {
 
 	// Process each library config
 	for _, configPath := range libraryConfigs {
-		entry, err := processLibraryConfig(configPath, rootDir, rootConfig.General.Language)
+		entry, err := processLibraryConfig(configPath, inputDir, rootConfig.General.Language)
 		if err != nil {
 			log.Printf("Warning: failed to process %s: %v", configPath, err)
 			continue
@@ -238,16 +218,18 @@ func convertAll(rootDir, outputPath string) error {
 		}
 	}
 
-	// Write librarian.yaml
-	data, err := yaml.Marshal(libConfig)
-	if err != nil {
-		return fmt.Errorf("failed to marshal config: %w", err)
+	// Create output directory if it does not exist
+	outputDir := filepath.Dir(outputFile)
+	if err := os.MkdirAll(outputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
 	}
 
-	if err := os.WriteFile(outputPath, data, 0644); err != nil {
-		return fmt.Errorf("failed to write config file: %w", err)
+	// Write new config
+	if err := libConfig.Write(outputFile); err != nil {
+		return fmt.Errorf("failed to write output file: %w", err)
 	}
 
+	fmt.Printf("Successfully converted to %s\n", outputFile)
 	return nil
 }
 
@@ -307,10 +289,20 @@ func processLibraryConfig(configPath, rootDir, language string) (*config.Library
 		API: apiPath,
 	}
 
-	// Add path override if it differs from expected location
-	// Expected: defaults.output (src/generated/) + API path pattern
-	// We always add path since we're converting from existing structure
-	cfg.Path = libraryPath
+	// Compute expected default path based on language conventions
+	// Rust: src/generated/ + API path (with google/ removed) + /
+	// Dart: src/generated/ + API path (with google/ removed) + /
+	expectedPath := ""
+	if language == "rust" || language == "dart" {
+		// Strip leading "google/" from API path if present
+		apiPathStripped := strings.TrimPrefix(apiPath, "google/")
+		expectedPath = "src/generated/" + apiPathStripped + "/"
+	}
+
+	// Only add path override if it differs from expected location
+	if expectedPath == "" || libraryPath != expectedPath {
+		cfg.Path = libraryPath
+	}
 
 	// Extract Rust-specific configuration
 	if language == "rust" {
@@ -326,6 +318,33 @@ func processLibraryConfig(configPath, rootDir, language string) (*config.Library
 		if dartCfg != nil {
 			cfg.Dart = dartCfg
 		}
+	}
+
+	// Check if there's any custom config beyond just API field
+	hasCustomConfig := false
+	if cfg.Path != "" {
+		hasCustomConfig = true
+	}
+	if cfg.Rust != nil {
+		hasCustomConfig = true
+	}
+	if cfg.Dart != nil {
+		hasCustomConfig = true
+	}
+	if cfg.Keep != nil && len(cfg.Keep) > 0 {
+		hasCustomConfig = true
+	}
+	if cfg.Release != nil {
+		hasCustomConfig = true
+	}
+	if cfg.Disabled {
+		hasCustomConfig = true
+	}
+
+	// Only return library entry if it has custom config beyond just API
+	// Libraries with only api field can be auto-discovered
+	if !hasCustomConfig {
+		return nil, nil
 	}
 
 	// Return library entry with name as identifier

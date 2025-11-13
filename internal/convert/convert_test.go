@@ -57,7 +57,7 @@ func TestConvert(t *testing.T) {
 			},
 		},
 		Defaults: &config.Defaults{
-			Output:           "./",
+			Output:           "{name}/",
 			OneLibraryPer:    "service",
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,

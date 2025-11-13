@@ -95,15 +95,17 @@ type OldModuleAPI struct {
 func Run(ctx context.Context, args []string) error {
 	cmd := &cli.Command{
 		Name:      "convert",
-		Usage:     "convert old .librarian format to new librarian.yaml format",
+		Usage:     "convert old configuration formats to new librarian.yaml format",
 		UsageText: "convert <input-dir> <output-file>",
-		Description: `Convert old .librarian format to new librarian.yaml format.
+		Description: `Convert old configuration formats to new librarian.yaml format.
 
-Reads .librarian/config.yaml and .librarian/state.yaml from the input directory
-and outputs a librarian.yaml file to the specified output path.
+Auto-detects the format:
+- .librarian/ directory: converts old .librarian/config.yaml and state.yaml
+- .sidekick.toml file: converts sidekick.toml configuration
 
-Example:
-  convert /path/to/google-cloud-go data/go/librarian.yaml`,
+Examples:
+  convert /path/to/google-cloud-go data/go/librarian.yaml
+  convert /path/to/google-cloud-rust data/rust/librarian.yaml`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if cmd.NArg() != 2 {
 				return fmt.Errorf("requires exactly 2 arguments: <input-dir> <output-file>")
@@ -112,11 +114,28 @@ Example:
 			inputDir := cmd.Args().Get(0)
 			outputFile := cmd.Args().Get(1)
 
-			return Convert(inputDir, outputFile)
+			return ConvertAuto(inputDir, outputFile)
 		},
 	}
 
 	return cmd.Run(ctx, args)
+}
+
+// ConvertAuto auto-detects the format and converts to librarian.yaml.
+func ConvertAuto(inputDir, outputFile string) error {
+	// Check for .sidekick.toml first
+	sidekickPath := filepath.Join(inputDir, ".sidekick.toml")
+	if _, err := os.Stat(sidekickPath); err == nil {
+		return ConvertSidekick(inputDir, outputFile)
+	}
+
+	// Check for .librarian directory
+	librarianDir := filepath.Join(inputDir, ".librarian")
+	if _, err := os.Stat(librarianDir); err == nil {
+		return Convert(inputDir, outputFile)
+	}
+
+	return fmt.Errorf("no recognized configuration format found in %s (looked for .sidekick.toml or .librarian/)", inputDir)
 }
 
 // Convert reads the old .librarian format and converts it to the new librarian.yaml format.
@@ -219,6 +238,9 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 	// Auto-detect language from container image
 	language := detectLanguageFromImage(containerImage)
 
+	// Detect common path pattern from all libraries
+	commonPathPattern := detectCommonPathPattern(oldState.Libraries)
+
 	// Create new config
 	newConfig := &config.Config{
 		Version:  "v1",
@@ -228,7 +250,7 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 			Tag:   containerTag,
 		},
 		Defaults: &config.Defaults{
-			Output:           "./",
+			Output:           commonPathPattern,
 			OneLibraryPer:    "service",
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,
@@ -412,12 +434,28 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 			}
 		}
 
-		// Add path override if library path differs from name
-		if libraryPath != libraryName+"/" {
+		// Compute expected default path by expanding the output template
+		// The template in defaults.output uses {name} placeholder
+		expectedPath := strings.ReplaceAll(newConfig.Defaults.Output, "{name}", libraryName)
+
+		// Normalize path for comparison to avoid unnecessary explicit paths:
+		// If pattern is packages/{name}/ but path is {name}/, add packages/ prefix to normalize
+		normalizedPath := libraryPath
+
+		if strings.HasPrefix(newConfig.Defaults.Output, "packages/") && !strings.HasPrefix(libraryPath, "packages/") {
+			// For packages/ pattern: check if adding prefix makes it match
+			if "packages/"+libraryPath == expectedPath {
+				// Path matches after normalization - use expected path and don't add explicit override
+				normalizedPath = expectedPath
+			}
+		}
+
+		// Add path override only if it differs from expected location
+		if normalizedPath != expectedPath {
 			if cfg == nil {
 				cfg = &config.LibraryConfig{}
 			}
-			cfg.Path = libraryPath
+			cfg.Path = normalizedPath
 		}
 
 		// Add keep patterns if present
@@ -441,13 +479,54 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 			cfg.Release = newLib.Release
 		}
 
-		// Only add library entry if it has config (is an exception to wildcard)
+		// Only add library entry if it has config beyond just api/apis
+		// Libraries with only api/apis can be auto-discovered
 		if cfg != nil {
-			entry := config.LibraryEntry{
-				Name:   libraryName,
-				Config: cfg,
+			hasCustomConfig := false
+
+			// Check if there's anything beyond just API fields
+			if cfg.Path != "" {
+				hasCustomConfig = true
 			}
-			newConfig.Libraries = append(newConfig.Libraries, entry)
+			if len(cfg.Keep) > 0 {
+				hasCustomConfig = true
+			}
+			if cfg.Release != nil {
+				hasCustomConfig = true
+			}
+			if cfg.Disabled {
+				hasCustomConfig = true
+			}
+			if cfg.Transport != "" {
+				hasCustomConfig = true
+			}
+			if cfg.RestNumericEnums != nil {
+				hasCustomConfig = true
+			}
+			if cfg.ReleaseLevel != "" {
+				hasCustomConfig = true
+			}
+			if cfg.Rust != nil {
+				hasCustomConfig = true
+			}
+			if cfg.Dart != nil {
+				hasCustomConfig = true
+			}
+			if cfg.Python != nil {
+				hasCustomConfig = true
+			}
+			if cfg.Go != nil {
+				hasCustomConfig = true
+			}
+
+			// Only add if there's custom config beyond api/apis
+			if hasCustomConfig {
+				entry := config.LibraryEntry{
+					Name:   libraryName,
+					Config: cfg,
+				}
+				newConfig.Libraries = append(newConfig.Libraries, entry)
+			}
 		}
 	}
 
@@ -478,16 +557,16 @@ func deduplicateKeepPatterns(patterns []string, libraryPath string) []string {
 		"scripts/client-post-processing": true,
 		"samples/snippets/README.rst":    true,
 		"tests/system":                   true,
-		"CHANGELOG.md":                   true, // Also skip the relative CHANGELOG.md
+		"CHANGELOG.md":                   true, // Skip CHANGELOG.md patterns
 	}
 
 	var result []string
 	for _, pattern := range patterns {
 		// For library-specific patterns, make them relative if they start with the library path
 		processedPattern := pattern
-		if strings.HasPrefix(pattern, libraryPath+"/") {
-			// Make it relative to the library
-			processedPattern = strings.TrimPrefix(pattern, libraryPath+"/")
+		if strings.HasPrefix(pattern, libraryPath) {
+			// Make it relative to the library (libraryPath already has trailing slash)
+			processedPattern = strings.TrimPrefix(pattern, libraryPath)
 		}
 
 		// Skip common patterns (check after making relative)
@@ -524,4 +603,71 @@ func detectLanguageFromImage(image string) string {
 
 	// Default to go if we can't determine
 	return "go"
+}
+
+// detectCommonPathPattern analyzes library paths to find a common pattern.
+// Returns a template string with {name} placeholder for the common pattern.
+// Example: if all libraries are in "packages/{id}/", returns "packages/{name}/".
+func detectCommonPathPattern(libraries []OldLibrary) string {
+	if len(libraries) == 0 {
+		return "./"
+	}
+
+	// Collect all library paths
+	type pathInfo struct {
+		id   string
+		path string
+	}
+	var paths []pathInfo
+	for _, lib := range libraries {
+		libPath := lib.ID
+		if len(lib.SourceRoots) > 0 {
+			libPath = lib.SourceRoots[0]
+		}
+		// Ensure trailing slash
+		if !strings.HasSuffix(libPath, "/") {
+			libPath = libPath + "/"
+		}
+		paths = append(paths, pathInfo{id: lib.ID, path: libPath})
+	}
+
+	// Check if all paths follow the pattern: prefix + {id} + suffix
+	// Try to find common prefix and suffix
+	if len(paths) == 0 {
+		return "./"
+	}
+
+	// Count how many libraries match each pattern
+	packagesCount := 0
+	simpleCount := 0
+	for _, p := range paths {
+		if p.path == "packages/"+p.id+"/" {
+			packagesCount++
+		}
+		if p.path == p.id+"/" {
+			simpleCount++
+		}
+	}
+
+	// Use the pattern that matches the most libraries
+	total := len(paths)
+	if packagesCount > total/2 {
+		// More than half use packages/ pattern
+		return "packages/{name}/"
+	}
+	if simpleCount > total/2 {
+		// More than half use simple pattern
+		return "{name}/"
+	}
+
+	// If no clear majority, prefer packages/ if it has any matches
+	if packagesCount > 0 {
+		return "packages/{name}/"
+	}
+	if simpleCount > 0 {
+		return "{name}/"
+	}
+
+	// Default to ./ if no common pattern found
+	return "./"
 }
