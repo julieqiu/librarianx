@@ -94,16 +94,21 @@ sources:
     url: https://github.com/googleapis/googleapis/archive/main.tar.gz
     sha256: ...
 
-# Default directory for newly generated libraries.
-generate:
-  dir: ./
+defaults:
+  generate_dir: ./
+  transport: grpc+rest
 
 release:
   tag_format: '{name}/v{version}'
+
+# Auto-discover APIs from googleapis (optional)
+auto_discover: false
 ```
 
-The config defines the language, sources, release tag formats, and a default
-directory (`generate.dir`) for generated libraries.
+The config defines the language, sources, defaults, and release tag formats. You
+can enable `auto_discover: true` to automatically generate libraries for all
+APIs found in googleapis, or keep it `false` to explicitly manage which
+libraries to generate.
 
 ### Library Types
 
@@ -236,10 +241,23 @@ Created librarian.yaml
 Your `librarian.yaml` will look like this:
 
 ```yaml
-...
-generate:
-  dir: packages/
-...
+version: v1
+language: python
+
+sources:
+  googleapis:
+    url: ...
+    sha256: ...
+
+defaults:
+  generate_dir: packages/
+  transport: grpc+rest
+  rest_numeric_enums: true
+
+release:
+  tag_format: '{name}/v{version}'
+
+auto_discover: false
 ```
 
 Create a fully generated Python library. It will be placed in
@@ -267,6 +285,8 @@ Librarian provides a consistent workflow across languages, with a clear and
 unambiguous configuration for managing generated, handwritten, and hybrid
 libraries.
 
+### Commands
+
 1.  **Initialize** - `librarian init <language>`
 2.  **Create** - `librarian create <name> --apis <apis...>` (uses default path)
 3.  **Create (override path)** - `librarian create <name> --path <path> --apis <apis...>`
@@ -274,10 +294,25 @@ libraries.
 5.  **Regenerate** - `librarian generate <name>` or `librarian generate --all`
 6.  **Release** - `librarian release <name>`
 
+### Configuration Modes
+
+Librarian supports two configuration modes:
+
+1. **Explicit mode** (`auto_discover: false`) - Manually list each library
+   - Full control over which libraries are generated
+   - Suitable for small repos or when starting new projects
+
+2. **Auto-discovery mode** (`auto_discover: true`) - Automatically discover APIs from googleapis
+   - Minimal configuration - only list exceptions (handwritten code, custom names)
+   - Suitable for repos managing many libraries (~100+)
+   - See [doc/config.md](doc/config.md) for details
+
+### Library Types
+
 The type of a library is determined by its structure in `librarian.yaml`:
-- **Handwritten**: `name` + `path`
-- **Generated**: `name` + `path` + `generate`
-- **Hybrid**: `name` + `path` + `generate` + `keep`
+- **Handwritten**: API path only (with `auto_discover: false`)
+- **Generated**: API path with `generate` block
+- **Hybrid**: API path with `generate` + `keep` blocks
 
 ### Disabling Broken Libraries
 
