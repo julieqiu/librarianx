@@ -49,8 +49,11 @@ type Config struct {
 	// Release contains release configuration.
 	Release *Release `yaml:"release,omitempty"`
 
-	// Libraries contains the list of library libraries.
-	Libraries []Library `yaml:"libraries,omitempty"`
+	// Libraries contains the list of library configurations.
+	// Each entry can be either:
+	// - A string API path (short syntax): "google/cloud/secretmanager/v1"
+	// - A map with API path as key and overrides as value (extended syntax)
+	Libraries []LibraryEntry `yaml:"libraries,omitempty"`
 }
 
 // Container contains the container image configuration.
@@ -66,6 +69,18 @@ type Container struct {
 type Sources struct {
 	// Googleapis is the googleapis source repository.
 	Googleapis *Source `yaml:"googleapis,omitempty"`
+
+	// Showcase is the gapic-showcase source repository (for testing).
+	Showcase *Source `yaml:"showcase,omitempty"`
+
+	// Discovery is the discovery-artifact-manager source repository.
+	Discovery *Source `yaml:"discovery,omitempty"`
+
+	// ProtobufSrc is the protobuf source repository.
+	ProtobufSrc *Source `yaml:"protobuf_src,omitempty"`
+
+	// Conformance is the conformance test source repository.
+	Conformance *Source `yaml:"conformance,omitempty"`
 }
 
 // Source represents an external source repository.
@@ -75,6 +90,12 @@ type Source struct {
 
 	// SHA256 is the hash for integrity verification.
 	SHA256 string `yaml:"sha256"`
+
+	// ExtractedName is the directory name after extraction (if different from default).
+	ExtractedName string `yaml:"extracted_name,omitempty"`
+
+	// Subdir is a subdirectory within the extracted archive to use.
+	Subdir string `yaml:"subdir,omitempty"`
 }
 
 // Global contains global repository settings.
@@ -94,8 +115,13 @@ type FileAllowlist struct {
 
 // Defaults contains default generation settings.
 type Defaults struct {
-	// GeneratedDir is the directory where generated code is written (relative to repository root).
-	GeneratedDir string `yaml:"generated_dir,omitempty"`
+	// Output is the directory where generated code is written (relative to repository root).
+	Output string `yaml:"output,omitempty"`
+
+	// OneLibraryPer specifies packaging strategy: "service" or "version".
+	// - "service": Bundle all versions of a service into one library (Python, Go default)
+	// - "version": Create separate library per version (Rust, Dart default)
+	OneLibraryPer string `yaml:"one_library_per,omitempty"`
 
 	// Transport is the default transport protocol (e.g., "grpc+rest", "grpc").
 	Transport string `yaml:"transport,omitempty"`
@@ -105,6 +131,9 @@ type Defaults struct {
 
 	// ReleaseLevel is the default release level ("stable" or "preview").
 	ReleaseLevel string `yaml:"release_level,omitempty"`
+
+	// Rust contains default Rust-specific settings.
+	Rust *RustDefaults `yaml:"rust,omitempty"`
 }
 
 // Generate contains generation configuration.
@@ -118,6 +147,172 @@ type Release struct {
 	// TagFormat is the template for git tags (e.g., '{name}/v{version}').
 	// Supported placeholders: {name}, {version}
 	TagFormat string `yaml:"tag_format,omitempty"`
+
+	// Remote is the git remote name (e.g., "upstream", "origin").
+	Remote string `yaml:"remote,omitempty"`
+
+	// Branch is the default branch for releases (e.g., "main", "master").
+	Branch string `yaml:"branch,omitempty"`
+
+	// IgnoredChanges are files to ignore when detecting changes for release.
+	IgnoredChanges []string `yaml:"ignored_changes,omitempty"`
+}
+
+// LibraryEntry represents a single library configuration entry.
+// It can be either:
+// - Short syntax: just an API path string (e.g., "google/cloud/secretmanager/v1")
+// - Extended syntax: a map with API path as key and LibraryConfig as value
+type LibraryEntry struct {
+	// APIPath is the API path (e.g., "google/cloud/secretmanager/v1")
+	APIPath string
+
+	// Config contains optional configuration overrides.
+	// If nil, all defaults are used.
+	Config *LibraryConfig
+}
+
+// LibraryConfig contains configuration overrides for a library.
+type LibraryConfig struct {
+	// Name overrides the default derived library name.
+	Name string `yaml:"name,omitempty"`
+
+	// Path overrides the default derived library path.
+	Path string `yaml:"path,omitempty"`
+
+	// Keep lists files/directories to preserve during regeneration.
+	Keep []string `yaml:"keep,omitempty"`
+
+	// Disabled marks this library as disabled.
+	Disabled bool `yaml:"disabled,omitempty"`
+
+	// Reason explains why the library is disabled (required if disabled=true).
+	Reason string `yaml:"reason,omitempty"`
+
+	// Versions specifies which API versions to include (for multi-version services).
+	Versions []string `yaml:"versions,omitempty"`
+
+	// Transport overrides the default transport.
+	Transport string `yaml:"transport,omitempty"`
+
+	// RestNumericEnums overrides the default rest_numeric_enums setting.
+	RestNumericEnums *bool `yaml:"rest_numeric_enums,omitempty"`
+
+	// ReleaseLevel overrides the default release level.
+	ReleaseLevel string `yaml:"release_level,omitempty"`
+
+	// Release contains per-library release configuration.
+	Release *LibraryRelease `yaml:"release,omitempty"`
+
+	// SourceRoots are the source directories for this library (for handwritten libraries).
+	SourceRoots []string `yaml:"source_roots,omitempty"`
+
+	// Rust contains Rust-specific library configuration.
+	Rust *RustLibrary `yaml:"rust,omitempty"`
+
+	// Dart contains Dart-specific library configuration.
+	Dart *DartLibrary `yaml:"dart,omitempty"`
+
+	// Python contains Python-specific library configuration.
+	Python *PythonLibrary `yaml:"python,omitempty"`
+
+	// Go contains Go-specific library configuration.
+	Go *GoLibrary `yaml:"go,omitempty"`
+}
+
+// RustLibrary contains Rust-specific library configuration.
+type RustLibrary struct {
+	// PerServiceFeatures enables per-service feature flags.
+	PerServiceFeatures bool `yaml:"per_service_features,omitempty"`
+
+	// Additional fields can be added as needed
+	ModulePath                string              `yaml:"module_path,omitempty"`
+	TemplateOverride          string              `yaml:"template_override,omitempty"`
+	TitleOverride             string              `yaml:"title_override,omitempty"`
+	DescriptionOverride       string              `yaml:"description_override,omitempty"`
+	PackageNameOverride       string              `yaml:"package_name_override,omitempty"`
+	RootName                  string              `yaml:"root_name,omitempty"`
+	Roots                     []string            `yaml:"roots,omitempty"`
+	DefaultFeatures           []string            `yaml:"default_features,omitempty"`
+	ExtraModules              []string            `yaml:"extra_modules,omitempty"`
+	IncludeList               []string            `yaml:"include_list,omitempty"`
+	IncludedIds               []string            `yaml:"included_ids,omitempty"`
+	SkippedIds                []string            `yaml:"skipped_ids,omitempty"`
+	NameOverrides             string              `yaml:"name_overrides,omitempty"`
+	PackageDependencies       []PackageDependency `yaml:"package_dependencies,omitempty"`
+	DisabledRustdocWarnings   []string            `yaml:"disabled_rustdoc_warnings,omitempty"`
+	DisabledClippyWarnings    []string            `yaml:"disabled_clippy_warnings,omitempty"`
+	HasVeneer                 bool                `yaml:"has_veneer,omitempty"`
+	RoutingRequired           bool                `yaml:"routing_required,omitempty"`
+	IncludeGrpcOnlyMethods    bool                `yaml:"include_grpc_only_methods,omitempty"`
+	GenerateSetterSamples     bool                `yaml:"generate_setter_samples,omitempty"`
+	PostProcessProtos         bool                `yaml:"post_process_protos,omitempty"`
+	DetailedTracingAttributes bool                `yaml:"detailed_tracing_attributes,omitempty"`
+	NotForPublication         bool                `yaml:"not_for_publication,omitempty"`
+}
+
+// DartLibrary contains Dart-specific library configuration.
+type DartLibrary struct {
+	// APIKeysEnvironmentVariables specifies environment variable for API keys.
+	APIKeysEnvironmentVariables string `yaml:"api_keys_environment_variables,omitempty"`
+
+	// DevDependencies lists additional dev dependencies.
+	DevDependencies []string `yaml:"dev_dependencies,omitempty"`
+}
+
+// PythonLibrary contains Python-specific library configuration.
+type PythonLibrary struct {
+	// Additional Python-specific fields can be added as needed
+}
+
+// GoLibrary contains Go-specific library configuration.
+type GoLibrary struct {
+	// Additional Go-specific fields can be added as needed
+}
+
+// UnmarshalYAML implements custom unmarshaling for LibraryEntry.
+// It supports both:
+// - String syntax: "google/cloud/secretmanager/v1"
+// - Map syntax: {"google/cloud/secretmanager/v1": {keep: [...]}}
+func (e *LibraryEntry) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	// Try to unmarshal as a string first
+	var apiPath string
+	if err := unmarshal(&apiPath); err == nil {
+		e.APIPath = apiPath
+		e.Config = nil
+		return nil
+	}
+
+	// Try to unmarshal as a map with single key
+	var m map[string]LibraryConfig
+	if err := unmarshal(&m); err != nil {
+		return fmt.Errorf("library entry must be either a string (API path) or a map with API path as key")
+	}
+
+	if len(m) != 1 {
+		return fmt.Errorf("library entry map must have exactly one key (API path), got %d keys", len(m))
+	}
+
+	// Extract the single key-value pair
+	for apiPath, config := range m {
+		e.APIPath = apiPath
+		e.Config = &config
+		return nil
+	}
+
+	return fmt.Errorf("library entry map is empty")
+}
+
+// MarshalYAML implements custom marshaling for LibraryEntry.
+func (e LibraryEntry) MarshalYAML() (interface{}, error) {
+	// If no config overrides, use string syntax
+	if e.Config == nil {
+		return e.APIPath, nil
+	}
+
+	// Use map syntax with API path as key
+	return map[string]LibraryConfig{
+		e.APIPath: *e.Config,
+	}, nil
 }
 
 // Library represents an library.
@@ -207,6 +402,7 @@ type PythonAPI struct {
 	OptArgs []string `yaml:"opt_args,omitempty"`
 }
 
+// GoAPI contains Go-specific API configuration.
 type GoAPI struct {
 	// ClientDirectory is the custom client directory (optional).
 	ClientDirectory string `yaml:"client_directory,omitempty"`
@@ -312,64 +508,78 @@ func New(version, language string, source *Source) *Config {
 	return cfg
 }
 
-// Add adds an library to the config.
-// If location is provided, creates a handwritten library with explicit location.
-// Otherwise, creates a generated library with the given APIs.
-// If googleapisRoot is provided, parses BUILD.bazel files to extract API configuration.
-func (c *Config) Add(name string, apis []string, location string, googleapisRoot string) error {
+// GetOneLibraryPer returns the packaging strategy from defaults.
+// Returns "service" for Python/Go, "version" for Rust/Dart by default.
+func (c *Config) GetOneLibraryPer() string {
+	// If explicitly set in defaults, use that
+	if c.Defaults != nil && c.Defaults.OneLibraryPer != "" {
+		return c.Defaults.OneLibraryPer
+	}
+
+	// Otherwise, use language-specific defaults
+	switch c.Language {
+	case "python", "go":
+		return "service"
+	case "rust", "dart":
+		return "version"
+	default:
+		return "service"
+	}
+}
+
+// Add adds a library to the config using the new API-path-based format.
+// apiPath is the API path (e.g., "google/cloud/secretmanager/v1").
+// config contains optional overrides (can be nil for default configuration).
+func (c *Config) Add(apiPath string, config *LibraryConfig) error {
+	if apiPath == "" {
+		return fmt.Errorf("API path cannot be empty")
+	}
+
+	// Check if library with same API path already exists
+	for _, entry := range c.Libraries {
+		if entry.APIPath == apiPath {
+			return fmt.Errorf("library with API path %q already exists", apiPath)
+		}
+	}
+
+	c.Libraries = append(c.Libraries, LibraryEntry{
+		APIPath: apiPath,
+		Config:  config,
+	})
+
+	return nil
+}
+
+// AddLegacy adds a library using the old name-based format (for backward compatibility).
+// Deprecated: Use Add with API path instead.
+func (c *Config) AddLegacy(name string, apis []string, location string, googleapisRoot string) error {
 	if name == "" {
 		return fmt.Errorf("library name cannot be empty")
 	}
 
-	// Handwritten library with explicit location
-	if location != "" {
-		// Check if library with same name already exists
-		for _, ed := range c.Libraries {
-			if ed.Name == name {
-				return fmt.Errorf("library %q already exists", name)
-			}
-		}
-
-		c.Libraries = append(c.Libraries, Library{
-			Name:     name,
-			Location: location,
-		})
-		return nil
-	}
-
-	// Generated library with APIs
-	if len(apis) == 0 {
+	if len(apis) == 0 && location == "" {
 		return fmt.Errorf("library must have at least one API or a location")
 	}
 
-	// Check if library with same name and apis already exists
-	for _, ed := range c.Libraries {
-		if ed.Name == name && stringSliceEqual(ed.Apis, apis) {
-			return fmt.Errorf("library %q with apis %v already exists", name, apis)
-		}
+	// For now, use the first API as the identifier
+	// TODO: Implement proper conversion from old to new format
+	apiPath := ""
+	if len(apis) > 0 {
+		apiPath = apis[0]
+	} else {
+		// Handwritten library - use name as path
+		apiPath = name
 	}
 
-	library := Library{
+	config := &LibraryConfig{
 		Name: name,
-		Apis: apis,
 	}
 
-	// Parse BUILD.bazel files if googleapisRoot is provided
-	if googleapisRoot != "" && c.Language != "" {
-		apiConfigs, err := c.parseAPIs(apis, googleapisRoot)
-		if err != nil {
-			return fmt.Errorf("failed to parse API configurations: %w", err)
-		}
-
-		// Store parsed API configurations
-		library.Generate = &LibraryGenerate{
-			APIs: apiConfigs,
-		}
+	if location != "" {
+		config.Path = location
 	}
 
-	c.Libraries = append(c.Libraries, library)
-
-	return nil
+	return c.Add(apiPath, config)
 }
 
 // stringSliceEqual checks if two string slices are equal.
@@ -417,6 +627,55 @@ func (e *Library) GeneratedLocation(generateOutput string) (string, error) {
 		return e.Location, nil
 	}
 	return e.ExpandTemplate(generateOutput)
+}
+
+// ToLibrary converts a LibraryEntry to a Library for backward compatibility.
+// This is a temporary method to help with migration to the new config format.
+func (e *LibraryEntry) ToLibrary(derivedName string) *Library {
+	lib := &Library{
+		Name: derivedName,
+		Apis: []string{e.APIPath},
+	}
+
+	if e.Config != nil {
+		if e.Config.Name != "" {
+			lib.Name = e.Config.Name
+		}
+		if e.Config.Path != "" {
+			lib.Location = e.Config.Path
+		}
+		if len(e.Config.SourceRoots) > 0 {
+			lib.SourceRoots = e.Config.SourceRoots
+		}
+		if e.Config.Release != nil {
+			lib.Release = e.Config.Release
+		}
+		if len(e.Config.Keep) > 0 {
+			if lib.Generate == nil {
+				lib.Generate = &LibraryGenerate{}
+			}
+			lib.Generate.Keep = e.Config.Keep
+		}
+	}
+
+	return lib
+}
+
+// FindLibraryByName finds a library entry by name (checks both APIPath and Config.Name).
+// Returns the library entry and its index, or nil and -1 if not found.
+func (c *Config) FindLibraryByName(name string) (*LibraryEntry, int) {
+	for i := range c.Libraries {
+		entry := &c.Libraries[i]
+		// Check if the API path matches the name
+		if entry.APIPath == name {
+			return entry, i
+		}
+		// Check if the config name matches
+		if entry.Config != nil && entry.Config.Name == name {
+			return entry, i
+		}
+	}
+	return nil, -1
 }
 
 // parseAPIs parses BUILD.bazel files for the given API paths and returns API configurations.

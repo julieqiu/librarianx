@@ -1,105 +1,772 @@
 version: v1
 language: python
-
-sources:
-  googleapis:
-    url: TBD
-    sha256: TBD
-
+container:
+    image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/python-librarian-generator
+    tag: latest
+global:
+    files_allowlist:
+        - path: CHANGELOG.md
+          permissions: read-write
 defaults:
-  generate_dir: packages/
-  packaging: service
-  transport: grpc+rest
-  rest_numeric_enums: true
-
+    output: ./
+    one_library_per: service
+    transport: grpc+rest
+    rest_numeric_enums: true
 release:
-  tag_format: '{name}/v{version}'
-
-# Auto-discover everything from googleapis
-auto_discover: true
-
-# Only configure exceptions to the defaults
-# NOTE: With auto_discover enabled, only list libraries that need special configuration
-# These entries use API paths as keys (e.g., google/cloud/automl/v1)
+    tag_format: '{name}/v{version}'
 libraries:
-  # Service-level entry: covers all versions (v1, v1beta1, etc.)
-  # For Python, service-level packaging groups all versions into one package
-  - google/cloud/automl/v1:
-      keep:
-        - docs/automl_v1beta1/tables.rst
-        - google/cloud/automl_v1beta1/services/tables
-        - samples/README
-        - tests/unit/test_gcs_client_v1beta1.py
-        - tests/unit/test_tables_client_v1beta1.py
-
-  - google/cloud/bigquery/storage/v1:
-      keep:
-        - docs/.*/library.rst
-        - docs/samples
-        - google/cloud/bigquery_storage_v1/client.py
-        - google/cloud/bigquery_storage_v1/exceptions.py
-        - google/cloud/bigquery_storage_v1/gapic_types.py
-        - google/cloud/bigquery_storage_v1/reader.py
-        - google/cloud/bigquery_storage_v1/writer.py
-        - google/cloud/bigquery_storage_v1beta2/client.py
-        - google/cloud/bigquery_storage_v1beta2/exceptions.py
-        - google/cloud/bigquery_storage_v1beta2/writer.py
-        - CONTRIBUTING
-        - samples/__init__.py
-        - samples/conftest.py
-        - samples/pyarrow
-        - samples/quickstart
-        - samples/snippets
-        - samples/to_dataframe
-        - scripts/readme-gen
-        - testing/.gitignore
-        - tests/unit/.*.py
-
-  - google/cloud/containeranalysis/v1:
-      keep:
-        - tests/unit/test_get_grafeas_client.py
-
-  - google/cloud/monitoring/v3:
-      keep:
-        - docs/query.rst
-        - google/cloud/monitoring_v3/_dataframe.py
-        - google/cloud/monitoring_v3/query.py
-        - tests/unit/test__dataframe.py
-        - tests/unit/test_query.py
-
-  - google/cloud/orgpolicy/v2:
-      keep:
-        - pytest.ini
-        - google/cloud/orgpolicy/v1/__init__.py
-        - tests/unit/test_packaging.py
-
-  - google/cloud/oslogin/v1:
-      keep:
-        - google/cloud/oslogin_v1/common
-        - docs/oslogin_v1/common/types.rst
-
-  - google/cloud/speech/v1:
-      keep:
-        - google/cloud/speech_v1/helpers.py
-        - tests/unit/test_helpers.py
-
-  - google/cloud/translate/v3:
-      keep:
-        - docs/client.rst
-        - docs/v2.rst
-        - google/cloud/translate_v2
-        - tests/unit/v2
-
-  - google/cloud/vision/v1:
-      keep:
-        - google/cloud/vision_helpers
-        - tests/unit/test_decorators.py
-        - tests/unit/test_helpers.py
-
-  - grafeas:
-      name: grafeas
-      path: packages/grafeas/
-      keep:
-        - grafeas/grafeas.py
-        - grafeas/grafeas/__init__.py
-        - grafeas/grafeas/grafeas_v1/types.py
+    - '*'
+    - packages/google-ads-admanager/:
+        keep:
+            - packages/google-ads-admanager/CHANGELOG.md
+    - packages/google-ads-marketingplatform-admin/:
+        keep:
+            - packages/google-ads-marketingplatform-admin/CHANGELOG.md
+    - packages/google-ai-generativelanguage/:
+        keep:
+            - packages/google-ai-generativelanguage/CHANGELOG.md
+    - packages/google-analytics-admin/:
+        keep:
+            - packages/google-analytics-admin/CHANGELOG.md
+    - packages/google-analytics-data/:
+        keep:
+            - packages/google-analytics-data/CHANGELOG.md
+    - packages/google-apps-card/:
+        keep:
+            - packages/google-apps-card/CHANGELOG.md
+            - tests/unit/gapic/card_v1/test_card.py
+    - packages/google-apps-chat/:
+        keep:
+            - packages/google-apps-chat/CHANGELOG.md
+    - packages/google-apps-events-subscriptions/:
+        keep:
+            - packages/google-apps-events-subscriptions/CHANGELOG.md
+    - packages/google-apps-meet/:
+        keep:
+            - packages/google-apps-meet/CHANGELOG.md
+    - packages/google-apps-script-type/:
+        keep:
+            - packages/google-apps-script-type/CHANGELOG.md
+            - tests/unit/gapic/calendar/test_calendar.py
+            - tests/unit/gapic/docs/test_docs.py
+            - tests/unit/gapic/drive/test_drive.py
+            - tests/unit/gapic/gmail/test_gmail.py
+            - tests/unit/gapic/sheets/test_sheets.py
+            - tests/unit/gapic/slides/test_slides.py
+            - tests/unit/gapic/type/test_type.py
+    - packages/google-area120-tables/:
+        keep:
+            - packages/google-area120-tables/CHANGELOG.md
+    - packages/google-cloud-access-approval/:
+        keep:
+            - packages/google-cloud-access-approval/CHANGELOG.md
+    - packages/google-cloud-advisorynotifications/:
+        keep:
+            - packages/google-cloud-advisorynotifications/CHANGELOG.md
+    - packages/google-cloud-alloydb/:
+        keep:
+            - packages/google-cloud-alloydb/CHANGELOG.md
+    - packages/google-cloud-alloydb-connectors/:
+        keep:
+            - packages/google-cloud-alloydb-connectors/CHANGELOG.md
+            - tests/unit/gapic/connectors_v1/test_connectors.py
+    - packages/google-cloud-api-gateway/:
+        keep:
+            - packages/google-cloud-api-gateway/CHANGELOG.md
+    - packages/google-cloud-api-keys/:
+        keep:
+            - packages/google-cloud-api-keys/CHANGELOG.md
+    - packages/google-cloud-apigee-connect/:
+        keep:
+            - packages/google-cloud-apigee-connect/CHANGELOG.md
+    - packages/google-cloud-apigee-registry/:
+        keep:
+            - packages/google-cloud-apigee-registry/CHANGELOG.md
+    - packages/google-cloud-apihub/:
+        keep:
+            - packages/google-cloud-apihub/CHANGELOG.md
+    - packages/google-cloud-appengine-admin/:
+        keep:
+            - packages/google-cloud-appengine-admin/CHANGELOG.md
+    - packages/google-cloud-appengine-logging/:
+        keep:
+            - packages/google-cloud-appengine-logging/CHANGELOG.md
+            - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
+    - packages/google-cloud-apphub/:
+        keep:
+            - packages/google-cloud-apphub/CHANGELOG.md
+    - packages/google-cloud-artifact-registry/:
+        keep:
+            - packages/google-cloud-artifact-registry/CHANGELOG.md
+    - packages/google-cloud-asset/:
+        keep:
+            - packages/google-cloud-asset/CHANGELOG.md
+    - packages/google-cloud-assured-workloads/:
+        keep:
+            - packages/google-cloud-assured-workloads/CHANGELOG.md
+    - packages/google-cloud-automl/:
+        keep:
+            - packages/google-cloud-automl/CHANGELOG.md
+            - docs/automl_v1beta1/tables.rst
+            - google/cloud/automl_v1beta1/services/tables
+            - samples/README
+            - tests/unit/test_gcs_client_v1beta1.py
+            - tests/unit/test_tables_client_v1beta1.py
+    - packages/google-cloud-backupdr/:
+        keep:
+            - packages/google-cloud-backupdr/CHANGELOG.md
+    - packages/google-cloud-bare-metal-solution/:
+        keep:
+            - packages/google-cloud-bare-metal-solution/CHANGELOG.md
+    - packages/google-cloud-batch/:
+        keep:
+            - packages/google-cloud-batch/CHANGELOG.md
+    - packages/google-cloud-beyondcorp-appconnections/:
+        keep:
+            - packages/google-cloud-beyondcorp-appconnections/CHANGELOG.md
+    - packages/google-cloud-beyondcorp-appconnectors/:
+        keep:
+            - packages/google-cloud-beyondcorp-appconnectors/CHANGELOG.md
+    - packages/google-cloud-beyondcorp-appgateways/:
+        keep:
+            - packages/google-cloud-beyondcorp-appgateways/CHANGELOG.md
+    - packages/google-cloud-beyondcorp-clientconnectorservices/:
+        keep:
+            - packages/google-cloud-beyondcorp-clientconnectorservices/CHANGELOG.md
+    - packages/google-cloud-beyondcorp-clientgateways/:
+        keep:
+            - packages/google-cloud-beyondcorp-clientgateways/CHANGELOG.md
+    - packages/google-cloud-biglake/:
+        keep:
+            - packages/google-cloud-biglake/CHANGELOG.md
+    - packages/google-cloud-bigquery-analyticshub/:
+        keep:
+            - packages/google-cloud-bigquery-analyticshub/CHANGELOG.md
+    - packages/google-cloud-bigquery-biglake/:
+        keep:
+            - packages/google-cloud-bigquery-biglake/CHANGELOG.md
+    - packages/google-cloud-bigquery-connection/:
+        keep:
+            - packages/google-cloud-bigquery-connection/CHANGELOG.md
+    - packages/google-cloud-bigquery-data-exchange/:
+        keep:
+            - packages/google-cloud-bigquery-data-exchange/CHANGELOG.md
+    - packages/google-cloud-bigquery-datapolicies/:
+        keep:
+            - packages/google-cloud-bigquery-datapolicies/CHANGELOG.md
+    - packages/google-cloud-bigquery-datatransfer/:
+        keep:
+            - packages/google-cloud-bigquery-datatransfer/CHANGELOG.md
+    - packages/google-cloud-bigquery-logging/:
+        keep:
+            - packages/google-cloud-bigquery-logging/CHANGELOG.md
+            - tests/unit/gapic/bigquery_logging_v1/test_bigquery_logging_v1.py
+    - packages/google-cloud-bigquery-migration/:
+        keep:
+            - packages/google-cloud-bigquery-migration/CHANGELOG.md
+    - packages/google-cloud-bigquery-reservation/:
+        keep:
+            - packages/google-cloud-bigquery-reservation/CHANGELOG.md
+    - packages/google-cloud-bigquery-storage/:
+        keep:
+            - docs/.*/library.rst
+            - docs/samples
+            - google/cloud/bigquery_storage_v1/client.py
+            - google/cloud/bigquery_storage_v1/exceptions.py
+            - google/cloud/bigquery_storage_v1/gapic_types.py
+            - google/cloud/bigquery_storage_v1/reader.py
+            - google/cloud/bigquery_storage_v1/writer.py
+            - google/cloud/bigquery_storage_v1beta2/client.py
+            - google/cloud/bigquery_storage_v1beta2/exceptions.py
+            - google/cloud/bigquery_storage_v1beta2/writer.py
+            - packages/google-cloud-bigquery-storage/CHANGELOG.md
+            - packages/google-cloud-bigquery-storage/CONTRIBUTING
+            - samples/__init__.py
+            - samples/conftest.py
+            - samples/pyarrow
+            - samples/quickstart
+            - samples/snippets
+            - samples/to_dataframe
+            - scripts/readme-gen
+            - testing/.gitignore
+            - tests/unit/.*.py
+    - packages/google-cloud-billing/:
+        keep:
+            - packages/google-cloud-billing/CHANGELOG.md
+    - packages/google-cloud-billing-budgets/:
+        keep:
+            - packages/google-cloud-billing-budgets/CHANGELOG.md
+    - packages/google-cloud-binary-authorization/:
+        keep:
+            - packages/google-cloud-binary-authorization/CHANGELOG.md
+    - packages/google-cloud-build/:
+        keep:
+            - packages/google-cloud-build/CHANGELOG.md
+    - packages/google-cloud-capacityplanner/:
+        keep:
+            - packages/google-cloud-capacityplanner/CHANGELOG.md
+    - packages/google-cloud-certificate-manager/:
+        keep:
+            - packages/google-cloud-certificate-manager/CHANGELOG.md
+    - packages/google-cloud-channel/:
+        keep:
+            - packages/google-cloud-channel/CHANGELOG.md
+    - packages/google-cloud-chronicle/:
+        keep:
+            - packages/google-cloud-chronicle/CHANGELOG.md
+    - packages/google-cloud-cloudcontrolspartner/:
+        keep:
+            - packages/google-cloud-cloudcontrolspartner/CHANGELOG.md
+    - packages/google-cloud-cloudsecuritycompliance/:
+        keep:
+            - packages/google-cloud-cloudsecuritycompliance/CHANGELOG.md
+    - packages/google-cloud-commerce-consumer-procurement/:
+        keep:
+            - packages/google-cloud-commerce-consumer-procurement/CHANGELOG.md
+    - packages/google-cloud-common/:
+        keep:
+            - packages/google-cloud-common/CHANGELOG.md
+            - tests/unit/gapic/common/test_common.py
+    - packages/google-cloud-compute/:
+        keep:
+            - packages/google-cloud-compute/CHANGELOG.md
+    - packages/google-cloud-compute-v1beta/:
+        keep:
+            - packages/google-cloud-compute-v1beta/CHANGELOG.md
+    - packages/google-cloud-confidentialcomputing/:
+        keep:
+            - packages/google-cloud-confidentialcomputing/CHANGELOG.md
+    - packages/google-cloud-config/:
+        keep:
+            - packages/google-cloud-config/CHANGELOG.md
+    - packages/google-cloud-configdelivery/:
+        keep:
+            - packages/google-cloud-configdelivery/CHANGELOG.md
+    - packages/google-cloud-contact-center-insights/:
+        keep:
+            - packages/google-cloud-contact-center-insights/CHANGELOG.md
+    - packages/google-cloud-container/:
+        keep:
+            - packages/google-cloud-container/CHANGELOG.md
+    - packages/google-cloud-containeranalysis/:
+        keep:
+            - packages/google-cloud-containeranalysis/CHANGELOG.md
+            - tests/unit/test_get_grafeas_client.py
+    - packages/google-cloud-contentwarehouse/:
+        keep:
+            - packages/google-cloud-contentwarehouse/CHANGELOG.md
+    - packages/google-cloud-data-fusion/:
+        keep:
+            - packages/google-cloud-data-fusion/CHANGELOG.md
+    - packages/google-cloud-data-qna/:
+        keep:
+            - packages/google-cloud-data-qna/CHANGELOG.md
+    - packages/google-cloud-datacatalog/:
+        keep:
+            - packages/google-cloud-datacatalog/CHANGELOG.md
+    - packages/google-cloud-datacatalog-lineage/:
+        keep:
+            - packages/google-cloud-datacatalog-lineage/CHANGELOG.md
+    - packages/google-cloud-dataflow-client/:
+        keep:
+            - packages/google-cloud-dataflow-client/CHANGELOG.md
+    - packages/google-cloud-dataform/:
+        keep:
+            - packages/google-cloud-dataform/CHANGELOG.md
+    - packages/google-cloud-datalabeling/:
+        keep:
+            - packages/google-cloud-datalabeling/CHANGELOG.md
+    - packages/google-cloud-dataplex/:
+        keep:
+            - packages/google-cloud-dataplex/CHANGELOG.md
+    - packages/google-cloud-dataproc/:
+        keep:
+            - packages/google-cloud-dataproc/CHANGELOG.md
+    - packages/google-cloud-dataproc-metastore/:
+        keep:
+            - packages/google-cloud-dataproc-metastore/CHANGELOG.md
+    - packages/google-cloud-datastream/:
+        keep:
+            - packages/google-cloud-datastream/CHANGELOG.md
+    - packages/google-cloud-deploy/:
+        keep:
+            - packages/google-cloud-deploy/CHANGELOG.md
+    - packages/google-cloud-developerconnect/:
+        keep:
+            - packages/google-cloud-developerconnect/CHANGELOG.md
+    - packages/google-cloud-devicestreaming/:
+        keep:
+            - packages/google-cloud-devicestreaming/CHANGELOG.md
+    - packages/google-cloud-dialogflow/:
+        keep:
+            - packages/google-cloud-dialogflow/CHANGELOG.md
+    - packages/google-cloud-dialogflow-cx/:
+        keep:
+            - packages/google-cloud-dialogflow-cx/CHANGELOG.md
+    - packages/google-cloud-discoveryengine/:
+        keep:
+            - packages/google-cloud-discoveryengine/CHANGELOG.md
+    - packages/google-cloud-dlp/:
+        keep:
+            - packages/google-cloud-dlp/CHANGELOG.md
+    - packages/google-cloud-dms/:
+        keep:
+            - packages/google-cloud-dms/CHANGELOG.md
+    - packages/google-cloud-documentai/:
+        keep:
+            - packages/google-cloud-documentai/CHANGELOG.md
+    - packages/google-cloud-domains/:
+        keep:
+            - packages/google-cloud-domains/CHANGELOG.md
+    - packages/google-cloud-edgecontainer/:
+        keep:
+            - packages/google-cloud-edgecontainer/CHANGELOG.md
+    - packages/google-cloud-edgenetwork/:
+        keep:
+            - packages/google-cloud-edgenetwork/CHANGELOG.md
+    - packages/google-cloud-enterpriseknowledgegraph/:
+        keep:
+            - packages/google-cloud-enterpriseknowledgegraph/CHANGELOG.md
+    - packages/google-cloud-essential-contacts/:
+        keep:
+            - packages/google-cloud-essential-contacts/CHANGELOG.md
+    - packages/google-cloud-eventarc/:
+        keep:
+            - packages/google-cloud-eventarc/CHANGELOG.md
+    - packages/google-cloud-eventarc-publishing/:
+        keep:
+            - packages/google-cloud-eventarc-publishing/CHANGELOG.md
+    - packages/google-cloud-filestore/:
+        keep:
+            - packages/google-cloud-filestore/CHANGELOG.md
+    - packages/google-cloud-financialservices/:
+        keep:
+            - packages/google-cloud-financialservices/CHANGELOG.md
+    - packages/google-cloud-functions/:
+        keep:
+            - packages/google-cloud-functions/CHANGELOG.md
+    - packages/google-cloud-gdchardwaremanagement/:
+        keep:
+            - packages/google-cloud-gdchardwaremanagement/CHANGELOG.md
+    - packages/google-cloud-geminidataanalytics/:
+        keep:
+            - packages/google-cloud-geminidataanalytics/CHANGELOG.md
+    - packages/google-cloud-gke-backup/:
+        keep:
+            - packages/google-cloud-gke-backup/CHANGELOG.md
+    - packages/google-cloud-gke-connect-gateway/:
+        keep:
+            - packages/google-cloud-gke-connect-gateway/CHANGELOG.md
+    - packages/google-cloud-gke-hub/:
+        keep:
+            - packages/google-cloud-gke-hub/CHANGELOG.md
+            - docs/gkehub_v1/configmanagement_v1
+            - docs/gkehub_v1/multiclusteringress_v1
+            - google/cloud/gkehub_v1/configmanagement_v1
+            - google/cloud/gkehub_v1/multiclusteringress_v1
+    - packages/google-cloud-gke-multicloud/:
+        keep:
+            - packages/google-cloud-gke-multicloud/CHANGELOG.md
+    - packages/google-cloud-gkerecommender/:
+        keep:
+            - packages/google-cloud-gkerecommender/CHANGELOG.md
+    - packages/google-cloud-gsuiteaddons/:
+        keep:
+            - packages/google-cloud-gsuiteaddons/CHANGELOG.md
+    - packages/google-cloud-hypercomputecluster/:
+        keep:
+            - packages/google-cloud-hypercomputecluster/CHANGELOG.md
+    - packages/google-cloud-iam/:
+        keep:
+            - packages/google-cloud-iam/CHANGELOG.md
+    - packages/google-cloud-iam-logging/:
+        keep:
+            - packages/google-cloud-iam-logging/CHANGELOG.md
+            - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
+    - packages/google-cloud-iap/:
+        keep:
+            - packages/google-cloud-iap/CHANGELOG.md
+    - packages/google-cloud-ids/:
+        keep:
+            - packages/google-cloud-ids/CHANGELOG.md
+    - packages/google-cloud-kms/:
+        keep:
+            - packages/google-cloud-kms/CHANGELOG.md
+    - packages/google-cloud-kms-inventory/:
+        keep:
+            - packages/google-cloud-kms-inventory/CHANGELOG.md
+    - packages/google-cloud-language/:
+        keep:
+            - packages/google-cloud-language/CHANGELOG.md
+    - packages/google-cloud-licensemanager/:
+        keep:
+            - packages/google-cloud-licensemanager/CHANGELOG.md
+    - packages/google-cloud-life-sciences/:
+        keep:
+            - packages/google-cloud-life-sciences/CHANGELOG.md
+    - packages/google-cloud-locationfinder/:
+        keep:
+            - packages/google-cloud-locationfinder/CHANGELOG.md
+    - packages/google-cloud-lustre/:
+        keep:
+            - packages/google-cloud-lustre/CHANGELOG.md
+    - packages/google-cloud-maintenance-api/:
+        keep:
+            - packages/google-cloud-maintenance-api/CHANGELOG.md
+    - packages/google-cloud-managed-identities/:
+        keep:
+            - packages/google-cloud-managed-identities/CHANGELOG.md
+    - packages/google-cloud-managedkafka/:
+        keep:
+            - packages/google-cloud-managedkafka/CHANGELOG.md
+    - packages/google-cloud-managedkafka-schemaregistry/:
+        keep:
+            - packages/google-cloud-managedkafka-schemaregistry/CHANGELOG.md
+    - packages/google-cloud-media-translation/:
+        keep:
+            - packages/google-cloud-media-translation/CHANGELOG.md
+    - packages/google-cloud-memcache/:
+        keep:
+            - packages/google-cloud-memcache/CHANGELOG.md
+    - packages/google-cloud-memorystore/:
+        keep:
+            - packages/google-cloud-memorystore/CHANGELOG.md
+    - packages/google-cloud-migrationcenter/:
+        keep:
+            - packages/google-cloud-migrationcenter/CHANGELOG.md
+    - packages/google-cloud-modelarmor/:
+        keep:
+            - packages/google-cloud-modelarmor/CHANGELOG.md
+    - packages/google-cloud-monitoring/:
+        keep:
+            - packages/google-cloud-monitoring/CHANGELOG.md
+            - docs/query.rst
+            - packages/google-cloud-monitoring/google/cloud/monitoring_v3/_dataframe.py
+            - packages/google-cloud-monitoring/google/cloud/monitoring_v3/query.py
+            - tests/unit/test__dataframe.py
+            - tests/unit/test_query.py
+    - packages/google-cloud-monitoring-dashboards/:
+        keep:
+            - packages/google-cloud-monitoring-dashboards/CHANGELOG.md
+            - packages/google-cloud-monitoring-dashboards/google/monitoring
+            - tests/unit/gapic/dashboard_v1
+    - packages/google-cloud-monitoring-metrics-scopes/:
+        keep:
+            - packages/google-cloud-monitoring-metrics-scopes/CHANGELOG.md
+    - packages/google-cloud-netapp/:
+        keep:
+            - packages/google-cloud-netapp/CHANGELOG.md
+    - packages/google-cloud-network-connectivity/:
+        keep:
+            - packages/google-cloud-network-connectivity/CHANGELOG.md
+    - packages/google-cloud-network-management/:
+        keep:
+            - packages/google-cloud-network-management/CHANGELOG.md
+    - packages/google-cloud-network-security/:
+        keep:
+            - packages/google-cloud-network-security/CHANGELOG.md
+    - packages/google-cloud-network-services/:
+        keep:
+            - packages/google-cloud-network-services/CHANGELOG.md
+    - packages/google-cloud-notebooks/:
+        keep:
+            - packages/google-cloud-notebooks/CHANGELOG.md
+    - packages/google-cloud-optimization/:
+        keep:
+            - packages/google-cloud-optimization/CHANGELOG.md
+    - packages/google-cloud-oracledatabase/:
+        keep:
+            - packages/google-cloud-oracledatabase/CHANGELOG.md
+    - packages/google-cloud-orchestration-airflow/:
+        keep:
+            - packages/google-cloud-orchestration-airflow/CHANGELOG.md
+    - packages/google-cloud-org-policy/:
+        keep:
+            - packages/google-cloud-org-policy/pytest.ini
+            - packages/google-cloud-org-policy/CHANGELOG.md
+            - google/cloud/orgpolicy/v1/__init__.py
+            - tests/unit/test_packaging.py
+    - packages/google-cloud-os-config/:
+        keep:
+            - packages/google-cloud-os-config/CHANGELOG.md
+    - packages/google-cloud-os-login/:
+        keep:
+            - packages/google-cloud-os-login/CHANGELOG.md
+            - google/cloud/oslogin_v1/common
+            - docs/oslogin_v1/common/types.rst
+    - packages/google-cloud-parallelstore/:
+        keep:
+            - packages/google-cloud-parallelstore/CHANGELOG.md
+    - packages/google-cloud-parametermanager/:
+        keep:
+            - packages/google-cloud-parametermanager/CHANGELOG.md
+    - packages/google-cloud-phishing-protection/:
+        keep:
+            - packages/google-cloud-phishing-protection/CHANGELOG.md
+    - packages/google-cloud-policy-troubleshooter/:
+        keep:
+            - packages/google-cloud-policy-troubleshooter/CHANGELOG.md
+    - packages/google-cloud-policysimulator/:
+        keep:
+            - packages/google-cloud-policysimulator/CHANGELOG.md
+    - packages/google-cloud-policytroubleshooter-iam/:
+        keep:
+            - packages/google-cloud-policytroubleshooter-iam/CHANGELOG.md
+    - packages/google-cloud-private-ca/:
+        keep:
+            - packages/google-cloud-private-ca/CHANGELOG.md
+    - packages/google-cloud-private-catalog/:
+        keep:
+            - packages/google-cloud-private-catalog/CHANGELOG.md
+    - packages/google-cloud-privilegedaccessmanager/:
+        keep:
+            - packages/google-cloud-privilegedaccessmanager/CHANGELOG.md
+    - packages/google-cloud-quotas/:
+        keep:
+            - packages/google-cloud-quotas/CHANGELOG.md
+    - packages/google-cloud-rapidmigrationassessment/:
+        keep:
+            - packages/google-cloud-rapidmigrationassessment/CHANGELOG.md
+    - packages/google-cloud-recaptcha-enterprise/:
+        keep:
+            - packages/google-cloud-recaptcha-enterprise/CHANGELOG.md
+    - packages/google-cloud-recommendations-ai/:
+        keep:
+            - packages/google-cloud-recommendations-ai/CHANGELOG.md
+    - packages/google-cloud-recommender/:
+        keep:
+            - packages/google-cloud-recommender/CHANGELOG.md
+    - packages/google-cloud-redis/:
+        keep:
+            - packages/google-cloud-redis/CHANGELOG.md
+    - packages/google-cloud-redis-cluster/:
+        keep:
+            - packages/google-cloud-redis-cluster/CHANGELOG.md
+    - packages/google-cloud-resource-manager/:
+        keep:
+            - packages/google-cloud-resource-manager/CHANGELOG.md
+    - packages/google-cloud-retail/:
+        keep:
+            - packages/google-cloud-retail/CHANGELOG.md
+    - packages/google-cloud-run/:
+        keep:
+            - packages/google-cloud-run/CHANGELOG.md
+    - packages/google-cloud-saasplatform-saasservicemgmt/:
+        keep:
+            - packages/google-cloud-saasplatform-saasservicemgmt/CHANGELOG.md
+    - packages/google-cloud-scheduler/:
+        keep:
+            - packages/google-cloud-scheduler/CHANGELOG.md
+    - packages/google-cloud-secret-manager/:
+        keep:
+            - packages/google-cloud-secret-manager/CHANGELOG.md
+    - packages/google-cloud-securesourcemanager/:
+        keep:
+            - packages/google-cloud-securesourcemanager/CHANGELOG.md
+    - packages/google-cloud-security-publicca/:
+        keep:
+            - packages/google-cloud-security-publicca/CHANGELOG.md
+    - packages/google-cloud-securitycenter/:
+        keep:
+            - packages/google-cloud-securitycenter/CHANGELOG.md
+    - packages/google-cloud-securitycentermanagement/:
+        keep:
+            - packages/google-cloud-securitycentermanagement/CHANGELOG.md
+    - packages/google-cloud-service-control/:
+        keep:
+            - packages/google-cloud-service-control/CHANGELOG.md
+    - packages/google-cloud-service-directory/:
+        keep:
+            - packages/google-cloud-service-directory/CHANGELOG.md
+    - packages/google-cloud-service-management/:
+        keep:
+            - packages/google-cloud-service-management/CHANGELOG.md
+    - packages/google-cloud-service-usage/:
+        keep:
+            - packages/google-cloud-service-usage/CHANGELOG.md
+    - packages/google-cloud-servicehealth/:
+        keep:
+            - packages/google-cloud-servicehealth/CHANGELOG.md
+    - packages/google-cloud-shell/:
+        keep:
+            - packages/google-cloud-shell/CHANGELOG.md
+    - packages/google-cloud-source-context/:
+        keep:
+            - packages/google-cloud-source-context/CHANGELOG.md
+            - tests/unit/gapic/source_context_v1/test_source_context_v1.py
+    - packages/google-cloud-speech/:
+        keep:
+            - packages/google-cloud-speech/CHANGELOG.md
+            - google/cloud/speech_v1/helpers.py
+            - tests/unit/test_helpers.py
+    - packages/google-cloud-storage-control/:
+        keep:
+            - packages/google-cloud-storage-control/CHANGELOG.md
+    - packages/google-cloud-storage-transfer/:
+        keep:
+            - packages/google-cloud-storage-transfer/CHANGELOG.md
+    - packages/google-cloud-storagebatchoperations/:
+        keep:
+            - packages/google-cloud-storagebatchoperations/CHANGELOG.md
+    - packages/google-cloud-storageinsights/:
+        keep:
+            - packages/google-cloud-storageinsights/CHANGELOG.md
+    - packages/google-cloud-support/:
+        keep:
+            - packages/google-cloud-support/CHANGELOG.md
+    - packages/google-cloud-talent/:
+        keep:
+            - packages/google-cloud-talent/CHANGELOG.md
+    - packages/google-cloud-tasks/:
+        keep:
+            - packages/google-cloud-tasks/CHANGELOG.md
+            - snippets/README.md
+    - packages/google-cloud-telcoautomation/:
+        keep:
+            - packages/google-cloud-telcoautomation/CHANGELOG.md
+            - snippets/README.md
+    - packages/google-cloud-texttospeech/:
+        keep:
+            - packages/google-cloud-texttospeech/CHANGELOG.md
+    - packages/google-cloud-tpu/:
+        keep:
+            - packages/google-cloud-tpu/CHANGELOG.md
+    - packages/google-cloud-trace/:
+        keep:
+            - packages/google-cloud-trace/CHANGELOG.md
+    - packages/google-cloud-translate/:
+        keep:
+            - packages/google-cloud-translate/CHANGELOG.md
+            - docs/client.rst
+            - docs/v2.rst
+            - google/cloud/translate_v2
+            - tests/unit/v2
+    - packages/google-cloud-video-live-stream/:
+        keep:
+            - packages/google-cloud-video-live-stream/CHANGELOG.md
+    - packages/google-cloud-video-stitcher/:
+        keep:
+            - packages/google-cloud-video-stitcher/CHANGELOG.md
+    - packages/google-cloud-video-transcoder/:
+        keep:
+            - packages/google-cloud-video-transcoder/CHANGELOG.md
+    - packages/google-cloud-videointelligence/:
+        keep:
+            - packages/google-cloud-videointelligence/CHANGELOG.md
+    - packages/google-cloud-vision/:
+        keep:
+            - packages/google-cloud-vision/CHANGELOG.md
+            - google/cloud/vision_helpers
+            - tests/unit/test_decorators.py
+            - tests/unit/test_helpers.py
+    - packages/google-cloud-visionai/:
+        keep:
+            - packages/google-cloud-visionai/CHANGELOG.md
+    - packages/google-cloud-vm-migration/:
+        keep:
+            - packages/google-cloud-vm-migration/CHANGELOG.md
+    - packages/google-cloud-vmwareengine/:
+        keep:
+            - packages/google-cloud-vmwareengine/CHANGELOG.md
+    - packages/google-cloud-vpc-access/:
+        keep:
+            - packages/google-cloud-vpc-access/CHANGELOG.md
+    - packages/google-cloud-webrisk/:
+        keep:
+            - packages/google-cloud-webrisk/CHANGELOG.md
+    - packages/google-cloud-websecurityscanner/:
+        keep:
+            - packages/google-cloud-websecurityscanner/CHANGELOG.md
+    - packages/google-cloud-workflows/:
+        keep:
+            - packages/google-cloud-workflows/CHANGELOG.md
+    - packages/google-cloud-workstations/:
+        keep:
+            - packages/google-cloud-workstations/CHANGELOG.md
+    - packages/google-geo-type/:
+        keep:
+            - packages/google-geo-type/CHANGELOG.md
+            - tests/unit/gapic/type/test_type.py
+    - packages/google-maps-addressvalidation/:
+        keep:
+            - packages/google-maps-addressvalidation/CHANGELOG.md
+    - packages/google-maps-areainsights/:
+        keep:
+            - packages/google-maps-areainsights/CHANGELOG.md
+    - packages/google-maps-fleetengine/:
+        keep:
+            - packages/google-maps-fleetengine/CHANGELOG.md
+    - packages/google-maps-fleetengine-delivery/:
+        keep:
+            - packages/google-maps-fleetengine-delivery/CHANGELOG.md
+    - packages/google-maps-mapsplatformdatasets/:
+        keep:
+            - packages/google-maps-mapsplatformdatasets/CHANGELOG.md
+    - packages/google-maps-places/:
+        keep:
+            - packages/google-maps-places/CHANGELOG.md
+    - packages/google-maps-routeoptimization/:
+        keep:
+            - packages/google-maps-routeoptimization/CHANGELOG.md
+            - samples/README.rst
+    - packages/google-maps-routing/:
+        keep:
+            - packages/google-maps-routing/CHANGELOG.md
+    - packages/google-maps-solar/:
+        keep:
+            - packages/google-maps-solar/CHANGELOG.md
+    - packages/google-shopping-css/:
+        keep:
+            - packages/google-shopping-css/CHANGELOG.md
+    - packages/google-shopping-merchant-accounts/:
+        keep:
+            - packages/google-shopping-merchant-accounts/CHANGELOG.md
+    - packages/google-shopping-merchant-conversions/:
+        keep:
+            - packages/google-shopping-merchant-conversions/CHANGELOG.md
+    - packages/google-shopping-merchant-datasources/:
+        keep:
+            - packages/google-shopping-merchant-datasources/CHANGELOG.md
+    - packages/google-shopping-merchant-inventories/:
+        keep:
+            - packages/google-shopping-merchant-inventories/CHANGELOG.md
+    - packages/google-shopping-merchant-issueresolution/:
+        keep:
+            - packages/google-shopping-merchant-issueresolution/CHANGELOG.md
+    - packages/google-shopping-merchant-lfp/:
+        keep:
+            - packages/google-shopping-merchant-lfp/CHANGELOG.md
+    - packages/google-shopping-merchant-notifications/:
+        keep:
+            - packages/google-shopping-merchant-notifications/CHANGELOG.md
+    - packages/google-shopping-merchant-ordertracking/:
+        keep:
+            - packages/google-shopping-merchant-ordertracking/CHANGELOG.md
+    - packages/google-shopping-merchant-products/:
+        keep:
+            - packages/google-shopping-merchant-products/CHANGELOG.md
+    - packages/google-shopping-merchant-productstudio/:
+        keep:
+            - packages/google-shopping-merchant-productstudio/CHANGELOG.md
+    - packages/google-shopping-merchant-promotions/:
+        keep:
+            - packages/google-shopping-merchant-promotions/CHANGELOG.md
+    - packages/google-shopping-merchant-quota/:
+        keep:
+            - packages/google-shopping-merchant-quota/CHANGELOG.md
+    - packages/google-shopping-merchant-reports/:
+        keep:
+            - packages/google-shopping-merchant-reports/CHANGELOG.md
+    - packages/google-shopping-merchant-reviews/:
+        keep:
+            - packages/google-shopping-merchant-reviews/CHANGELOG.md
+    - packages/google-shopping-type/:
+        keep:
+            - packages/google-shopping-type/CHANGELOG.md
+            - tests/unit/gapic/type/test_type.py
+    - packages/grafeas/:
+        keep:
+            - packages/grafeas/CHANGELOG.md
+            - grafeas/grafeas.py
+            - grafeas/grafeas/__init__.py
+            - grafeas/grafeas/grafeas_v1/types.py

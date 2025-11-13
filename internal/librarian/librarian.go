@@ -50,8 +50,9 @@ func Run(ctx context.Context, args []string) error {
 			createCommand(),
 			generateCommand(),
 			initCommand(),
-			publishCommand(),
-			releaseCommand(),
+			// TODO(https://github.com/julieqiu/librarianx/issues/XXX): Implement publishCommand and releaseCommand
+			// publishCommand(),
+			// releaseCommand(),
 			versionCommand(),
 		},
 	}
@@ -199,7 +200,8 @@ func runAdd(name string, apis []string, location string) error {
 		}
 	}
 
-	if err := cfg.Add(name, apis, location, googleapisRoot); err != nil {
+	// TODO(https://github.com/julieqiu/librarianx/issues/XXX): Update to use new API-path-based Add method
+	if err := cfg.AddLegacy(name, apis, location, googleapisRoot); err != nil {
 		return err
 	}
 
@@ -282,16 +284,13 @@ func runCreate(ctx context.Context, name string, apis []string, location string)
 // This creates initial files like go.mod, README.md, CHANGES.md, etc.
 func configureLibrary(cfg *config.Config, libraryName string) error {
 	// Find the library
-	var library *config.Library
-	for i := range cfg.Libraries {
-		if cfg.Libraries[i].Name == libraryName {
-			library = &cfg.Libraries[i]
-			break
-		}
-	}
-	if library == nil {
+	entry, _ := cfg.FindLibraryByName(libraryName)
+	if entry == nil {
 		return fmt.Errorf("library %q not found in librarian.yaml", libraryName)
 	}
+
+	// Convert to Library for backward compatibility
+	library := entry.ToLibrary(libraryName)
 
 	// Dispatch to language-specific configurator
 	switch cfg.Language {
@@ -502,16 +501,13 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	}
 
 	// Find the library
-	var library *config.Library
-	for i := range cfg.Libraries {
-		if cfg.Libraries[i].Name == libraryName {
-			library = &cfg.Libraries[i]
-			break
-		}
-	}
-	if library == nil {
+	entry, _ := cfg.FindLibraryByName(libraryName)
+	if entry == nil {
 		return fmt.Errorf("library %q not found in librarian.yaml", libraryName)
 	}
+
+	// Convert to Library for backward compatibility
+	library := entry.ToLibrary(libraryName)
 
 	// Check if this is a handwritten library (no APIs)
 	if len(library.Apis) == 0 {
@@ -530,8 +526,7 @@ func runGenerate(ctx context.Context, libraryName string) error {
 		return fmt.Errorf("googleapis source is not configured in librarian.yaml")
 	}
 
-	var err error
-	googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+	googleapisRoot, err = fetch.DownloadAndExtractTarball(cfg.Sources.Googleapis)
 	if err != nil {
 		return fmt.Errorf("failed to download and extract googleapis: %w", err)
 	}
@@ -546,7 +541,6 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	switch cfg.Language {
 	case "go":
 		return golang.Generate(ctx, cfg, library, googleapisRoot)
-		return nil
 	case "rust":
 		return rust.Generate(ctx, cfg, library, googleapisRoot)
 	case "python":

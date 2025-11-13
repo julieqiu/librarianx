@@ -29,7 +29,7 @@ import (
 
 // Generate generates Go client libraries from API definitions.
 // It downloads googleapis, sets up the generation environment, and runs the generator.
-func Generate(ctx context.Context, cfg *config.Config, library *config.Library) (err error) {
+func Generate(ctx context.Context, cfg *config.Config, library *config.Library, googleapisRoot string) (err error) {
 	// Determine output directory
 	outputDir := "{name}/"
 	if cfg.Generate != nil && cfg.Generate.Output != "" {
@@ -47,7 +47,6 @@ func Generate(ctx context.Context, cfg *config.Config, library *config.Library) 
 		return fmt.Errorf("failed to get absolute path for %s: %w", location, err)
 	}
 
-	// Download googleapis if available
 	// Create temporary librarian directory structure
 	librarianDir, err := os.MkdirTemp("", "librarian-go-*")
 	if err != nil {

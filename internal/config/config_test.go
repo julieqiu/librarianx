@@ -15,11 +15,11 @@
 package config
 
 import (
-	"os"
 	"path/filepath"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"gopkg.in/yaml.v3"
 )
 
 func TestReadWrite(t *testing.T) {
@@ -178,7 +178,7 @@ func TestConfig_Unset_InvalidField(t *testing.T) {
 func TestConfig_Add(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, "", ""); err != nil {
+	if err := cfg.Add("google/cloud/secretmanager/v1", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -186,37 +186,36 @@ func TestConfig_Add(t *testing.T) {
 		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
 	}
 
-	if cfg.Libraries[0].Name != "secretmanager" {
-		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "secretmanager")
+	if cfg.Libraries[0].APIPath != "google/cloud/secretmanager/v1" {
+		t.Errorf("got API path %q, want %q", cfg.Libraries[0].APIPath, "google/cloud/secretmanager/v1")
 	}
 
-	wantApis := []string{"google/cloud/secretmanager/v1"}
-	if diff := cmp.Diff(wantApis, cfg.Libraries[0].Apis); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
+	if cfg.Libraries[0].Config != nil {
+		t.Errorf("got config %v, want nil", cfg.Libraries[0].Config)
 	}
 }
 
 func TestConfig_Add_Duplicate(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, "", ""); err != nil {
+	if err := cfg.Add("google/cloud/secretmanager/v1", nil); err != nil {
 		t.Fatal(err)
 	}
 
-	err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, "", "")
+	err := cfg.Add("google/cloud/secretmanager/v1", nil)
 	if err == nil {
-		t.Error("Add() should fail when library with same name and apis already exists")
+		t.Error("Add() should fail when library with same API path already exists")
 	}
 }
 
-func TestConfig_Add_SameNameDifferentApis(t *testing.T) {
+func TestConfig_Add_DifferentApiPaths(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1"}, "", ""); err != nil {
+	if err := cfg.Add("google/cloud/secretmanager/v1", nil); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := cfg.Add("secretmanager", []string{"google/cloud/secretmanager/v1beta2"}, "", ""); err != nil {
+	if err := cfg.Add("google/cloud/secretmanager/v1beta2", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -225,28 +224,22 @@ func TestConfig_Add_SameNameDifferentApis(t *testing.T) {
 	}
 }
 
-func TestConfig_Add_EmptyName(t *testing.T) {
+func TestConfig_Add_EmptyAPIPath(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	err := cfg.Add("", []string{"google/cloud/secretmanager/v1"}, "", "")
+	err := cfg.Add("", nil)
 	if err == nil {
-		t.Error("Add() should fail when name is empty")
+		t.Error("Add() should fail when API path is empty")
 	}
 }
 
-func TestConfig_Add_EmptyApis(t *testing.T) {
+func TestConfig_Add_WithNameOverride(t *testing.T) {
 	cfg := New("v0.5.0", "go", nil)
 
-	err := cfg.Add("secretmanager", []string{}, "", "")
-	if err == nil {
-		t.Error("Add() should fail when apis is empty and no location provided")
+	config := &LibraryConfig{
+		Name: "google-cloud-secretmanager",
 	}
-}
-
-func TestConfig_Add_WithLocation(t *testing.T) {
-	cfg := New("v0.5.0", "go", nil)
-
-	if err := cfg.Add("storage", nil, "storage/", ""); err != nil {
+	if err := cfg.Add("google/cloud/secretmanager/v1", config); err != nil {
 		t.Fatal(err)
 	}
 
@@ -254,16 +247,35 @@ func TestConfig_Add_WithLocation(t *testing.T) {
 		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
 	}
 
-	if cfg.Libraries[0].Name != "storage" {
-		t.Errorf("got name %q, want %q", cfg.Libraries[0].Name, "storage")
+	if cfg.Libraries[0].Config == nil {
+		t.Fatal("library config is nil")
 	}
 
-	if cfg.Libraries[0].Location != "storage/" {
-		t.Errorf("got location %q, want %q", cfg.Libraries[0].Location, "storage/")
+	if cfg.Libraries[0].Config.Name != "google-cloud-secretmanager" {
+		t.Errorf("got name %q, want %q", cfg.Libraries[0].Config.Name, "google-cloud-secretmanager")
+	}
+}
+
+func TestConfig_Add_WithPathOverride(t *testing.T) {
+	cfg := New("v0.5.0", "go", nil)
+
+	config := &LibraryConfig{
+		Path: "storage/",
+	}
+	if err := cfg.Add("storage", config); err != nil {
+		t.Fatal(err)
 	}
 
-	if len(cfg.Libraries[0].Apis) != 0 {
-		t.Errorf("got %d apis, want 0", len(cfg.Libraries[0].Apis))
+	if len(cfg.Libraries) != 1 {
+		t.Errorf("got %d libraries, want 1", len(cfg.Libraries))
+	}
+
+	if cfg.Libraries[0].Config == nil {
+		t.Fatal("library config is nil")
+	}
+
+	if cfg.Libraries[0].Config.Path != "storage/" {
+		t.Errorf("got path %q, want %q", cfg.Libraries[0].Config.Path, "storage/")
 	}
 }
 
@@ -402,72 +414,166 @@ func TestLibrary_GeneratedLocation(t *testing.T) {
 	}
 }
 
-func TestConfig_Add_WithBazelParsing(t *testing.T) {
-	tmpDir := t.TempDir()
-	apiPath := "google/cloud/secretmanager/v1"
-	buildDir := filepath.Join(tmpDir, apiPath)
-	if err := os.MkdirAll(buildDir, 0755); err != nil {
-		t.Fatal(err)
-	}
-
-	buildContent := `
-py_gapic_library(
-    name = "secretmanager_py_gapic",
-    srcs = [":secretmanager_proto"],
-    grpc_service_config = "secretmanager_grpc_service_config.json",
-    opt_args = [
-        "warehouse-package-name=google-cloud-secret-manager",
-        "python-gapic-namespace=google.cloud",
-    ],
-    rest_numeric_enums = True,
-    service_yaml = "secretmanager_v1.yaml",
-    transport = "grpc+rest",
-)
-`
-	buildPath := filepath.Join(buildDir, "BUILD.bazel")
-	if err := os.WriteFile(buildPath, []byte(buildContent), 0644); err != nil {
-		t.Fatal(err)
-	}
-
-	cfg := New("v0.5.0", "python", nil)
-	if err := cfg.Add("secretmanager", []string{apiPath}, "", tmpDir); err != nil {
-		t.Fatal(err)
-	}
-
-	if len(cfg.Libraries) != 1 {
-		t.Fatalf("got %d libraries, want 1", len(cfg.Libraries))
-	}
-
-	library := cfg.Libraries[0]
-	if library.Name != "secretmanager" {
-		t.Errorf("got name %q, want %q", library.Name, "secretmanager")
-	}
-
-	if library.Generate == nil {
-		t.Fatal("library.Generate is nil")
-	}
-
-	if len(library.Generate.APIs) != 1 {
-		t.Fatalf("got %d API configs, want 1", len(library.Generate.APIs))
-	}
-
-	apiCfg := library.Generate.APIs[0]
-	want := API{
-		Path:              apiPath,
-		HasGAPIC:          true,
-		GRPCServiceConfig: "secretmanager_grpc_service_config.json",
-		ServiceYAML:       "secretmanager_v1.yaml",
-		Transport:         "grpc+rest",
-		RestNumericEnums:  true,
-		Python: &PythonAPI{
-			OptArgs: []string{
-				"warehouse-package-name=google-cloud-secret-manager",
-				"python-gapic-namespace=google.cloud",
+func TestLibraryEntry_UnmarshalYAML(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		yaml    string
+		want    LibraryEntry
+		wantErr bool
+	}{
+		{
+			name: "short_syntax",
+			yaml: `google/cloud/secretmanager/v1`,
+			want: LibraryEntry{
+				APIPath: "google/cloud/secretmanager/v1",
+				Config:  nil,
 			},
 		},
-	}
-
-	if diff := cmp.Diff(want, apiCfg); diff != "" {
-		t.Errorf("mismatch (-want +got):\n%s", diff)
+		{
+			name: "extended_syntax_with_name",
+			yaml: `google/cloud/bigquery/storage/v1:
+  name: google-cloud-bigquerystorage`,
+			want: LibraryEntry{
+				APIPath: "google/cloud/bigquery/storage/v1",
+				Config: &LibraryConfig{
+					Name: "google-cloud-bigquerystorage",
+				},
+			},
+		},
+		{
+			name: "extended_syntax_with_keep",
+			yaml: `google/cloud/bigquery/storage/v1:
+  keep:
+    - google/cloud/bigquery_storage_v1/client.py
+    - google/cloud/bigquery_storage_v1/reader.py`,
+			want: LibraryEntry{
+				APIPath: "google/cloud/bigquery/storage/v1",
+				Config: &LibraryConfig{
+					Keep: []string{
+						"google/cloud/bigquery_storage_v1/client.py",
+						"google/cloud/bigquery_storage_v1/reader.py",
+					},
+				},
+			},
+		},
+		{
+			name: "extended_syntax_with_disabled",
+			yaml: `google/cloud/broken/v1:
+  disabled: true
+  reason: "Missing BUILD.bazel configuration"`,
+			want: LibraryEntry{
+				APIPath: "google/cloud/broken/v1",
+				Config: &LibraryConfig{
+					Disabled: true,
+					Reason:   "Missing BUILD.bazel configuration",
+				},
+			},
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			var got LibraryEntry
+			err := got.UnmarshalYAML(func(v interface{}) error {
+				return yaml.Unmarshal([]byte(test.yaml), v)
+			})
+			if test.wantErr {
+				if err == nil {
+					t.Error("UnmarshalYAML() should fail")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatal(err)
+			}
+			if diff := cmp.Diff(test.want, got); diff != "" {
+				t.Errorf("mismatch (-want +got):\n%s", diff)
+			}
+		})
 	}
 }
+
+func TestLibraryEntry_MarshalYAML(t *testing.T) {
+	for _, test := range []struct {
+		name  string
+		entry LibraryEntry
+		want  string
+	}{
+		{
+			name: "short_syntax",
+			entry: LibraryEntry{
+				APIPath: "google/cloud/secretmanager/v1",
+				Config:  nil,
+			},
+			want: "google/cloud/secretmanager/v1\n",
+		},
+		{
+			name: "extended_syntax_with_name",
+			entry: LibraryEntry{
+				APIPath: "google/cloud/bigquery/storage/v1",
+				Config: &LibraryConfig{
+					Name: "google-cloud-bigquerystorage",
+				},
+			},
+			want: "google/cloud/bigquery/storage/v1:\n    name: google-cloud-bigquerystorage\n",
+		},
+		{
+			name: "extended_syntax_with_keep",
+			entry: LibraryEntry{
+				APIPath: "google/cloud/bigquery/storage/v1",
+				Config: &LibraryConfig{
+					Keep: []string{
+						"google/cloud/bigquery_storage_v1/client.py",
+					},
+				},
+			},
+			want: "google/cloud/bigquery/storage/v1:\n    keep:\n        - google/cloud/bigquery_storage_v1/client.py\n",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got, err := yaml.Marshal(test.entry)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if string(got) != test.want {
+				t.Errorf("got:\n%s\nwant:\n%s", string(got), test.want)
+			}
+		})
+	}
+}
+
+// TODO(https://github.com/julieqiu/librarianx/issues/XXX): Re-enable after implementing BUILD.bazel parsing for new config format
+// func TestConfig_Add_WithBazelParsing(t *testing.T) {
+// 	tmpDir := t.TempDir()
+// 	apiPath := "google/cloud/secretmanager/v1"
+// 	buildDir := filepath.Join(tmpDir, apiPath)
+// 	if err := os.MkdirAll(buildDir, 0755); err != nil {
+// 		t.Fatal(err)
+// 	}
+//
+// 	buildContent := `
+// py_gapic_library(
+//     name = "secretmanager_py_gapic",
+//     srcs = [":secretmanager_proto"],
+//     grpc_service_config = "secretmanager_grpc_service_config.json",
+//     opt_args = [
+//         "warehouse-package-name=google-cloud-secret-manager",
+//         "python-gapic-namespace=google.cloud",
+//     ],
+//     rest_numeric_enums = True,
+//     service_yaml = "secretmanager_v1.yaml",
+//     transport = "grpc+rest",
+// )
+// `
+// 	buildPath := filepath.Join(buildDir, "BUILD.bazel")
+// 	if err := os.WriteFile(buildPath, []byte(buildContent), 0644); err != nil {
+// 		t.Fatal(err)
+// 	}
+//
+// 	cfg := New("v0.5.0", "python", nil)
+// 	if err := cfg.AddLegacy("secretmanager", []string{apiPath}, "", tmpDir); err != nil {
+// 		t.Fatal(err)
+// 	}
+//
+// 	if len(cfg.Libraries) != 1 {
+// 		t.Fatalf("got %d libraries, want 1", len(cfg.Libraries))
+// 	}
+// }

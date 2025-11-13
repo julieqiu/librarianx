@@ -1,244 +1,26 @@
 # Librarian
 
-Librarian is a tool for managing Google Cloud client libraries across multiple
-languages. It handles code generation from API definitions, version management,
-and publishing to package registries.
-
-This tour walks through realistic workflows for Go and Python libraries,
-highlighting how to manage different types of libraries: fully generated, fully
-handwritten, and hybrid (a mix of both).
+Librarian is a tool for managing Google Cloud client libraries across multiple languages. It handles code generation from API definitions, version management, and publishing to package registries.
 
 ## Installation
 
-Start by installing librarian:
-
-```
+```bash
 $ go install github.com/julieqiu/librarian/cmd/librarian@latest
 ```
 
-### Prerequisites for Python Generation
+## Quick Start: Python
 
-If you plan to generate Python libraries, you need to install the following
-tools:
+Let's build Python client libraries for Google Cloud APIs.
 
-#### 1. Install pandoc
-
-Pandoc is required by the Python GAPIC generator for documentation processing:
+### 1. Initialize
 
 ```bash
-# macOS (using Homebrew)
-$ brew install pandoc
-
-# Ubuntu/Debian
-$ sudo apt-get install pandoc
-
-# Other platforms: https://pandoc.org/installing.html
-```
-
-#### 2. Install the Python GAPIC generator
-
-```bash
-# Using pipx (recommended)
-$ pipx install gapic-generator
-
-# Or using pip with --user flag
-$ pip3 install --user gapic-generator
-```
-
-This installs the `protoc-gen-python_gapic` plugin that protoc uses to generate
-Python client libraries.
-
-#### 3. (Optional) Install synthtool for post-processing
-
-The Python generator can optionally run synthtool to post-process generated
-code. This is currently disabled by default. If you want to enable it:
-
-```bash
-# Install synthtool
-$ pip3 install --user --break-system-packages gcp-synthtool
-
-# Note: synthtool is an older package and may not work with all Python versions
-```
-
-The post-processor is disabled by default because synthtool is no longer
-actively maintained.
-
-## Your First Library: Go Secret Manager
-
-Let's build a Go client library for Google Cloud Secret Manager. First, create
-a workspace:
-
-```
-$ mkdir -p libraries/google-cloud-go
-$ cd libraries/google-cloud-go
-```
-
-### Initialize the Repository
-
-Initialize a Go repository with `librarian init`:
-
-```
-$ librarian init go
-Created librarian.yaml
-```
-
-This creates a repository configuration file. Let's see what's inside:
-
-```
-$ cat librarian.yaml
-version: v1
-language: go
-
-sources:
-  googleapis:
-    url: https://github.com/googleapis/googleapis/archive/main.tar.gz
-    sha256: ...
-
-defaults:
-  generate_dir: ./
-  transport: grpc+rest
-
-release:
-  tag_format: '{name}/v{version}'
-
-# Auto-discover APIs from googleapis (optional)
-auto_discover: false
-```
-
-The config defines the language, sources, defaults, and release tag formats. You
-can enable `auto_discover: true` to automatically generate libraries for all
-APIs found in googleapis, or keep it `false` to explicitly manage which
-libraries to generate.
-
-### Library Types
-
-Librarian supports three types of libraries, distinguished by the keys used in
-their `librarian.yaml` entry.
-
-#### 1. Fully Handwritten
-
-A library is **Fully Handwritten** if it only has `name` and `path`. The
-generator will never touch this directory.
-
-```yaml
-- name: pubsub
-  path: pubsub/
-```
-
-#### 2. Fully Generated
-
-A library is **Fully Generated** if it has `name`, `path`, and a `generate` block.
-The generator will delete and recreate the contents of the `path` directory on
-every run.
-
-```yaml
-- name: secretmanager
-  path: secretmanager/
-  generate:
-    apis:
-      - path: google/cloud/secretmanager/v1
-```
-
-#### 3. Hybrid (Generated + Handwritten)
-
-A library is a **Hybrid** if it has `name`, `path`, `generate`, and a `keep`
-block. The `keep` block lists files and directories to protect from being
-overwritten during generation.
-
-```yaml
-- name: bigquery
-  path: bigquery/
-  generate:
-    apis:
-      - path: google/cloud/bigquery/storage/v1
-  keep:
-    - bigquery/client.go
-    - bigquery/samples/
-```
-
-### Create Your First Library
-
-Create the Secret Manager library. Since we are not providing a `--path` flag,
-it will be created in the default `generate.dir` (`./secretmanager/`).
-
-```
-$ librarian create secretmanager --apis google/cloud/secretmanager/v1
-Added library "secretmanager" to librarian.yaml
-Generated secretmanager/
-Successfully created library "secretmanager"
-```
-
-This command adds a full entry to `librarian.yaml`, including an explicit `path`:
-
-```yaml
-libraries:
-  - name: secretmanager
-    path: secretmanager/
-    generate:
-      apis:
-        - path: google/cloud/secretmanager/v1
-          # Other generation details are automatically discovered...
-```
-
-You can override the default location by providing the `--path` flag.
-
-### Working with Handwritten and Hybrid Libraries
-
-Now, let's add a handwritten Pub/Sub library and a hybrid BigQuery library.
-
-Create the files for the handwritten library:
-```
-$ mkdir -p pubsub
-$ echo "package pubsub\n\nfunc NewClient() {}" > pubsub/client.go
-```
-
-Add the handwritten library to your configuration:
-```
-$ librarian add pubsub --path pubsub/
-Added library "pubsub" to librarian.yaml
-```
-
-This adds a simple entry to `librarian.yaml`:
-```yaml
-- name: pubsub
-  path: pubsub/
-```
-
-Next, add a hybrid BigQuery library. You can start by generating it, and then
-add a `keep` section to `librarian.yaml` to protect the files you intend to
-customize.
-
-```
-$ librarian create bigquery --apis google/cloud/bigquery/storage/v1
-```
-
-Now, edit `librarian.yaml` to add the `keep` section:
-```yaml
-- name: bigquery
-  path: bigquery/
-  generate:
-    apis:
-      - path: google/cloud/bigquery/storage/v1
-  keep:
-    - bigquery/client.go # This file will now be protected
-```
-
-Now, when you run `librarian generate bigquery`, `bigquery/client.go` will be
-left untouched.
-
-## Python Libraries
-
-The workflow is the same for Python. A typical `librarian.yaml` for Python
-will set `generate.dir` to `packages/`.
-
-Initialize a Python repository:
-
-```
+$ mkdir my-python-libs && cd my-python-libs
 $ librarian init python
 Created librarian.yaml
 ```
 
-Your `librarian.yaml` will look like this:
+This creates a minimal configuration:
 
 ```yaml
 version: v1
@@ -246,91 +28,263 @@ language: python
 
 sources:
   googleapis:
-    url: ...
+    url: https://github.com/googleapis/googleapis/archive/main.tar.gz
     sha256: ...
 
 defaults:
-  generate_dir: packages/
+  output: packages/
+  one_library_per: service
+  transport: grpc+rest
+
+release:
+  tag_format: '{name}/v{version}'
+
+libraries: []
+```
+
+### 2. Generate everything
+
+Add the wildcard to generate all APIs:
+
+```bash
+$ vim librarian.yaml
+# Add under libraries:
+libraries:
+  - '*'
+```
+
+```bash
+$ librarian generate --all
+Discovering APIs from googleapis...
+Found 237 APIs, generating 182 libraries...
+  ✓ packages/google-cloud-secretmanager/
+  ✓ packages/google-cloud-vision/
+  ✓ packages/google-cloud-translate/
+  ... 179 more ...
+Done.
+```
+
+### 3. Add handwritten code
+
+```bash
+$ cd packages/google-cloud-vision/
+$ vim google/cloud/vision_v1/helpers.py
+# Add custom helper functions
+```
+
+### 4. Protect handwritten code
+
+```bash
+$ vim librarian.yaml
+```
+
+```yaml
+libraries:
+  - '*'
+
+  - packages/google-cloud-vision:
+      keep:
+        - google/cloud/vision_v1/helpers.py
+        - tests/unit/test_helpers.py
+```
+
+### 5. Regenerate
+
+```bash
+$ librarian generate --all
+Regenerating packages/google-cloud-vision...
+  Preserving: helpers.py, test_helpers.py
+  ✓ Generated
+```
+
+Your handwritten code is preserved!
+
+## How It Works
+
+### Library Types
+
+**Generated** - Created from googleapis APIs:
+```yaml
+- packages/google-cloud-vision
+```
+
+**Hybrid** - Generated + handwritten code:
+```yaml
+- packages/google-cloud-vision:
+    keep:
+      - google/cloud/vision_v1/helpers.py
+```
+
+**Handwritten** - Fully custom (no generation):
+```yaml
+- pubsub/
+- auth/
+```
+
+### Two Modes
+
+**Wildcard mode** - Generate everything:
+```yaml
+libraries:
+  - '*'  # Generate all discovered APIs
+
+  # Only list exceptions
+  - packages/google-cloud-vision:
+      keep: [...]
+```
+
+**Explicit mode** - Generate only listed:
+```yaml
+libraries:
+  - packages/google-cloud-secretmanager
+  - packages/google-cloud-vision
+  - packages/google-cloud-translate
+```
+
+### Bundling Strategies
+
+**Service-level** (`one_library_per: service`) - Python/Go default:
+- All versions → one library
+- `google/cloud/vision/v1` + `google/cloud/vision/v1beta` → `packages/google-cloud-vision/`
+
+**Version-level** (`one_library_per: version`) - Rust/Dart default:
+- Each version → separate library
+- `google/cloud/vision/v1` → `src/generated/google-cloud-vision-v1/`
+- `google/cloud/vision/v1beta` → `src/generated/google-cloud-vision-v1beta/`
+
+## Go Example
+
+```yaml
+version: v1
+language: go
+
+defaults:
+  output: ./
+  one_library_per: service
+
+libraries:
+  - '*'
+
+  # Exception: handwritten IAM client
+  - batch:
+      keep:
+        - ^batch/apiv1/iam_policy_client\.go$
+
+  # Handwritten libraries
+  - pubsub/
+  - storage/
+```
+
+## Configuration
+
+See [doc/config.md](doc/config.md) for complete configuration reference.
+
+### Key Fields
+
+**`output`** - Where generated code goes:
+```yaml
+defaults:
+  output: packages/  # Python: packages/google-cloud-*/
+  output: ./         # Go: */
+  output: src/generated/  # Rust: src/generated/google-cloud-*-v*/
+```
+
+**`one_library_per`** - Bundling strategy:
+```yaml
+one_library_per: service  # Bundle all versions (Python/Go)
+one_library_per: version  # Separate per version (Rust/Dart)
+```
+
+**`libraries`** - What to generate:
+```yaml
+libraries:
+  - '*'  # Everything (wildcard)
+
+  # Or explicit list
+  - packages/google-cloud-secretmanager
+  - packages/google-cloud-vision
+```
+
+**`keep`** - Protect handwritten code:
+```yaml
+- packages/google-cloud-vision:
+    keep:
+      - google/cloud/vision_v1/helpers.py
+      - tests/unit/test_*.py
+```
+
+## Commands
+
+```bash
+# Initialize repository
+$ librarian init <language>
+$ librarian init python --all  # Start with wildcard
+
+# Generate libraries
+$ librarian generate --all
+$ librarian generate packages/google-cloud-vision
+
+# Release
+$ librarian release packages/google-cloud-vision
+```
+
+## Real-World Example
+
+```yaml
+version: v1
+language: python
+
+sources:
+  googleapis:
+    url: https://github.com/googleapis/googleapis/archive/abc123.tar.gz
+    sha256: 81e6057...
+
+defaults:
+  output: packages/
+  one_library_per: service
   transport: grpc+rest
   rest_numeric_enums: true
 
 release:
   tag_format: '{name}/v{version}'
 
-auto_discover: false
+libraries:
+  - '*'  # Generate ~200 libraries
+
+  # Exception: hybrid libraries
+  - packages/google-cloud-vision:
+      keep:
+        - google/cloud/vision_v1/helpers.py
+        - tests/unit/test_helpers.py
+
+  - packages/google-cloud-bigquery-storage:
+      keep:
+        - google/cloud/bigquery_storage_v1/client.py
+        - google/cloud/bigquery_storage_v1/reader.py
+
+  # Exception: handwritten libraries
+  - pubsub/
+  - auth/
+  - datastore/
 ```
 
-Create a fully generated Python library. It will be placed in
-`packages/google-cloud-secret-manager/` by default.
+**Result:** 200+ libraries generated with only 5 explicit configurations.
 
-```
-$ librarian create google-cloud-secret-manager --apis google/cloud/secretmanager/v1
-```
+## Philosophy
 
-This creates the following entry in `librarian.yaml`:
+Librarian follows these principles:
 
-```yaml
-- name: google-cloud-secret-manager
-  path: packages/google-cloud-secret-manager/
-  generate:
-    apis:
-      - path: google/cloud/secretmanager/v1
-```
+1. **Minimal configuration** - Only configure what's different
+2. **Filesystem as truth** - Reference libraries by their paths
+3. **Clear naming** - Field names describe what they contain
+4. **Explicit intent** - Use `*` wildcard, not boolean flags
+5. **One list** - All libraries (generated and handwritten) together
 
-The `release` workflow is the same as for Go, but will publish to PyPI.
+## See Also
 
-## Summary
+- [doc/config.md](doc/config.md) - Complete configuration reference
+- [doc/alternatives.md](doc/alternatives.md) - Design decisions and alternatives
 
-Librarian provides a consistent workflow across languages, with a clear and
-unambiguous configuration for managing generated, handwritten, and hybrid
-libraries.
+## Contributing
 
-### Commands
-
-1.  **Initialize** - `librarian init <language>`
-2.  **Create** - `librarian create <name> --apis <apis...>` (uses default path)
-3.  **Create (override path)** - `librarian create <name> --path <path> --apis <apis...>`
-4.  **Add** - `librarian add <name> [apis...]` or `librarian add <name> --path <path>`
-5.  **Regenerate** - `librarian generate <name>` or `librarian generate --all`
-6.  **Release** - `librarian release <name>`
-
-### Configuration Modes
-
-Librarian supports two configuration modes:
-
-1. **Explicit mode** (`auto_discover: false`) - Manually list each library
-   - Full control over which libraries are generated
-   - Suitable for small repos or when starting new projects
-
-2. **Auto-discovery mode** (`auto_discover: true`) - Automatically discover APIs from googleapis
-   - Minimal configuration - only list exceptions (handwritten code, custom names)
-   - Suitable for repos managing many libraries (~100+)
-   - See [doc/config.md](doc/config.md) for details
-
-### Library Types
-
-The type of a library is determined by its structure in `librarian.yaml`:
-- **Handwritten**: API path only (with `auto_discover: false`)
-- **Generated**: API path with `generate` block
-- **Hybrid**: API path with `generate` + `keep` blocks
-
-### Disabling Broken Libraries
-
-If a library's generation is broken, you can temporarily disable it while
-preserving its configuration:
-
-```yaml
-# Disabled: Generator fails on proto field validation
-# See: https://github.com/org/repo/issues/123
-- name: aiplatform
-  disabled: true
-  generate:
-    apis:
-      - path: google/cloud/aiplatform/v1
-```
-
-When disabled, `librarian generate --all` skips the library, but you can still
-release it (only generation is disabled).
-
-This design gives you both convenience and full control over the location and
-content of your libraries.
+Librarian is actively developed. Feedback and contributions welcome!

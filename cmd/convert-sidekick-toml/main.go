@@ -122,66 +122,68 @@ func convertAll(rootDir, outputPath string) error {
 	}
 
 	// Build sources
-	sources := config.SourcesExtended{}
+	var sources config.Sources
 	if rootConfig.Source.GoogleapisRoot != "" {
-		sources.Googleapis = &config.SourceExtended{
-			Source: config.Source{
-				URL:    rootConfig.Source.GoogleapisRoot,
-				SHA256: rootConfig.Source.GoogleapisSHA256,
-			},
+		sources.Googleapis = &config.Source{
+			URL:    rootConfig.Source.GoogleapisRoot,
+			SHA256: rootConfig.Source.GoogleapisSHA256,
 		}
 	}
 	if rootConfig.Source.ShowcaseRoot != "" {
-		sources.Showcase = &config.SourceExtended{
-			Source: config.Source{
-				URL:    rootConfig.Source.ShowcaseRoot,
-				SHA256: rootConfig.Source.ShowcaseSHA256,
-			},
+		sources.Showcase = &config.Source{
+			URL:           rootConfig.Source.ShowcaseRoot,
+			SHA256:        rootConfig.Source.ShowcaseSHA256,
 			ExtractedName: rootConfig.Source.ShowcaseExtractedName,
 		}
 	}
 	if rootConfig.Source.DiscoveryRoot != "" {
-		sources.Discovery = &config.SourceExtended{
-			Source: config.Source{
-				URL:    rootConfig.Source.DiscoveryRoot,
-				SHA256: rootConfig.Source.DiscoverySHA256,
-			},
+		sources.Discovery = &config.Source{
+			URL:           rootConfig.Source.DiscoveryRoot,
+			SHA256:        rootConfig.Source.DiscoverySHA256,
 			ExtractedName: rootConfig.Source.DiscoveryExtractedName,
 		}
 	}
 	if rootConfig.Source.ProtobufSrcRoot != "" {
-		sources.ProtobufSrc = &config.SourceExtended{
-			Source: config.Source{
-				URL:    rootConfig.Source.ProtobufSrcRoot,
-				SHA256: rootConfig.Source.ProtobufSrcSHA256,
-			},
+		sources.ProtobufSrc = &config.Source{
+			URL:           rootConfig.Source.ProtobufSrcRoot,
+			SHA256:        rootConfig.Source.ProtobufSrcSHA256,
 			ExtractedName: rootConfig.Source.ProtobufSrcExtractedName,
 			Subdir:        rootConfig.Source.ProtobufSrcSubdir,
 		}
 	}
-
-	// Extract default package dependencies from codec
-	defaultPackageDeps := extractPackageDependencies(rootConfig.Codec)
-
-	// Build Rust defaults
-	rustDefaults := &config.RustDefaults{
-		PackageDependencies: defaultPackageDeps,
-	}
-	if disabledRustdoc, ok := rootConfig.Codec["disabled-rustdoc-warnings"].(string); ok {
-		rustDefaults.DisabledRustdocWarnings = strings.Split(disabledRustdoc, ",")
+	if rootConfig.Source.ConformanceRoot != "" {
+		sources.Conformance = &config.Source{
+			URL:           rootConfig.Source.ConformanceRoot,
+			SHA256:        rootConfig.Source.ConformanceSHA256,
+			ExtractedName: rootConfig.Source.ConformanceExtractedName,
+		}
 	}
 
-	// Build release config
-	rustRelease := &config.RustReleaseDefaults{
-		Tools:        convertTools(rootConfig.Release.Tools),
-		PreInstalled: rootConfig.Release.PreInstalled,
-	}
-	if len(rustRelease.Tools) > 0 || len(rustRelease.PreInstalled) > 0 {
-		rustDefaults.Release = rustRelease
+	// Determine output directory and one_library_per based on language
+	output := "src/generated/"
+	oneLibraryPer := "version"
+	if rootConfig.General.Language == "dart" {
+		output = "generated/"
 	}
 
-	// Create librarian config
-	libConfig := &config.ConfigExtended{
+	// Extract default Rust settings
+	var rustDefaults *config.RustDefaults
+	if rootConfig.General.Language == "rust" {
+		rustDefaults = &config.RustDefaults{}
+
+		// Extract default package dependencies
+		if deps := extractPackageDependencies(rootConfig.Codec); len(deps) > 0 {
+			rustDefaults.PackageDependencies = deps
+		}
+
+		// Extract default disabled rustdoc warnings
+		if warnings := getStringSlice(rootConfig.Codec, "disabled-rustdoc-warnings"); len(warnings) > 0 {
+			rustDefaults.DisabledRustdocWarnings = warnings
+		}
+	}
+
+	// Create librarian config (simple format)
+	libConfig := &config.Config{
 		Version:  "v1",
 		Language: rootConfig.General.Language,
 		Container: &config.Container{
@@ -189,24 +191,21 @@ func convertAll(rootDir, outputPath string) error {
 			Tag:   "latest",
 		},
 		Sources: sources,
-		Defaults: &config.DefaultsExtended{
-			Defaults: config.Defaults{
-				ReleaseLevel: getString(rootConfig.Codec, "release-level"),
-			},
-			Rust: rustDefaults,
+		Defaults: &config.Defaults{
+			Output:        output,
+			OneLibraryPer: oneLibraryPer,
+			ReleaseLevel:  getString(rootConfig.Codec, "release-level"),
+			Rust:          rustDefaults,
 		},
-		Generate: &config.Generate{
-			Output: "src/generated/{api.path}",
-		},
-		Release: &config.ReleaseExtended{
-			Release: config.Release{
-				TagFormat: "{name}/v{version}",
-			},
+		Release: &config.Release{
+			TagFormat:      "{name}/v{version}",
 			Remote:         rootConfig.Release.Remote,
 			Branch:         rootConfig.Release.Branch,
 			IgnoredChanges: rootConfig.Release.IgnoredChanges,
 		},
-		Libraries: []config.LibraryExtended{},
+		Libraries: []config.LibraryEntry{
+			{APIPath: "*"}, // Add wildcard to generate everything
+		},
 	}
 
 	// Find all library .sidekick.toml files
@@ -229,13 +228,13 @@ func convertAll(rootDir, outputPath string) error {
 
 	// Process each library config
 	for _, configPath := range libraryConfigs {
-		library, err := processLibraryConfig(configPath, rootDir)
+		entry, err := processLibraryConfig(configPath, rootDir, rootConfig.General.Language)
 		if err != nil {
 			log.Printf("Warning: failed to process %s: %v", configPath, err)
 			continue
 		}
-		if library != nil {
-			libConfig.Libraries = append(libConfig.Libraries, *library)
+		if entry != nil {
+			libConfig.Libraries = append(libConfig.Libraries, *entry)
 		}
 	}
 
@@ -266,7 +265,7 @@ func readRootConfig(path string) (*SidekickRootConfig, error) {
 	return &cfg, nil
 }
 
-func processLibraryConfig(configPath, rootDir string) (*config.LibraryExtended, error) {
+func processLibraryConfig(configPath, rootDir, language string) (*config.LibraryEntry, error) {
 	contents, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, err
@@ -282,68 +281,210 @@ func processLibraryConfig(configPath, rootDir string) (*config.LibraryExtended, 
 		return nil, nil
 	}
 
-	// Derive library name from path
+	// Derive library path from directory relative to root
 	relPath, err := filepath.Rel(rootDir, filepath.Dir(configPath))
 	if err != nil {
 		return nil, err
 	}
 
-	// Convert path to library name (e.g., src/generated/cloud/kms/v1 -> cloud-kms-v1)
-	name := strings.ReplaceAll(strings.TrimPrefix(relPath, "src/generated/"), "/", "-")
-	name = strings.ReplaceAll(name, "src-", "")
+	// Use the relative path as the library identifier
+	libraryPath := relPath
+	// All library paths should have trailing slash to indicate they're directories
+	if !strings.HasSuffix(libraryPath, "/") {
+		libraryPath = libraryPath + "/"
+	}
 
-	// Build API configuration - use singular 'api' field for single APIs
-	api := &config.SingleAPI{}
-	if libConfig.General.SpecificationFormat == "" {
-		// Simple case: just a path string
-		api.StringValue = libConfig.General.SpecificationSource
-	} else {
-		// Has specification_format: use object form
-		api.ObjectValue = &config.APIExtended{
-			Path:                libConfig.General.SpecificationSource,
-			SpecificationFormat: libConfig.General.SpecificationFormat,
+	// Build library config if there are any overrides
+	var cfg *config.LibraryConfig
+
+	// Extract Rust-specific configuration
+	if language == "rust" {
+		rustCfg := extractRustLibraryConfig(libConfig.Codec, libConfig.Source)
+		if rustCfg != nil {
+			if cfg == nil {
+				cfg = &config.LibraryConfig{}
+			}
+			cfg.Rust = rustCfg
 		}
 	}
 
-	// Build generate configuration
-	generate := &config.LibraryGenerateExtended{
-		API: api,
-	}
-
-	// Add discovery configuration if present
-	if len(libConfig.Discovery) > 0 {
-		generate.Discovery = &config.DiscoveryConfig{
-			OperationID: getStringFromMap(libConfig.Discovery, "operation-id"),
-			Pollers:     extractPollers(libConfig.Discovery),
+	// Extract Dart-specific configuration
+	if language == "dart" {
+		dartCfg := extractDartLibraryConfig(libConfig.Codec)
+		if dartCfg != nil {
+			if cfg == nil {
+				cfg = &config.LibraryConfig{}
+			}
+			cfg.Dart = dartCfg
 		}
 	}
 
-	// Add Rust-specific configuration (including source filtering)
-	generate.Rust = extractRustGenerate(libConfig.Codec, libConfig.Source)
-
-	// Use package-name-override if present, otherwise use derived name
-	packageName := getStringFromMap(libConfig.Codec, "package-name-override")
-	if packageName == "" {
-		packageName = name
+	// Only return entry if it has config (is an exception to wildcard)
+	// Otherwise it will be covered by the '*' wildcard
+	if cfg == nil {
+		return nil, nil
 	}
 
-	// Only set path if it's in src/ (like src/storage/, src/firestore/, etc.)
-	// Default is src/generated/{api.path}, so we only need explicit path for non-default locations
-	var explicitPath string
-	if strings.HasPrefix(relPath, "src/") && !strings.HasPrefix(relPath, "src/generated/") {
-		// This is in src/ but not src/generated/, so it needs explicit path
-		explicitPath = relPath
-	}
-	// Otherwise omit path - will use default from generate.output template
-
-	library := &config.LibraryExtended{
-		Name:     packageName,
-		Version:  getStringFromMap(libConfig.Codec, "version"),
-		Path:     explicitPath,
-		Generate: generate,
+	entry := &config.LibraryEntry{
+		APIPath: libraryPath,
+		Config:  cfg,
 	}
 
-	return library, nil
+	return entry, nil
+}
+
+func extractRustLibraryConfig(codec map[string]any, source map[string]any) *config.RustLibrary {
+	rust := &config.RustLibrary{}
+	hasConfig := false
+
+	if perServiceFeatures := getBoolFromMap(codec, "per-service-features"); perServiceFeatures {
+		rust.PerServiceFeatures = true
+		hasConfig = true
+	}
+
+	if modulePath := getStringFromMap(codec, "module-path"); modulePath != "" {
+		rust.ModulePath = modulePath
+		hasConfig = true
+	}
+
+	if templateOverride := getStringFromMap(codec, "template-override"); templateOverride != "" {
+		rust.TemplateOverride = templateOverride
+		hasConfig = true
+	}
+
+	if titleOverride := getStringFromMap(codec, "title-override"); titleOverride != "" {
+		rust.TitleOverride = titleOverride
+		hasConfig = true
+	}
+
+	if descriptionOverride := getStringFromMap(source, "description-override"); descriptionOverride != "" {
+		rust.DescriptionOverride = descriptionOverride
+		hasConfig = true
+	}
+
+	// included-ids can be in [source] or [codec] section
+	if includedIds := getStringSlice(source, "included-ids"); len(includedIds) > 0 {
+		rust.IncludedIds = includedIds
+		hasConfig = true
+	} else if includedIds := getStringSlice(codec, "included-ids"); len(includedIds) > 0 {
+		rust.IncludedIds = includedIds
+		hasConfig = true
+	}
+
+	if packageNameOverride := getStringFromMap(codec, "package-name-override"); packageNameOverride != "" {
+		rust.PackageNameOverride = packageNameOverride
+		hasConfig = true
+	}
+
+	if rootName := getStringFromMap(codec, "root-name"); rootName != "" {
+		rust.RootName = rootName
+		hasConfig = true
+	}
+
+	if roots := getStringSlice(codec, "roots"); len(roots) > 0 {
+		rust.Roots = roots
+		hasConfig = true
+	}
+
+	if defaultFeatures := getStringSlice(codec, "default-features"); len(defaultFeatures) > 0 {
+		rust.DefaultFeatures = defaultFeatures
+		hasConfig = true
+	}
+
+	if extraModules := getStringSlice(codec, "extra-modules"); len(extraModules) > 0 {
+		rust.ExtraModules = extraModules
+		hasConfig = true
+	}
+
+	if includeList := getStringSlice(codec, "include-list"); len(includeList) > 0 {
+		rust.IncludeList = includeList
+		hasConfig = true
+	}
+
+	if skippedIds := getStringSlice(codec, "skipped-ids"); len(skippedIds) > 0 {
+		rust.SkippedIds = skippedIds
+		hasConfig = true
+	}
+
+	if nameOverrides := getStringFromMap(codec, "name-overrides"); nameOverrides != "" {
+		rust.NameOverrides = nameOverrides
+		hasConfig = true
+	}
+
+	if deps := extractPackageDependencies(codec); len(deps) > 0 {
+		rust.PackageDependencies = deps
+		hasConfig = true
+	}
+
+	if hasVeneer := getBoolFromMap(codec, "has-veneer"); hasVeneer {
+		rust.HasVeneer = true
+		hasConfig = true
+	}
+
+	if routingRequired := getBoolFromMap(codec, "routing-required"); routingRequired {
+		rust.RoutingRequired = true
+		hasConfig = true
+	}
+
+	if includeGrpcOnlyMethods := getBoolFromMap(codec, "include-grpc-only-methods"); includeGrpcOnlyMethods {
+		rust.IncludeGrpcOnlyMethods = true
+		hasConfig = true
+	}
+
+	if generateSetterSamples := getBoolFromMap(codec, "generate-setter-samples"); generateSetterSamples {
+		rust.GenerateSetterSamples = true
+		hasConfig = true
+	}
+
+	if postProcessProtos := getBoolFromMap(codec, "post-process-protos"); postProcessProtos {
+		rust.PostProcessProtos = true
+		hasConfig = true
+	}
+
+	if detailedTracingAttributes := getBoolFromMap(codec, "detailed-tracing-attributes"); detailedTracingAttributes {
+		rust.DetailedTracingAttributes = true
+		hasConfig = true
+	}
+
+	if notForPublication := getBoolFromMap(codec, "not-for-publication"); notForPublication {
+		rust.NotForPublication = true
+		hasConfig = true
+	}
+
+	if disabledRustdoc, ok := codec["disabled-rustdoc-warnings"].(string); ok && disabledRustdoc != "" {
+		rust.DisabledRustdocWarnings = strings.Split(disabledRustdoc, ",")
+		hasConfig = true
+	}
+
+	if disabledClippy, ok := codec["disabled-clippy-warnings"].(string); ok && disabledClippy != "" {
+		rust.DisabledClippyWarnings = strings.Split(disabledClippy, ",")
+		hasConfig = true
+	}
+
+	if !hasConfig {
+		return nil
+	}
+	return rust
+}
+
+func extractDartLibraryConfig(codec map[string]any) *config.DartLibrary {
+	dart := &config.DartLibrary{}
+	hasConfig := false
+
+	if apiKeys := getStringFromMap(codec, "api-keys-environment-variables"); apiKeys != "" {
+		dart.APIKeysEnvironmentVariables = apiKeys
+		hasConfig = true
+	}
+
+	if devDeps := getStringFromMap(codec, "dev-dependencies"); devDeps != "" {
+		dart.DevDependencies = strings.Split(devDeps, ",")
+		hasConfig = true
+	}
+
+	if !hasConfig {
+		return nil
+	}
+	return dart
 }
 
 func extractPackageDependencies(codec map[string]any) []config.PackageDependency {
@@ -381,6 +522,11 @@ func parsePackageDependency(name, value string) config.PackageDependency {
 				dep.UsedIf = val
 			case "feature":
 				dep.Feature = val
+			case "ignore":
+				if val == "true" {
+					// When ignore=true, set package to empty string
+					dep.Package = ""
+				}
 			}
 		}
 	}

@@ -216,18 +216,32 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 	// Parse container image and tag
 	containerImage, containerTag := parseImage(oldState.Image)
 
+	// Auto-detect language from container image
+	language := detectLanguageFromImage(containerImage)
+
 	// Create new config
 	newConfig := &config.Config{
 		Version:  "v1",
-		Language: "go",
+		Language: language,
 		Container: &config.Container{
 			Image: containerImage,
 			Tag:   containerTag,
 		},
-		Generate: &config.Generate{
-			Output: "{name}/",
+		Defaults: &config.Defaults{
+			Output:           "./",
+			OneLibraryPer:    "service",
+			Transport:        "grpc+rest",
+			RestNumericEnums: true,
+		},
+		Release: &config.Release{
+			TagFormat: "{name}/v{version}",
 		},
 	}
+
+	// Add wildcard to generate everything
+	newConfig.Libraries = append(newConfig.Libraries, config.LibraryEntry{
+		APIPath: "*",
+	})
 
 	// Add global files allowlist
 	if len(oldConfig.GlobalFilesAllowlist) > 0 {
@@ -314,17 +328,22 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 				if moduleConfig, ok := moduleConfigMap[oldLib.ID]; ok {
 					for _, moduleAPI := range moduleConfig.APIs {
 						if moduleAPI.Path == api.Path {
-							if moduleAPI.ClientDirectory != "" {
-								newAPI.Go.ClientDirectory = moduleAPI.ClientDirectory
-							}
-							if moduleAPI.DisableGapic {
-								newAPI.Go.DisableGapic = true
-							}
-							if moduleAPI.ProtoPackage != "" {
-								newAPI.Go.ProtoPackage = moduleAPI.ProtoPackage
-							}
-							if len(moduleAPI.NestedProtos) > 0 {
-								newAPI.Go.NestedProtos = moduleAPI.NestedProtos
+							// Initialize Go config if any overrides are present
+							if moduleAPI.ClientDirectory != "" || moduleAPI.DisableGapic ||
+								moduleAPI.ProtoPackage != "" || len(moduleAPI.NestedProtos) > 0 {
+								newAPI.Go = &config.GoAPI{}
+								if moduleAPI.ClientDirectory != "" {
+									newAPI.Go.ClientDirectory = moduleAPI.ClientDirectory
+								}
+								if moduleAPI.DisableGapic {
+									newAPI.Go.DisableGapic = true
+								}
+								if moduleAPI.ProtoPackage != "" {
+									newAPI.Go.ProtoPackage = moduleAPI.ProtoPackage
+								}
+								if len(moduleAPI.NestedProtos) > 0 {
+									newAPI.Go.NestedProtos = moduleAPI.NestedProtos
+								}
 							}
 							break
 						}
@@ -353,7 +372,62 @@ func convertToNewFormat(oldConfig *OldConfig, oldState *OldState, oldRepoConfig 
 			}
 		}
 
-		newConfig.Libraries = append(newConfig.Libraries, newLib)
+		// Convert Library to LibraryEntry
+		// Use source_roots to determine filesystem path
+		// For Python: packages/google-cloud-vision
+		// For Go: batch
+		libraryPath := oldLib.ID
+		if len(oldLib.SourceRoots) > 0 {
+			// Use first source root as the library path
+			libraryPath = oldLib.SourceRoots[0]
+		}
+		// All library paths should have trailing slash to indicate they're directories
+		if !strings.HasSuffix(libraryPath, "/") {
+			libraryPath = libraryPath + "/"
+		}
+
+		// Build library config for exceptions
+		var cfg *config.LibraryConfig
+
+		// Add keep patterns if present
+		if len(oldLib.PreserveRegex) > 0 {
+			// Process keep patterns to remove redundancy
+			deduped := deduplicateKeepPatterns(oldLib.PreserveRegex, libraryPath)
+			// Only add if there are non-empty patterns after deduplication
+			if len(deduped) > 0 {
+				if cfg == nil {
+					cfg = &config.LibraryConfig{}
+				}
+				cfg.Keep = deduped
+			}
+		}
+
+		// Add source roots if present and different from library path
+		// Since we use source_roots[0] as the library path identifier,
+		// only add source_roots if there are multiple or if they're unusual
+		if len(newLib.SourceRoots) > 1 {
+			if cfg == nil {
+				cfg = &config.LibraryConfig{}
+			}
+			cfg.SourceRoots = newLib.SourceRoots
+		}
+
+		// Add release config if present
+		if newLib.Release != nil {
+			if cfg == nil {
+				cfg = &config.LibraryConfig{}
+			}
+			cfg.Release = newLib.Release
+		}
+
+		// Only add library entry if it has config (is an exception to wildcard)
+		if cfg != nil {
+			entry := config.LibraryEntry{
+				APIPath: libraryPath,
+				Config:  cfg,
+			}
+			newConfig.Libraries = append(newConfig.Libraries, entry)
+		}
 	}
 
 	return newConfig
@@ -369,4 +443,64 @@ func parseImage(image string) (string, string) {
 	}
 	// Default to latest if no tag specified
 	return image, "latest"
+}
+
+// deduplicateKeepPatterns removes redundant keep patterns.
+// For Python libraries, many have identical keep patterns that can be omitted.
+func deduplicateKeepPatterns(patterns []string, libraryPath string) []string {
+	// Common patterns that appear in most Python libraries
+	// These are the shared repository paths that don't need to be listed per-library
+	commonPatterns := map[string]bool{
+		"docs/CHANGELOG.md":              true,
+		"docs/README.rst":                true,
+		"samples/README.txt":             true,
+		"scripts/client-post-processing": true,
+		"samples/snippets/README.rst":    true,
+		"tests/system":                   true,
+		"CHANGELOG.md":                   true, // Also skip the relative CHANGELOG.md
+	}
+
+	var result []string
+	for _, pattern := range patterns {
+		// For library-specific patterns, make them relative if they start with the library path
+		processedPattern := pattern
+		if strings.HasPrefix(pattern, libraryPath+"/") {
+			// Make it relative to the library
+			processedPattern = strings.TrimPrefix(pattern, libraryPath+"/")
+		}
+
+		// Skip common patterns (check after making relative)
+		if commonPatterns[processedPattern] {
+			continue
+		}
+
+		result = append(result, processedPattern)
+	}
+
+	return result
+}
+
+// detectLanguageFromImage extracts the language from the container image name.
+// Example: "librarian-go" -> "go", "python-librarian-generator" -> "python"
+func detectLanguageFromImage(image string) string {
+	// Get the last path component
+	parts := strings.Split(image, "/")
+	imageName := parts[len(parts)-1]
+
+	// Common patterns in container image names
+	if strings.Contains(imageName, "python") {
+		return "python"
+	}
+	if strings.Contains(imageName, "-go") || strings.HasSuffix(imageName, "go") {
+		return "go"
+	}
+	if strings.Contains(imageName, "rust") {
+		return "rust"
+	}
+	if strings.Contains(imageName, "dart") {
+		return "dart"
+	}
+
+	// Default to go if we can't determine
+	return "go"
 }

@@ -56,21 +56,20 @@ func TestConvert(t *testing.T) {
 				{Path: "README.md", Permissions: "write-only"},
 			},
 		},
-		Generate: &config.Generate{
-			Output: "{name}/",
+		Defaults: &config.Defaults{
+			Output:           "./",
+			OneLibraryPer:    "service",
+			Transport:        "grpc+rest",
+			RestNumericEnums: true,
 		},
 		Release: &config.Release{
 			TagFormat: "{name}/v{version}",
 		},
-		Libraries: []config.Library{
+		Libraries: []config.LibraryEntry{
+			{APIPath: "*"},
 			{
-				Name:    "secretmanager",
-				Version: "1.15.0",
-				Generate: &config.LibraryGenerate{
-					APIs: []config.API{
-						{Path: "google/cloud/secretmanager/v1"},
-						{Path: "google/cloud/secretmanager/v1beta2"},
-					},
+				APIPath: "secretmanager/",
+				Config: &config.LibraryConfig{
 					Keep: []string{
 						"secretmanager/CHANGES.md",
 						"secretmanager/aliasshim/aliasshim.go",

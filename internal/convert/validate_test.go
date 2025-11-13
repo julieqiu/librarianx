@@ -43,8 +43,8 @@ func TestValidateGeneratedGoLibrarianYAML(t *testing.T) {
 		t.Fatal("container is nil")
 	}
 
-	if cfg.Generate == nil {
-		t.Fatal("generate is nil")
+	if cfg.Defaults == nil {
+		t.Fatal("defaults is nil")
 	}
 
 	if cfg.Release == nil {

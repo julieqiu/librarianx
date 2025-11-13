@@ -1,166 +1,99 @@
 version: v1
 language: go
-
-sources:
-  googleapis:
-    url: https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz
-    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
-
+container:
+    image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go@sha256
+    tag: f2cbb6b904fdbf086efec0100536c52a79a654a5b9df21f975a2b6f6d50395a4
 global:
-  files_allowlist:
-    - path: internal/generated/snippets/go.mod
-      permissions: read-write
-    - path: CHANGES.md
-      permissions: read-write
-
+    files_allowlist:
+        - path: internal/generated/snippets/go.mod
+          permissions: read-write
+        - path: CHANGES.md
+          permissions: read-write
 defaults:
-  generate_dir: '{name}/'
-  packaging: service
-  transport: grpc+rest
-  rest_numeric_enums: true
-
+    output: ./
+    one_library_per: service
+    transport: grpc+rest
+    rest_numeric_enums: true
 release:
-  tag_format: '{name}/v{version}'
-
-# Auto-discover everything from googleapis
-auto_discover: true
-
-# Only configure exceptions to the defaults
-# NOTE: With auto_discover enabled, only list libraries that need special configuration
+    tag_format: '{name}/v{version}'
 libraries:
-  # Generated APIs with handwritten IAM clients
-  - google/cloud/batch/v1:
-      keep:
-        - ^batch/apiv1/iam_policy_client\.go$
-
-  - google/cloud/datacatalog/v1:
-      keep:
-        - ^datacatalog/apiv1/iam_policy_client\.go$
-
-  - google/cloud/datastream/v1:
-      keep:
-        - ^datastream/apiv1/iam_policy_client\.go$
-
-  - google/cloud/run/v2:
-      keep:
-        - ^run/apiv2/locations_client\.go$
-
-  - google/cloud/vmmigration/v1:
-      keep:
-        - ^vmmigration/apiv1/iam_policy_client\.go$
-
-  # Handwritten libraries (no generation, release disabled)
-  - auth:
-      path: auth/
-      release:
-        disabled: true
-
-  - auth-oauth2adapt:
-      path: auth/oauth2adapt/
-      name: auth/oauth2adapt
-      release:
-        disabled: true
-
-  - bigtable:
-      path: bigtable/
-      release:
-        disabled: true
-
-  - metadata:
-      path: compute/metadata/
-      release:
-        disabled: true
-
-  - profiler:
-      path: profiler/
-      release:
-        disabled: true
-
-  - vertexai:
-      path: vertexai/
-      release:
-        disabled: true
-
-  # Special multi-source module
-  - root-module:
-      path: ./
-      source_roots:
-        - civil
-        - httpreplay
-        - internal
-        - rpcreplay
-      release:
-        disabled: true
-
-  # Generated API with special keep patterns
-  - google/cloud/gkehub/v1:
-      keep:
-        - docs/gkehub_v1/configmanagement_v1
-        - docs/gkehub_v1/multiclusteringress_v1
-        - google/cloud/gkehub_v1/configmanagement_v1
-        - google/cloud/gkehub_v1/multiclusteringress_v1
-
-  # Handwritten/hybrid libraries with release disabled
-  - bigquery:
-      path: bigquery/
-      release:
-        disabled: true
-      keep:
-        - ^internal/generated/snippets/bigquery/v2/
-
-  - bigquery-v2:
-      path: bigquery/v2/
-      name: bigquery/v2
-      release:
-        disabled: true
-
-  - datastore:
-      path: datastore/
-      release:
-        disabled: true
-
-  - errorreporting:
-      path: errorreporting/
-      release:
-        disabled: true
-
-  - firestore:
-      path: firestore/
-      release:
-        disabled: true
-
-  - logging:
-      path: logging/
-      release:
-        disabled: true
-
-  - longrunning:
-      path: longrunning/
-      release:
-        disabled: true
-
-  - pubsub:
-      path: pubsub/
-      release:
-        disabled: true
-
-  - pubsub-v2:
-      path: pubsub/v2/
-      name: pubsub/v2
-      release:
-        disabled: true
-
-  - pubsublite:
-      path: pubsublite/
-      release:
-        disabled: true
-
-  - spanner:
-      path: spanner/
-      release:
-        disabled: true
-
-  - storage:
-      path: storage/
-      release:
-        disabled: true
+    - '*'
+    - auth/:
+        release:
+            disabled: true
+    - auth/oauth2adapt/:
+        release:
+            disabled: true
+    - batch/:
+        keep:
+            - ^batch/apiv1/iam_policy_client\.go$
+    - bigquery/:
+        keep:
+            - ^internal/generated/snippets/bigquery/v2/
+        release:
+            disabled: true
+    - bigquery/v2/:
+        release:
+            disabled: true
+    - bigtable/:
+        release:
+            disabled: true
+    - compute/metadata/:
+        release:
+            disabled: true
+    - datacatalog/:
+        keep:
+            - ^datacatalog/apiv1/iam_policy_client\.go$
+    - datastore/:
+        release:
+            disabled: true
+    - datastream/:
+        keep:
+            - ^datastream/apiv1/iam_policy_client\.go$
+    - errorreporting/:
+        release:
+            disabled: true
+    - firestore/:
+        release:
+            disabled: true
+    - logging/:
+        release:
+            disabled: true
+    - longrunning/:
+        release:
+            disabled: true
+    - profiler/:
+        release:
+            disabled: true
+    - pubsub/:
+        release:
+            disabled: true
+    - pubsub/v2/:
+        release:
+            disabled: true
+    - pubsublite/:
+        release:
+            disabled: true
+    - civil/:
+        release:
+            disabled: true
+        source_roots:
+            - civil
+            - httpreplay
+            - internal
+            - rpcreplay
+    - run/:
+        keep:
+            - ^run/apiv2/locations_client\.go$
+    - spanner/:
+        release:
+            disabled: true
+    - storage/:
+        release:
+            disabled: true
+    - vertexai/:
+        release:
+            disabled: true
+    - vmmigration/:
+        keep:
+            - ^vmmigration/apiv1/iam_policy_client\.go$

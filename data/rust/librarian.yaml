@@ -1,385 +1,540 @@
 version: v1
 language: rust
-
+container:
+    image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/rust-librarian-generator
+    tag: latest
 sources:
-  googleapis:
-    url: https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz
-    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
-  showcase:
-    url: https://github.com/googleapis/gapic-showcase/archive/refs/tags/v0.36.2.tar.gz
-    sha256: 0914bdbb088713aa087a53b355ff6631ad95e4769afd8bbd97d5d9e78d4cdf09
-    extracted_name: gapic-showcase-0.36.2
-  discovery:
-    url: https://github.com/googleapis/discovery-artifact-manager/archive/6b26d32978012848589061fd824328352eaa2a76.tar.gz
-    sha256: 867048ec8f0850a4d77ad836319e4c0a0c624928611af8a900cd77e676164e8e
-    extracted_name: discovery-artifact-manager-6b26d32978012848589061fd824328352eaa2a76
-  protobuf_src:
-    url: https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz
-    sha256: 008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e
-    extracted_name: protobuf-29.3
-    subdir: src
-
+    googleapis:
+        url: https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz
+        sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
+    showcase:
+        url: https://github.com/googleapis/gapic-showcase/archive/refs/tags/v0.36.2.tar.gz
+        sha256: 0914bdbb088713aa087a53b355ff6631ad95e4769afd8bbd97d5d9e78d4cdf09
+        extracted_name: gapic-showcase-0.36.2
+    discovery:
+        url: https://github.com/googleapis/discovery-artifact-manager/archive/b27c80574e918a7e2a36eb21864d1d2e45b8c032.tar.gz
+        sha256: 67c8d3792f0ebf5f0582dce675c379d0f486604eb0143814c79e788954aa1212
+        extracted_name: discovery-artifact-manager-b27c80574e918a7e2a36eb21864d1d2e45b8c032
+    protobuf_src:
+        url: https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz
+        sha256: 008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e
+        extracted_name: protobuf-29.3
+        subdir: src
+    conformance:
+        url: https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz
+        sha256: 008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e
+        extracted_name: protobuf-29.3
 defaults:
-  generate_dir: src/generated/{api.path}
-  release_level: stable
-  rust:
-    disabled_rustdoc_warnings:
-      - redundant_explicit_links
-      - broken_intra_doc_links
-    package_dependencies:
-      - name: api
-        package: google-cloud-api
-        source: google.api
-      - name: async-trait
-        package: async-trait
-        used_if: services
-      - name: bytes
-        package: bytes
-        force_used: true
-      - name: cloud_common
-        package: google-cloud-common
-        source: google.cloud.common
-      - name: gax
-        package: google-cloud-gax
-        used_if: services
-      - name: gaxi
-        package: google-cloud-gax-internal
-        used_if: services
-        feature: _internal-http-client
-      - name: grafeas
-        package: google-cloud-grafeas-v1
-        source: grafeas.v1
-      - name: gtype
-        package: google-cloud-type
-        source: google.type
-      - name: iam_v1
-        package: google-cloud-iam-v1
-        source: google.iam.v1
-      - name: lazy_static
-        package: lazy_static
-        used_if: services
-      - name: location
-        package: google-cloud-location
-        source: google.cloud.location
-      - name: logging_type
-        package: google-cloud-logging-type
-        source: google.logging.type
-      - name: longrunning
-        package: google-cloud-longrunning
-        source: google.longrunning
-      - name: lro
-        package: google-cloud-lro
-        used_if: lro
-      - name: reqwest
-        package: reqwest
-        used_if: services
-      - name: rpc
-        package: google-cloud-rpc
-        source: google.rpc
-      - name: rpc_context
-        package: google-cloud-rpc-context
-        source: google.rpc.context
-      - name: serde
-        package: serde
-        force_used: true
-      - name: serde_json
-        package: serde_json
-        force_used: true
-      - name: serde_with
-        package: serde_with
-        force_used: true
-      - name: tracing
-        package: tracing
-        used_if: services
-      - name: uuid
-        package: uuid
-        used_if: autopopulated
-      - name: wkt
-        package: google-cloud-wkt
-        source: google.protobuf
-        force_used: true
-    release:
-      tools:
-        cargo:
-          - name: cargo-semver-checks
-            version: 0.44.0
-          - name: cargo-workspaces
-            version: 0.4.0
-      pre_installed:
-        cargo: cargo
-        git: git
-
-release:
-  tag_format: '{name}/v{version}'
-  remote: upstream
-  branch: main
-  ignored_changes:
-    - .repo-metadata.json
-    - .sidekick.toml
-
-# Auto-discover everything from googleapis api-index-v1.json
-# Rust packages by API version (one crate per version)
-auto_discover: true
-packaging:
-  strategy: version  # Rust creates separate crates per API version
-
-# Only configure exceptions to the defaults
-libraries:
-  # Exception: Special internal libraries (not from googleapis)
-  - firestore-generated-convert-firestore:
-      path: src/firestore/src/generated/convert/firestore
-      generate:
-        api: google/firestore/v1
-        rust:
-          module_path: crate::generated::gapic::model
-
-  - firestore-generated-convert-type:
-      path: src/firestore/src/generated/convert/type
-      generate:
-        api: google/type
-        rust:
-          include_list:
-            - latlng.proto
-          module_path: gtype::model
-
-  - google-cloud-firestore:
-      path: src/firestore/src/generated/gapic
-      generate:
-        api: google/firestore/v1
-        rust:
-          title_override: Cloud Firestore API
-
-  - firestore-generated-protos-firestore:
-      path: src/firestore/src/generated/protos/firestore
-      generate:
-        api: google/firestore/v1
-
-  # Exception: Special internal GAX libraries
-  - google-cloud-gax-internal:
-      path: src/gax-internal/src/generated/convert/rpc
-      generate:
-        api: google/rpc
-        rust:
-          skipped_ids:
-            - .google.rpc.Status
-          module_path: rpc::model
-
-  - gax-internal-generated-protos-rpc:
-      path: src/gax-internal/src/generated/protos/rpc
-      generate:
-        api: google/rpc
-
-  # Exception: Special compute library (Discovery-based)
-  - google-cloud-compute-v1:
-      generate:
-        api:
-          path: discoveries/compute.v1.json
-          specification_format: disco
-        discovery:
-          operation_id: .google.cloud.compute.v1.Operation
-          pollers:
-            - prefix: compute/v1/projects/{project}/zones/{zone}
-              method_id: .google.cloud.compute.v1.zoneOperations.get
-            - prefix: compute/v1/projects/{project}/regions/{region}
-              method_id: .google.cloud.compute.v1.regionOperations.get
-            - prefix: compute/v1/projects/{project}
-              method_id: .google.cloud.compute.v1.globalOperations.get
-            - prefix: compute/v1/
-              method_id: .google.cloud.compute.v1.globalOrganizationOperations.get
-        rust:
-          roots:
-            - discovery
-            - googleapis
-          per_service_features: true
-          default_features:
-            - instances
-            - projects
-          extra_modules:
-            - errors
-            - operation
-          disabled_rustdoc_warnings:
-            - bare_urls
-            - broken_intra_doc_links
+    output: src/generated/
+    one_library_per: version
+    release_level: stable
+    rust:
+        disabled_rustdoc_warnings:
             - redundant_explicit_links
-          disabled_clippy_warnings:
-            - doc_lazy_continuation
-
-  # Exception: Libraries with special configurations
-  - cloud-aiplatform-v1:
-      rust:
-        per_service_features: true
-        disabled_rustdoc_warnings:
-          - redundant_explicit_links
-          - broken_intra_doc_links
-          - invalid_html_tags
-
-  - cloud-asset-v1:
-      rust:
+            - broken_intra_doc_links
         package_dependencies:
-          - name: accesscontextmanager_v1
-            package: google-cloud-identity-accesscontextmanager-v1
-            source: google.identity.accesscontextmanager.v1
-          - name: orgpolicy_v1
-            package: google-cloud-orgpolicy-v1
-            source: google.cloud.orgpolicy.v1
-          - name: osconfig_v1
-            package: google-cloud-osconfig-v1
-            source: google.cloud.osconfig.v1
-
-  - cloud-dialogflow-cx-v3:
-      rust:
-        per_service_features: true
-
-  - cloud-dialogflow-v2:
-      rust:
-        per_service_features: true
-
-  - cloud-discoveryengine-v1:
-      rust:
-        per_service_features: true
-
-  - cloud-gsuiteaddons-v1:
-      rust:
-        package_dependencies:
-          - name: apps_script_calendar
-            package: google-cloud-apps-script-type-calendar
-            source: google.apps.script.type.calendar
-          - name: apps_script_docs
-            package: google-cloud-apps-script-type-docs
-            source: google.apps.script.type.docs
-          - name: apps_script_drive
-            package: google-cloud-apps-script-type-drive
-            source: google.apps.script.type.drive
-          - name: apps_script_gmail
-            package: google-cloud-apps-script-type-gmail
-            source: google.apps.script.type.gmail
-          - name: apps_script_sheets
-            package: google-cloud-apps-script-type-sheets
-            source: google.apps.script.type.sheets
-          - name: apps_script_slides
-            package: google-cloud-apps-script-type-slides
-            source: google.apps.script.type.slides
-          - name: apps_script_type
-            package: google-cloud-apps-script-type
-            source: google.apps.script.type
-
-  - cloud-kms-inventory-v1:
-      rust:
-        package_dependencies:
-          - name: kms
-            package: google-cloud-kms-v1
-            source: google.cloud.kms.v1
-
-  - cloud-policysimulator-v1:
-      rust:
-        package_dependencies:
-          - name: orgpolicy_v2
-            package: google-cloud-orgpolicy-v2
-            source: google.cloud.orgpolicy.v2
-
-  - cloud-policytroubleshooter-iam-v3:
-      rust:
-        package_dependencies:
-          - name: iam_v2
-            package: google-cloud-iam-v2
-            source: google.iam.v2
-
-  - cloud-recommender-logging-v1:
-      rust:
-        package_dependencies:
-          - name: recommender
-            package: google-cloud-recommender-v1
-            source: google.cloud.recommender.v1
-
-  - cloud-secretmanager-v1:
-      rust:
-        generate_setter_samples: true
-
-  - cloud-workflows-v1:
-      rust:
-        generate_setter_samples: true
-        disabled_rustdoc_warnings:
-          - redundant_explicit_links
-          - broken_intra_doc_links
-          - invalid_html_tags
-          - bare_urls
-
-  - spanner-admin-database-v1:
-      rust:
-        skipped_ids:
-          - .google.spanner.admin.database.v1.DatabaseAdmin.InternalUpdateGraphOperation
-          - .google.spanner.admin.database.v1.InternalUpdateGraphOperationRequest
-          - .google.spanner.admin.database.v1.InternalUpdateGraphOperationResponse
-
-  # Exception: Special PubSub libraries
-  - pubsub-generated-convert-pubsub:
-      path: src/pubsub/src/generated/convert/pubsub
-      generate:
-        api: google/pubsub/v1
+            - name: api
+              package: google-cloud-api
+              source: google.api
+            - name: async-trait
+              package: async-trait
+              used_if: services
+            - name: bytes
+              package: bytes
+              force_used: true
+            - name: cloud_common
+              package: google-cloud-common
+              source: google.cloud.common
+            - name: gax
+              package: google-cloud-gax
+              used_if: services
+            - name: gaxi
+              package: google-cloud-gax-internal
+              used_if: services
+              feature: _internal-http-client
+            - name: grafeas
+              package: google-cloud-grafeas-v1
+              source: grafeas.v1
+            - name: gtype
+              package: google-cloud-type
+              source: google.type
+            - name: iam_v1
+              package: google-cloud-iam-v1
+              source: google.iam.v1
+            - name: lazy_static
+              package: lazy_static
+              used_if: services
+            - name: location
+              package: google-cloud-location
+              source: google.cloud.location
+            - name: logging_type
+              package: google-cloud-logging-type
+              source: google.logging.type
+            - name: longrunning
+              package: google-cloud-longrunning
+              source: google.longrunning
+            - name: lro
+              package: google-cloud-lro
+              used_if: lro
+            - name: reqwest
+              package: reqwest
+              used_if: services
+            - name: rpc
+              package: google-cloud-rpc
+              source: google.rpc
+            - name: rpc_context
+              package: google-cloud-rpc-context
+              source: google.rpc.context
+            - name: serde
+              package: serde
+              force_used: true
+            - name: serde_json
+              package: serde_json
+              force_used: true
+            - name: serde_with
+              package: serde_with
+              force_used: true
+            - name: tracing
+              package: tracing
+              used_if: services
+            - name: uuid
+              package: uuid
+              used_if: autopopulated
+            - name: wkt
+              package: google-cloud-wkt
+              source: google.protobuf
+              force_used: true
+release:
+    tag_format: '{name}/v{version}'
+    remote: upstream
+    branch: main
+    ignored_changes:
+        - .repo-metadata.json
+        - .sidekick.toml
+libraries:
+    - '*'
+    - src/firestore/src/generated/convert/firestore/:
         rust:
-          included_ids:
-            - .google.pubsub.v1.Publisher.Publish
-          module_path: crate::generated::gapic_dataplane::model
-
-  - google-cloud-pubsub:
-      path: src/pubsub/src/generated/gapic
-      generate:
-        api: google/pubsub/v1
+            module_path: crate::generated::gapic::model
+            template_override: templates/convert-prost
+    - src/firestore/src/generated/convert/type/:
         rust:
-          included_ids:
-            - .google.pubsub.v1.SchemaService
-            - .google.pubsub.v1.Publisher.CreateTopic
-            - .google.pubsub.v1.Publisher.UpdateTopic
-            - .google.pubsub.v1.Publisher.GetTopic
-            - .google.pubsub.v1.Publisher.ListTopics
-            - .google.pubsub.v1.Publisher.ListTopicSubscriptions
-            - .google.pubsub.v1.Publisher.ListTopicSnapshots
-            - .google.pubsub.v1.Publisher.DeleteTopic
-            - .google.pubsub.v1.Publisher.DetachSubscription
-            - .google.pubsub.v1.Subscriber.CreateSubscription
-            - .google.pubsub.v1.Subscriber.GetSubscription
-            - .google.pubsub.v1.Subscriber.UpdateSubscription
-            - .google.pubsub.v1.Subscriber.ListSubscriptions
-            - .google.pubsub.v1.Subscriber.DeleteSubscription
-            - .google.pubsub.v1.Subscriber.ModifyPushConfig
-            - .google.pubsub.v1.Subscriber.GetSnapshot
-            - .google.pubsub.v1.Subscriber.ListSnapshots
-            - .google.pubsub.v1.Subscriber.CreateSnapshot
-            - .google.pubsub.v1.Subscriber.UpdateSnapshot
-            - .google.pubsub.v1.Subscriber.DeleteSnapshot
-            - .google.pubsub.v1.Subscriber.Seek
-          name_overrides:
-            .google.pubsub.v1.Publisher: TopicAdmin
-            .google.pubsub.v1.Subscriber: SubscriptionAdmin
-
-  # Exception: Special Storage libraries
-  - storage-generated-convert-control:
-      path: src/storage/src/generated/convert/control
-      generate:
-        api: google/storage/control/v2
+            module_path: gtype::model
+            template_override: templates/convert-prost
+    - src/firestore/src/generated/gapic/:
         rust:
-          module_path: crate::generated::gapic_control::model
-
-  - google-cloud-storage:
-      path: src/storage/src/generated/gapic
-      generate:
-        api: google/storage/v2
+            template_override: templates/grpc-client
+            package_name_override: google-cloud-firestore
+    - src/firestore/src/generated/protos/firestore/:
         rust:
-          has_veneer: true
-          routing_required: true
-          include_grpc_only_methods: true
-
-  # Exception: Special WKT libraries
-  - google-cloud-wkt:
-      path: src/wkt/src/generated
-      generate:
-        api: google/protobuf
+            template_override: templates/prost
+    - src/gax-internal/src/generated/convert/rpc/:
         rust:
-          roots:
-            - protobuf-src
-          include_list:
-            - api.proto
-            - source_context.proto
-            - type.proto
-            - descriptor.proto
-          module_path: crate
+            module_path: rpc::model
+            template_override: templates/convert-prost
+            package_name_override: google-cloud-gax-internal
+    - src/gax-internal/src/generated/protos/rpc/:
+        rust:
+            template_override: templates/prost
+    - src/generated/api/apikeys/v2/:
+        rust:
+            package_name_override: google-cloud-apikeys-v2
+    - src/generated/api/types/:
+        rust:
+            package_name_override: google-cloud-api
+    - src/generated/apps/script/calendar/:
+        rust:
+            package_dependencies:
+                - name: apps_script_type
+                  package: google-cloud-apps-script-type
+                  source: google.apps.script.type
+    - src/generated/apps/script/docs/:
+        rust:
+            package_dependencies:
+                - name: apps_script_type
+                  package: google-cloud-apps-script-type
+                  source: google.apps.script.type
+    - src/generated/apps/script/drive/:
+        rust:
+            package_dependencies:
+                - name: apps_script_type
+                  package: google-cloud-apps-script-type
+                  source: google.apps.script.type
+    - src/generated/apps/script/gmail/:
+        rust:
+            package_dependencies:
+                - name: apps_script_type
+                  package: google-cloud-apps-script-type
+                  source: google.apps.script.type
+    - src/generated/apps/script/sheets/:
+        rust:
+            package_dependencies:
+                - name: apps_script_type
+                  package: google-cloud-apps-script-type
+                  source: google.apps.script.type
+    - src/generated/apps/script/slides/:
+        rust:
+            package_dependencies:
+                - name: apps_script_type
+                  package: google-cloud-apps-script-type
+                  source: google.apps.script.type
+    - src/generated/cloud/aiplatform/v1/:
+        rust:
+            per_service_features: true
+            disabled_rustdoc_warnings:
+                - redundant_explicit_links
+                - broken_intra_doc_links
+                - invalid_html_tags
+    - src/generated/cloud/asset/v1/:
+        rust:
+            package_dependencies:
+                - name: accesscontextmanager_v1
+                  package: google-cloud-identity-accesscontextmanager-v1
+                  source: google.identity.accesscontextmanager.v1
+                - name: orgpolicy_v1
+                  package: google-cloud-orgpolicy-v1
+                  source: google.cloud.orgpolicy.v1
+                - name: osconfig_v1
+                  package: google-cloud-osconfig-v1
+                  source: google.cloud.osconfig.v1
+    - src/generated/cloud/bigquery/v2/:
+        rust:
+            package_name_override: google-cloud-bigquery-v2
+            not_for_publication: true
+    - src/generated/cloud/compute/v1/:
+        rust:
+            per_service_features: true
+            package_name_override: google-cloud-compute-v1
+            default_features:
+                - instances
+                - projects
+            extra_modules:
+                - errors
+                - operation
+            package_dependencies:
+                - name: lro
+                  package: google-cloud-lro
+                  force_used: true
+                - name: rpc
+                  package: google-cloud-rpc
+                  force_used: true
+            disabled_rustdoc_warnings:
+                - bare_urls
+                - broken_intra_doc_links
+                - redundant_explicit_links
+            disabled_clippy_warnings:
+                - doc_lazy_continuation
+    - src/generated/cloud/dialogflow/cx/v3/:
+        rust:
+            per_service_features: true
+    - src/generated/cloud/dialogflow/v2/:
+        rust:
+            per_service_features: true
+    - src/generated/cloud/discoveryengine/v1/:
+        rust:
+            per_service_features: true
+    - src/generated/cloud/gkehub/v1/:
+        rust:
+            package_dependencies:
+                - name: gkehub_configmanagement_v1
+                  package: google-cloud-gkehub-configmanagement-v1
+                  source: google.cloud.gkehub.configmanagement.v1
+                - name: gkehub_multiclusteringress_v1
+                  package: google-cloud-gkehub-multiclusteringress-v1
+                  source: google.cloud.gkehub.multiclusteringress.v1
+    - src/generated/cloud/gsuiteaddons/v1/:
+        rust:
+            package_dependencies:
+                - name: apps_script_calendar
+                  package: google-cloud-apps-script-type-calendar
+                  source: google.apps.script.type.calendar
+                - name: apps_script_docs
+                  package: google-cloud-apps-script-type-docs
+                  source: google.apps.script.type.docs
+                - name: apps_script_drive
+                  package: google-cloud-apps-script-type-drive
+                  source: google.apps.script.type.drive
+                - name: apps_script_gmail
+                  package: google-cloud-apps-script-type-gmail
+                  source: google.apps.script.type.gmail
+                - name: apps_script_sheets
+                  package: google-cloud-apps-script-type-sheets
+                  source: google.apps.script.type.sheets
+                - name: apps_script_slides
+                  package: google-cloud-apps-script-type-slides
+                  source: google.apps.script.type.slides
+                - name: apps_script_type
+                  package: google-cloud-apps-script-type
+                  source: google.apps.script.type
+    - src/generated/cloud/kms/inventory/v1/:
+        rust:
+            package_dependencies:
+                - name: kms
+                  package: google-cloud-kms-v1
+                  source: google.cloud.kms.v1
+    - src/generated/cloud/location/:
+        rust:
+            package_dependencies:
+                - name: location
+                  package: ""
+    - src/generated/cloud/osconfig/v1/:
+        rust:
+            disabled_rustdoc_warnings:
+                - redundant_explicit_links
+                - broken_intra_doc_links
+                - bare_urls
+                - invalid_html_tags
+    - src/generated/cloud/oslogin/v1/:
+        rust:
+            package_dependencies:
+                - name: oslogin_common
+                  package: google-cloud-oslogin-common
+                  source: google.cloud.oslogin.common
+    - src/generated/cloud/policysimulator/v1/:
+        rust:
+            package_dependencies:
+                - name: orgpolicy_v2
+                  package: google-cloud-orgpolicy-v2
+                  source: google.cloud.orgpolicy.v2
+    - src/generated/cloud/policytroubleshooter/iam/v3/:
+        rust:
+            package_dependencies:
+                - name: iam_v2
+                  package: google-cloud-iam-v2
+                  source: google.iam.v2
+    - src/generated/cloud/recommender/logging/v1/:
+        rust:
+            package_dependencies:
+                - name: recommender
+                  package: google-cloud-recommender-v1
+                  source: google.cloud.recommender.v1
+    - src/generated/cloud/secretmanager/v1/:
+        rust:
+            generate_setter_samples: true
+    - src/generated/cloud/storageinsights/v1/:
+        rust:
+            name_overrides: .google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_buckets=CloudStorageBucketsOneOf,.google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_locations=CloudStorageLocationsOneOf
+    - src/generated/cloud/workflows/v1/:
+        rust:
+            disabled_rustdoc_warnings:
+                - redundant_explicit_links
+                - broken_intra_doc_links
+                - invalid_html_tags
+                - bare_urls
+            generate_setter_samples: true
+    - src/generated/devtools/artifactregistry/v1/:
+        rust:
+            package_name_override: google-cloud-artifactregistry-v1
+    - src/generated/devtools/cloudbuild/v1/:
+        rust:
+            package_name_override: google-cloud-build-v1
+    - src/generated/devtools/cloudbuild/v2/:
+        rust:
+            package_name_override: google-cloud-build-v2
+    - src/generated/devtools/cloudprofiler/v2/:
+        rust:
+            package_name_override: google-cloud-profiler-v2
+    - src/generated/devtools/cloudtrace/v2/:
+        rust:
+            package_name_override: google-cloud-trace-v2
+    - src/generated/devtools/containeranalysis/v1/:
+        rust:
+            package_name_override: google-cloud-containeranalysis-v1
+    - src/generated/identity/accesscontextmanager/type/:
+        rust:
+            package_name_override: google-cloud-identity-accesscontextmanager-type
+    - src/generated/identity/accesscontextmanager/v1/:
+        rust:
+            package_dependencies:
+                - name: accesscontextmanager_type
+                  package: google-cloud-identity-accesscontextmanager-type
+                  source: google.identity.accesscontextmanager.type
+    - src/generated/logging/type/:
+        rust:
+            package_name_override: google-cloud-logging-type
+    - src/generated/longrunning/:
+        rust:
+            description_override: |-
+                Defines types and an abstract service to handle long-running operations.
+
+                [Long-running operations] are a common pattern to handle methods that may take a
+                significant amount of time to execute. Many Google APIs return an `Operation`
+                message (defined in this crate) that are roughly analogous to a future. The
+                operation will eventually complete, though it may still return an error on
+                completion. The client libraries provide helpers to simplify polling of these
+                operations.
+
+                > This crate used to contain a different implementation, with a different
+                > surface. [@yoshidan](https://github.com/yoshidan) generously donated the crate
+                > name to Google. Their crate continues to live as [gcloud-longrunning].
+
+                [Long-running operations]: https://google.aip.dev/151
+                [gcloud-longrunning]: https://crates.io/crates/gcloud-longrunning
+            package_dependencies:
+                - name: longrunning
+                  package: ""
+    - src/generated/openapi-validation/:
+        rust:
+            package_name_override: secretmanager-openapi-v1
+            not_for_publication: true
+    - src/generated/rpc/context/:
+        rust:
+            package_name_override: google-cloud-rpc-context
+    - src/generated/rpc/types/:
+        rust:
+            package_name_override: google-cloud-rpc
+    - src/generated/showcase/:
+        rust:
+            detailed_tracing_attributes: true
+            not_for_publication: true
+    - src/generated/type/:
+        rust:
+            package_name_override: google-cloud-type
+    - src/protojson-conformance/src/generated/convert/:
+        rust:
+            module_path: crate::generated::gapic::model
+            template_override: templates/convert-prost
+    - src/protojson-conformance/src/generated/gapic/:
+        rust:
+            module_path: crate::generated::gapic::model
+            template_override: templates/grpc-client
+    - src/protojson-conformance/src/generated/protos/:
+        rust:
+            template_override: templates/prost
+            root_name: conformance-root
+    - src/protojson-conformance/src/generated/test_protos/:
+        rust:
+            module_path: crate::generated::test_protos
+            template_override: templates/mod
+    - src/pubsub/src/generated/convert/pubsub/:
+        rust:
+            module_path: crate::generated::gapic_dataplane::model
+            template_override: templates/convert-prost
+            included_ids:
+                - .google.pubsub.v1.Publisher.Publish
+    - src/pubsub/src/generated/gapic/:
+        rust:
+            template_override: templates/http-client
+            package_name_override: google-cloud-pubsub
+            included_ids:
+                - .google.pubsub.v1.SchemaService
+                - .google.pubsub.v1.Publisher.CreateTopic
+                - .google.pubsub.v1.Publisher.UpdateTopic
+                - .google.pubsub.v1.Publisher.GetTopic
+                - .google.pubsub.v1.Publisher.ListTopics
+                - .google.pubsub.v1.Publisher.ListTopicSubscriptions
+                - .google.pubsub.v1.Publisher.ListTopicSnapshots
+                - .google.pubsub.v1.Publisher.DeleteTopic
+                - .google.pubsub.v1.Publisher.DetachSubscription
+                - .google.pubsub.v1.Subscriber.CreateSubscription
+                - .google.pubsub.v1.Subscriber.GetSubscription
+                - .google.pubsub.v1.Subscriber.UpdateSubscription
+                - .google.pubsub.v1.Subscriber.ListSubscriptions
+                - .google.pubsub.v1.Subscriber.DeleteSubscription
+                - .google.pubsub.v1.Subscriber.ModifyPushConfig
+                - .google.pubsub.v1.Subscriber.GetSnapshot
+                - .google.pubsub.v1.Subscriber.ListSnapshots
+                - .google.pubsub.v1.Subscriber.CreateSnapshot
+                - .google.pubsub.v1.Subscriber.UpdateSnapshot
+                - .google.pubsub.v1.Subscriber.DeleteSnapshot
+                - .google.pubsub.v1.Subscriber.Seek
+            name_overrides: .google.pubsub.v1.Publisher=TopicAdmin,.google.pubsub.v1.Subscriber=SubscriptionAdmin
+    - src/pubsub/src/generated/gapic_dataplane/:
+        rust:
+            template_override: templates/grpc-client
+            package_name_override: google-cloud-pubsub
+            included_ids:
+                - .google.pubsub.v1.Publisher.Publish
+            has_veneer: true
+    - src/pubsub/src/generated/protos/pubsub/:
+        rust:
+            template_override: templates/prost
+            included_ids:
+                - .google.pubsub.v1.Publisher.Publish
+    - src/storage/src/generated/convert/control/:
+        rust:
+            module_path: crate::generated::gapic_control::model
+            template_override: templates/convert-prost
+            name_overrides: .google.storage.control.v2.IntelligenceConfig.Filter.cloud_storage_buckets=CloudStorageBucketsOneOf,.google.storage.control.v2.IntelligenceConfig.Filter.cloud_storage_locations=CloudStorageLocationsOneOf
+    - src/storage/src/generated/convert/iam/:
+        rust:
+            module_path: iam_v1::model
+            template_override: templates/convert-prost
+    - src/storage/src/generated/convert/longrunning/:
+        rust:
+            module_path: longrunning::model
+            template_override: templates/convert-prost
+    - src/storage/src/generated/convert/storage/:
+        rust:
+            module_path: crate::generated::gapic::model
+            template_override: templates/convert-prost
+            included_ids:
+                - .google.storage.v2.Storage.DeleteBucket
+                - .google.storage.v2.Storage.GetBucket
+                - .google.storage.v2.Storage.CreateBucket
+                - .google.storage.v2.Storage.ListBuckets
+                - .google.storage.v2.Storage.LockBucketRetentionPolicy
+                - .google.storage.v2.Storage.GetIamPolicy
+                - .google.storage.v2.Storage.SetIamPolicy
+                - .google.storage.v2.Storage.TestIamPermissions
+                - .google.storage.v2.Storage.UpdateBucket
+                - .google.storage.v2.Storage.ComposeObject
+                - .google.storage.v2.Storage.DeleteObject
+                - .google.storage.v2.Storage.RestoreObject
+                - .google.storage.v2.Storage.GetObject
+                - .google.storage.v2.Storage.UpdateObject
+                - .google.storage.v2.Storage.ListObjects
+                - .google.storage.v2.Storage.RewriteObject
+                - .google.storage.v2.Storage.MoveObject
+    - src/storage/src/generated/convert/type/:
+        rust:
+            module_path: gtype::model
+            template_override: templates/convert-prost
+    - src/storage/src/generated/gapic/:
+        rust:
+            template_override: templates/grpc-client
+            package_name_override: google-cloud-storage
+            included_ids:
+                - .google.storage.v2.Storage.DeleteBucket
+                - .google.storage.v2.Storage.GetBucket
+                - .google.storage.v2.Storage.CreateBucket
+                - .google.storage.v2.Storage.ListBuckets
+                - .google.storage.v2.Storage.LockBucketRetentionPolicy
+                - .google.storage.v2.Storage.UpdateBucket
+                - .google.storage.v2.Storage.ComposeObject
+                - .google.storage.v2.Storage.DeleteObject
+                - .google.storage.v2.Storage.RestoreObject
+                - .google.storage.v2.Storage.GetObject
+                - .google.storage.v2.Storage.UpdateObject
+                - .google.storage.v2.Storage.ListObjects
+                - .google.storage.v2.Storage.RewriteObject
+                - .google.storage.v2.Storage.MoveObject
+                - .google.storage.v2.ReadObjectRequest
+                - .google.storage.v2.WriteObjectSpec
+            name_overrides: .google.storage.v2.Storage=StorageControl
+            has_veneer: true
+            routing_required: true
+            include_grpc_only_methods: true
+    - src/storage/src/generated/gapic_control/:
+        rust:
+            template_override: templates/grpc-client
+            package_name_override: google-cloud-storage
+            name_overrides: .google.storage.control.v2.IntelligenceConfig.Filter.cloud_storage_buckets=CloudStorageBucketsOneOf,.google.storage.control.v2.IntelligenceConfig.Filter.cloud_storage_locations=CloudStorageLocationsOneOf
+            has_veneer: true
+            routing_required: true
+            include_grpc_only_methods: true
+    - src/storage/src/generated/protos/control/:
+        rust:
+            template_override: templates/prost
+    - src/storage/src/generated/protos/storage/:
+        rust:
+            template_override: templates/prost
+    - src/wkt/src/generated/:
+        rust:
+            module_path: crate
+            template_override: templates/mod
+            package_name_override: google-cloud-wkt
+    - src/wkt/tests/common/src/generated/:
+        rust:
+            module_path: crate::generated
+            template_override: templates/mod
