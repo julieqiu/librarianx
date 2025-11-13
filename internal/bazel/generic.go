@@ -171,13 +171,8 @@ func parsePythonGapic(content string, cfg *APIConfig) error {
 	return nil
 }
 
-<<<<<<< HEAD
 // findStringList finds a list of strings in a Bazel rule block.
 // E.g., opt_args = ["foo", "bar"].
-=======
-// findStringList finds a list of strings in a Bazel rule block
-// E.g., opt_args = ["foo", "bar"]
->>>>>>> ef6ef5a (feat: generate python successfully)
 func findStringList(content, name string) []string {
 	// Match: name = [ "item1", "item2", ... ]
 	re := regexp.MustCompile(fmt.Sprintf(`%s\s*=\s*\[((?:[^]]*?))\]`, name))

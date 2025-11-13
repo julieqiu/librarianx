@@ -29,10 +29,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
-	"github.com/googleapis/librarian/internal/generate/golang/execv"
-	"github.com/googleapis/librarian/internal/generate/golang/module"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
+	"github.com/googleapis/librarian/internal/golang/config"
+	"github.com/googleapis/librarian/internal/golang/execv"
+	"github.com/googleapis/librarian/internal/golang/module"
+	"github.com/googleapis/librarian/internal/golang/request"
 	"gopkg.in/yaml.v3"
 )
 

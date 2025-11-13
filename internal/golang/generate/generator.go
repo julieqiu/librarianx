@@ -26,11 +26,11 @@ import (
 	"strings"
 
 	"github.com/googleapis/librarian/internal/bazel"
-	"github.com/googleapis/librarian/internal/generate/golang/config"
-	"github.com/googleapis/librarian/internal/generate/golang/execv"
-	"github.com/googleapis/librarian/internal/generate/golang/postprocessor"
-	"github.com/googleapis/librarian/internal/generate/golang/protoc"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
+	"github.com/googleapis/librarian/internal/golang/config"
+	"github.com/googleapis/librarian/internal/golang/execv"
+	"github.com/googleapis/librarian/internal/golang/postprocessor"
+	"github.com/googleapis/librarian/internal/golang/protoc"
+	"github.com/googleapis/librarian/internal/golang/request"
 )
 
 // Test substitution vars.
