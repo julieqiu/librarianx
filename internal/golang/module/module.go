@@ -27,8 +27,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/googleapis/librarian/internal/generate/golang/config"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
+	"github.com/googleapis/librarian/internal/golang/config"
+	"github.com/googleapis/librarian/internal/golang/request"
 )
 
 var (

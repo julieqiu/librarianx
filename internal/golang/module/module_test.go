@@ -23,8 +23,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/generate/golang/config"
-	"github.com/googleapis/librarian/internal/generate/golang/request"
+	"github.com/googleapis/librarian/internal/golang/config"
+	"github.com/googleapis/librarian/internal/golang/request"
 )
 
 func TestGenerateInternalVersionFile(t *testing.T) {
