@@ -253,7 +253,11 @@ This updates the `sources` section in `librarian.yaml` with the latest commit SH
 
 All configuration lives in a single `librarian.yaml` file at the repository root.
 
-Example for Go:
+Librarian supports two configuration modes:
+
+### Explicit Mode (Manual)
+
+List each library explicitly. Suitable for small repos or new projects.
 
 ```yaml
 version: v1
@@ -264,15 +268,14 @@ sources:
     url: https://github.com/googleapis/googleapis/archive/abc123.tar.gz
     sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
 
-container:
-  image: us-central1-docker.pkg.dev/.../librarian-go
-  tag: latest
-
-generate:
-  dir: ./
+defaults:
+  generate_dir: ./
+  transport: grpc+rest
 
 release:
   tag_format: '{name}/v{version}'
+
+auto_discover: false
 
 libraries:
   - name: secretmanager
@@ -283,7 +286,45 @@ libraries:
           # Additional configuration extracted from BUILD.bazel
 ```
 
-See [config.md](config.md) for the complete schema reference.
+### Auto-Discovery Mode (Minimal)
+
+Automatically discover APIs from googleapis. Only list exceptions. Suitable for repos managing many libraries (~100+).
+
+```yaml
+version: v1
+language: python
+
+sources:
+  googleapis:
+    url: https://github.com/googleapis/googleapis/archive/abc123.tar.gz
+    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
+
+defaults:
+  generate_dir: packages/
+  transport: grpc+rest
+  rest_numeric_enums: true
+
+release:
+  tag_format: '{name}/v{version}'
+
+# Auto-discover all APIs from googleapis
+auto_discover: true
+
+# Only list exceptions
+libraries:
+  # Exception: has handwritten code
+  - google/cloud/bigquery/storage/v1:
+      keep:
+        - google/cloud/bigquery_storage_v1/client.py
+        - google/cloud/bigquery_storage_v1/reader.py
+```
+
+With auto-discovery enabled, librarian scans googleapis and automatically generates libraries for all discovered APIs. Names are derived from API paths using language conventions. You only need to list libraries that:
+- Have handwritten code (need `keep` rules)
+- Need custom names (override derivation)
+- Should be disabled
+
+See [config.md](config.md) for complete details on auto-discovery and name derivation.
 
 ## Container Architecture
 
