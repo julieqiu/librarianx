@@ -7,6 +7,7 @@ This directory contains documentation for the Librarian project.
 - **[prd.md](prd.md)** - Project objective, background, and key design principles
 - **[userguide.md](userguide.md)** - CLI overview, commands, and common workflows
 - **[config.md](config.md)** - Complete `librarian.yaml` schema reference
+- **[librarianops.md](librarianops.md)** - Operations tool for managing multiple repositories
 - **[alternatives.md](alternatives.md)** - Design decisions and alternatives considered
 
 ## Language-Specific Documentation
@@ -61,7 +62,8 @@ All documents should follow these guidelines:
 ### Organization
 
 - **prd.md** - High-level project overview and principles
-- **userguide.md** - User-facing CLI documentation
+- **userguide.md** - User-facing CLI documentation for single repository
+- **librarianops.md** - Operations tool for managing multiple repositories
 - **config.md** - Technical reference for configuration
 - **Language docs** - Language-specific details and workflows
 - **alternatives.md** - Design decisions and history
