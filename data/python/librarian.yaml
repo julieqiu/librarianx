@@ -8,19 +8,23 @@ sources:
 
 defaults:
   generate_dir: packages/
+  packaging: service
   transport: grpc+rest
   rest_numeric_enums: true
 
 release:
   tag_format: '{name}/v{version}'
 
-# Auto-discover everything from googleapis api-index-v1.json
+# Auto-discover everything from googleapis
 auto_discover: true
 
 # Only configure exceptions to the defaults
+# NOTE: With auto_discover enabled, only list libraries that need special configuration
+# These entries use API paths as keys (e.g., google/cloud/automl/v1)
 libraries:
-  # Exception: needs handwritten code
-  - google-cloud-automl:
+  # Service-level entry: covers all versions (v1, v1beta1, etc.)
+  # For Python, service-level packaging groups all versions into one package
+  - google/cloud/automl/v1:
       keep:
         - docs/automl_v1beta1/tables.rst
         - google/cloud/automl_v1beta1/services/tables
@@ -28,7 +32,7 @@ libraries:
         - tests/unit/test_gcs_client_v1beta1.py
         - tests/unit/test_tables_client_v1beta1.py
 
-  - google-cloud-bigquery-storage:
+  - google/cloud/bigquery/storage/v1:
       keep:
         - docs/.*/library.rst
         - docs/samples
@@ -51,11 +55,11 @@ libraries:
         - testing/.gitignore
         - tests/unit/.*.py
 
-  - google-cloud-containeranalysis:
+  - google/cloud/containeranalysis/v1:
       keep:
         - tests/unit/test_get_grafeas_client.py
 
-  - google-cloud-monitoring:
+  - google/cloud/monitoring/v3:
       keep:
         - docs/query.rst
         - google/cloud/monitoring_v3/_dataframe.py
@@ -63,36 +67,38 @@ libraries:
         - tests/unit/test__dataframe.py
         - tests/unit/test_query.py
 
-  - google-cloud-org-policy:
+  - google/cloud/orgpolicy/v2:
       keep:
         - pytest.ini
         - google/cloud/orgpolicy/v1/__init__.py
         - tests/unit/test_packaging.py
 
-  - google-cloud-os-login:
+  - google/cloud/oslogin/v1:
       keep:
         - google/cloud/oslogin_v1/common
         - docs/oslogin_v1/common/types.rst
 
-  - google-cloud-speech:
+  - google/cloud/speech/v1:
       keep:
         - google/cloud/speech_v1/helpers.py
         - tests/unit/test_helpers.py
 
-  - google-cloud-translate:
+  - google/cloud/translate/v3:
       keep:
         - docs/client.rst
         - docs/v2.rst
         - google/cloud/translate_v2
         - tests/unit/v2
 
-  - google-cloud-vision:
+  - google/cloud/vision/v1:
       keep:
         - google/cloud/vision_helpers
         - tests/unit/test_decorators.py
         - tests/unit/test_helpers.py
 
   - grafeas:
+      name: grafeas
+      path: packages/grafeas/
       keep:
         - grafeas/grafeas.py
         - grafeas/grafeas/__init__.py

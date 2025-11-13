@@ -15,65 +15,75 @@ global:
 
 defaults:
   generate_dir: '{name}/'
+  packaging: service
   transport: grpc+rest
   rest_numeric_enums: true
 
 release:
   tag_format: '{name}/v{version}'
 
-# Auto-discover everything from googleapis api-index-v1.json
+# Auto-discover everything from googleapis
 auto_discover: true
 
 # Only configure exceptions to the defaults
+# NOTE: With auto_discover enabled, only list libraries that need special configuration
 libraries:
-  # Exception: needs handwritten IAM client
-  - batch:
+  # Generated APIs with handwritten IAM clients
+  - google/cloud/batch/v1:
       keep:
         - ^batch/apiv1/iam_policy_client\.go$
 
-  - datacatalog:
+  - google/cloud/datacatalog/v1:
       keep:
         - ^datacatalog/apiv1/iam_policy_client\.go$
 
-  - datastream:
+  - google/cloud/datastream/v1:
       keep:
         - ^datastream/apiv1/iam_policy_client\.go$
 
-  - run:
+  - google/cloud/run/v2:
       keep:
         - ^run/apiv2/locations_client\.go$
 
-  - vmmigration:
+  - google/cloud/vmmigration/v1:
       keep:
         - ^vmmigration/apiv1/iam_policy_client\.go$
 
-  # Exception: handwritten libraries (no generation)
+  # Handwritten libraries (no generation, release disabled)
   - auth:
+      path: auth/
       release:
         disabled: true
 
-  - auth/oauth2adapt:
+  - auth-oauth2adapt:
+      path: auth/oauth2adapt/
+      name: auth/oauth2adapt
       release:
         disabled: true
 
   - bigtable:
+      path: bigtable/
       release:
         disabled: true
 
-  - compute/metadata:
+  - metadata:
+      path: compute/metadata/
       release:
         disabled: true
 
   - profiler:
+      path: profiler/
       release:
         disabled: true
 
   - vertexai:
+      path: vertexai/
       release:
         disabled: true
 
-  # Exception: special multi-source module
+  # Special multi-source module
   - root-module:
+      path: ./
       source_roots:
         - civil
         - httpreplay
@@ -82,61 +92,75 @@ libraries:
       release:
         disabled: true
 
-  # Exception: has special keep patterns
-  - gkehub:
+  # Generated API with special keep patterns
+  - google/cloud/gkehub/v1:
       keep:
         - docs/gkehub_v1/configmanagement_v1
         - docs/gkehub_v1/multiclusteringress_v1
         - google/cloud/gkehub_v1/configmanagement_v1
         - google/cloud/gkehub_v1/multiclusteringress_v1
 
-  # Exception: release disabled (used differently)
+  # Handwritten/hybrid libraries with release disabled
   - bigquery:
+      path: bigquery/
       release:
         disabled: true
       keep:
         - ^internal/generated/snippets/bigquery/v2/
 
-  - bigquery/v2:
+  - bigquery-v2:
+      path: bigquery/v2/
+      name: bigquery/v2
       release:
         disabled: true
 
   - datastore:
+      path: datastore/
       release:
         disabled: true
 
   - errorreporting:
+      path: errorreporting/
       release:
         disabled: true
 
   - firestore:
+      path: firestore/
       release:
         disabled: true
 
   - logging:
+      path: logging/
       release:
         disabled: true
 
   - longrunning:
+      path: longrunning/
       release:
         disabled: true
 
   - pubsub:
+      path: pubsub/
       release:
         disabled: true
 
-  - pubsub/v2:
+  - pubsub-v2:
+      path: pubsub/v2/
+      name: pubsub/v2
       release:
         disabled: true
 
   - pubsublite:
+      path: pubsublite/
       release:
         disabled: true
 
   - spanner:
+      path: spanner/
       release:
         disabled: true
 
   - storage:
+      path: storage/
       release:
         disabled: true
