@@ -1,55 +1,94 @@
 # Configuration Reference
 
-This document describes the complete `librarian.yaml` schema.
+This document describes the `librarian.yaml` configuration schema with auto-discovery.
 
 ## Overview
 
-All configuration lives in a single `librarian.yaml` file at the repository root. This file contains:
+Librarian uses a **minimal configuration** approach. Instead of explicitly listing every library, it automatically discovers APIs from the googleapis repository and derives library names using language-specific conventions.
 
-- Repository-wide settings (language, container, sources)
+Configuration defines:
+- Repository-wide settings (language, sources)
 - Default generation settings
 - Release configuration
-- Per-library configuration
+- **Exceptions only** - libraries that deviate from standard patterns
 
-## Root-Level Structure
+## Quick Start
+
+### Minimal Python Configuration
 
 ```yaml
-version: v1                    # Schema version
-language: go                   # Primary language (go, python, rust)
+version: v1
+language: python
 
-sources:                       # External source repositories
+sources:
   googleapis:
-    url: https://...
-    sha256: ...
+    url: https://github.com/googleapis/googleapis/archive/COMMIT.tar.gz
+    sha256: HASH
 
-container:                     # Container image configuration
-  image: ...
-  tag: ...
-
-generate:                      # Generation configuration
-  dir: ./                      # Default output directory
-
-defaults:                      # Default settings for all libraries
-  release_level: stable
+defaults:
+  generate_dir: packages/
   transport: grpc+rest
+  rest_numeric_enums: true
 
-release:                       # Release configuration
+release:
   tag_format: '{name}/v{version}'
 
-libraries:                     # Library definitions
-  - name: secretmanager
-    path: secretmanager/
-    generate:
-      apis:
-        - path: google/cloud/secretmanager/v1
+# Auto-discover all APIs from googleapis
+auto_discover: true
+
+# Only list exceptions
+libraries:
+  # Exception: has handwritten code
+  - google/cloud/bigquery/storage/v1:
+      keep:
+        - google/cloud/bigquery_storage_v1/client.py
 ```
 
-## Field Reference
+**Result**: Automatically generates ~200+ libraries by scanning googleapis, only 1 exception needs explicit config.
+
+### Minimal Dart Configuration (Explicit Mode)
+
+```yaml
+version: v1
+language: dart
+
+sources:
+  googleapis:
+    url: https://github.com/googleapis/googleapis/archive/COMMIT.tar.gz
+    sha256: HASH
+
+defaults:
+  generate_dir: generated/
+  packaging: version
+
+release:
+  tag_format: '{name}/v{version}'
+
+# No auto-discovery - explicitly list what to generate
+auto_discover: false
+
+libraries:
+  # Common protos
+  - google/api
+  - google/iam/v1
+  - google/cloud/location
+
+  # Service APIs
+  - google/cloud/secretmanager/v1
+  - google/cloud/functions/v2
+```
+
+**Result**: Only generates the 5 explicitly listed APIs.
+
+---
+
+## Root-Level Fields
 
 ### `version`
 
 **Type:** string
 **Required:** Yes
+**Value:** `v1`
 
 Schema version. Currently `v1`.
 
@@ -57,28 +96,30 @@ Schema version. Currently `v1`.
 version: v1
 ```
 
+---
+
 ### `language`
 
 **Type:** string
 **Required:** Yes
-**Values:** `go`, `python`, `rust`
+**Values:** `go`, `python`, `rust`, `dart`
 
 Primary language for this repository.
 
 ```yaml
-language: go
+language: python
 ```
+
+---
 
 ### `sources`
 
 **Type:** object
-**Required:** No (but required for generation)
+**Required:** Yes
 
-External source repositories used for code generation.
+External source repositories for code generation.
 
 #### `sources.googleapis`
-
-Configuration for googleapis repository.
 
 **Fields:**
 - `url` (string, required) - URL to googleapis tarball
@@ -92,55 +133,24 @@ sources:
     sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
 ```
 
-#### `sources.discovery`
-
-Configuration for discovery-artifact-manager repository (used by Rust for Discovery-based APIs).
+#### `sources.protobuf` (Dart only)
 
 **Fields:**
-- `url` (string, required) - URL to discovery tarball
-- `sha256` (string, required) - SHA256 hash for verification
+- `url` (string, required) - URL to protobuf tarball
+- `sha256` (string, required) - SHA256 hash
 - `extracted_name` (string, optional) - Directory name after extraction
+- `subdir` (string, optional) - Subdirectory containing proto files
 
 ```yaml
 sources:
-  discovery:
-    url: https://github.com/googleapis/discovery-artifact-manager/archive/xyz789.tar.gz
-    sha256: 867048ec8f0850a4d77ad836319e4c0a0c624928611af8a900cd77e676164e8e
+  protobuf:
+    url: https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz
+    sha256: 008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e
+    extracted_name: protobuf-29.3
+    subdir: src
 ```
 
-### `container`
-
-**Type:** object
-**Required:** No (but required for generation)
-
-Container image configuration for code generation.
-
-**Fields:**
-- `image` (string, required) - Container registry path (without tag)
-- `tag` (string, required) - Container image tag
-
-```yaml
-container:
-  image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/librarian-go
-  tag: latest
-```
-
-### `generate`
-
-**Type:** object
-**Required:** No
-
-Global generation settings.
-
-**Fields:**
-- `dir` (string, optional) - Default output directory for generated libraries
-
-```yaml
-generate:
-  dir: ./              # Go: repository root
-  # dir: packages/    # Python: packages directory
-  # dir: src/generated/ # Rust: src/generated directory
-```
+---
 
 ### `defaults`
 
@@ -149,17 +159,42 @@ generate:
 
 Default settings applied to all libraries (can be overridden per-library).
 
-**Fields:**
-- `release_level` (string, optional) - Default release level (`stable`, `preview`)
-- `transport` (string, optional) - Default transport (`grpc`, `rest`, `grpc+rest`)
-- `rest_numeric_enums` (boolean, optional) - Default for REST numeric enums
+**Common fields:**
+- `generate_dir` (string) - Output directory for generated code
+- `packaging` (string) - Packaging strategy: `service` or `version`
+- `transport` (string) - Default transport: `grpc`, `rest`, `grpc+rest`
+- `rest_numeric_enums` (boolean) - Use numeric enums in REST
 
 ```yaml
 defaults:
-  release_level: stable
+  generate_dir: packages/
+  packaging: service        # Bundle all versions into one library (Python/Go)
   transport: grpc+rest
   rest_numeric_enums: true
 ```
+
+**Language-specific defaults:**
+
+```yaml
+# Rust
+defaults:
+  generate_dir: src/generated/{api.path}
+  packaging: version        # Separate crate per version
+  release_level: stable
+  rust:
+    disabled_rustdoc_warnings:
+      - redundant_explicit_links
+
+# Dart
+defaults:
+  generate_dir: generated/
+  packaging: version        # Separate package per version
+  dart:
+    copyright_year: 2025
+    issue_tracker_url: https://github.com/googleapis/google-cloud-dart/issues
+```
+
+---
 
 ### `release`
 
@@ -169,203 +204,143 @@ defaults:
 Release configuration.
 
 **Fields:**
-- `tag_format` (string, optional) - Git tag format template. Supports `{name}` and `{version}` placeholders.
+- `tag_format` (string) - Git tag format. Supports `{name}` and `{version}` placeholders.
 - `remote` (string, optional) - Git remote name (default: `origin`)
 - `branch` (string, optional) - Git branch name (default: `main`)
 
 ```yaml
 release:
-  tag_format: '{name}/v{version}'  # Go: secretmanager/v1.2.0
-  # tag_format: '{name}-v{version}' # Alternative: secretmanager-v1.2.0
+  tag_format: '{name}/v{version}'
   remote: upstream
   branch: main
 ```
 
+---
+
+### `auto_discover`
+
+**Type:** boolean
+**Required:** No
+**Default:** `false`
+
+Enable automatic API discovery by scanning the googleapis filesystem.
+
+```yaml
+auto_discover: true   # Scan googleapis and generate all APIs
+auto_discover: false  # Only generate explicitly listed libraries
+```
+
+**How it works:**
+
+When enabled, librarian:
+1. Scans `googleapis/google/` directory tree
+2. Finds all directories matching version patterns (`v1`, `v1beta`, etc.)
+3. Checks for `BUILD.bazel` or `service.proto` to confirm it's an API
+4. Derives API ID from path: `google/cloud/secretmanager/v1` → `google.cloud.secretmanager.v1`
+5. Groups by service (Python/Go) or keeps separate (Rust/Dart) based on `packaging` setting
+
+**Example discovery:**
+
+```
+googleapis/google/cloud/secretmanager/
+├── v1/              → Found: google.cloud.secretmanager.v1
+└── v1beta2/         → Found: google.cloud.secretmanager.v1beta2
+
+Python/Go (packaging: service):
+  → ONE library: google-cloud-secretmanager (contains both versions)
+
+Rust/Dart (packaging: version):
+  → TWO libraries: google-cloud-secretmanager-v1, google-cloud-secretmanager-v1beta2
+```
+
+---
+
 ### `libraries`
 
 **Type:** array
-**Required:** Yes
+**Required:** No (when `auto_discover: true`)
 
-Array of library configurations.
+Library configurations.
+
+**With auto-discovery:** Only list exceptions (handwritten code, name overrides, disabled APIs)
+**Without auto-discovery:** Must list all libraries explicitly
+
+---
 
 ## Library Configuration
 
-Each library entry defines how a library is managed.
+### Short Syntax (API Path Only)
 
-### Library Types
-
-Libraries are classified by their configuration structure:
-
-#### 1. Fully Handwritten
-
-Contains only `name` and `path`. No generation.
+For libraries that follow all defaults:
 
 ```yaml
 libraries:
-  - name: pubsub
-    path: pubsub/
+  - google/cloud/secretmanager/v1
+  - google/api
+  - google/iam/v1
 ```
 
-#### 2. Fully Generated
+Librarian automatically:
+- Derives library name from API path
+- Uses default settings from `defaults` section
+- Discovers service config files
 
-Contains `name`, `path`, and `generate`. Entire directory is regenerated.
+---
+
+### Extended Syntax (With Overrides)
+
+For libraries that need customization:
 
 ```yaml
 libraries:
-  - name: secretmanager
-    path: secretmanager/
-    generate:
-      apis:
-        - path: google/cloud/secretmanager/v1
+  # Override name
+  - google/cloud/bigquery/storage/v1:
+      name: google-cloud-bigquerystorage
+
+  # Add handwritten code preservation
+  - google/cloud/bigquery/storage/v1:
+      keep:
+        - google/cloud/bigquery_storage_v1/client.py
+        - google/cloud/bigquery_storage_v1/reader.py
+
+  # Disable API
+  - google/cloud/broken/v1:
+      disabled: true
+      reason: "Missing BUILD.bazel configuration"
+
+  # Language-specific config
+  - google/cloud/aiplatform/v1beta1:
+      dart:
+        api_keys_environment_variables: GOOGLE_API_KEY
+        dev_dependencies:
+          - googleapis_auth
 ```
 
-#### 3. Hybrid (Generated + Handwritten)
-
-Contains `name`, `path`, `generate`, and `keep`. Specific files are protected.
-
-```yaml
-libraries:
-  - name: bigquery
-    path: bigquery/
-    generate:
-      apis:
-        - path: google/cloud/bigquery/storage/v1
-    keep:
-      - bigquery/client.go
-      - bigquery/samples/
-```
+---
 
 ### Library Fields
 
 #### `name`
 
 **Type:** string
-**Required:** Yes
+**Required:** No (derived from API path)
 
-Library name. This is the package/module name used by the language ecosystem.
+Override the default library name.
 
-**Examples:**
-- Go: `secretmanager`
-- Python: `google-cloud-secret-manager`
-- Rust: `google-cloud-secretmanager-v1`
+**Default derivation:**
 
-```yaml
-name: secretmanager
-```
+| Language | API Path | Derived Name |
+|----------|----------|--------------|
+| Python | `google/cloud/secretmanager/v1` | `google-cloud-secretmanager` |
+| Go | `google/cloud/secretmanager/v1` | `secretmanager` |
+| Rust | `google/cloud/secretmanager/v1` | `google-cloud-secretmanager-v1` |
+| Dart | `google/cloud/secretmanager/v1` | `google_cloud_secretmanager_v1` |
 
-#### `path`
-
-**Type:** string
-**Required:** No (derived from `name` and `generate.dir` if not specified)
-
-Filesystem path to the library directory (relative to repository root).
+**Override:**
 
 ```yaml
-path: secretmanager/                           # Go
-# path: packages/google-cloud-secret-manager/ # Python
-# path: src/generated/cloud/secretmanager/v1/ # Rust
-```
-
-#### `version`
-
-**Type:** string
-**Required:** No
-
-Current version of the library. Updated by `librarian release`.
-
-```yaml
-version: 1.2.0
-```
-
-#### `disabled`
-
-**Type:** boolean
-**Required:** No
-
-Temporarily disable generation for this library. Must include a comment with an issue link.
-
-```yaml
-# Disabled: Generator fails on proto field validation
-# See: https://github.com/org/repo/issues/123
-libraries:
-  - name: aiplatform
-    disabled: true
-    generate:
-      apis:
-        - path: google/cloud/aiplatform/v1
-```
-
-**Behavior:**
-- `librarian generate --all` - Skips with warning
-- `librarian generate aiplatform` - Returns error with issue link
-- `librarian release aiplatform` - Still works (only generation is disabled)
-
-#### `generate`
-
-**Type:** object
-**Required:** No (but required for code generation)
-
-Generation configuration for this library.
-
-##### `generate.apis`
-
-**Type:** array
-**Required:** Yes (if `generate` is present)
-
-Array of API configurations. Each API represents one proto service to generate.
-
-**API Fields:**
-
-- `path` (string, required) - API path relative to googleapis root
-  - Example: `google/cloud/secretmanager/v1`
-- `service_config` (string, optional) - Service YAML filename
-  - Example: `secretmanager_v1.yaml`
-- `grpc_service_config` (string, optional) - gRPC retry config JSON filename
-  - Example: `secretmanager_grpc_service_config.json`
-- `transport` (string, optional) - Transport protocol
-  - Values: `grpc`, `rest`, `grpc+rest`
-- `rest_numeric_enums` (boolean, optional) - Use numeric enums in REST
-- Additional language-specific fields (see language docs)
-
-**Simple format (string):**
-```yaml
-generate:
-  apis:
-    - google/cloud/secretmanager/v1
-```
-
-**Extended format (object):**
-```yaml
-generate:
-  apis:
-    - path: google/cloud/secretmanager/v1
-      service_config: secretmanager_v1.yaml
-      grpc_service_config: secretmanager_grpc_service_config.json
-      transport: grpc+rest
-      rest_numeric_enums: true
-```
-
-**Multiple APIs:**
-```yaml
-generate:
-  apis:
-    - path: google/cloud/secretmanager/v1
-    - path: google/cloud/secretmanager/v1beta2
-```
-
-##### `generate.specification_format`
-
-**Type:** string
-**Required:** No
-**Values:** `protobuf`, `disco`, `openapi`, `none`
-**Default:** `protobuf`
-
-API specification format. Most APIs use `protobuf`. Some (like Compute) use `disco` (Discovery).
-
-```yaml
-generate:
-  specification_format: protobuf  # Default
-  # specification_format: disco   # For Discovery-based APIs
+- google/cloud/bigquery/storage/v1:
+    name: google-cloud-bigquerystorage
 ```
 
 #### `keep`
@@ -373,80 +348,156 @@ generate:
 **Type:** array (strings)
 **Required:** No
 
-Files and directories to preserve during regeneration (for hybrid libraries).
+Files and directories to preserve during regeneration (for hybrid libraries with handwritten code).
 
-**Format:** Array of file paths or directory paths (relative to repository root).
+**Format:** Array of file paths relative to repository root.
 
 ```yaml
 keep:
-  - secretmanager/client.go          # Specific file (full path from repo root)
-  - secretmanager/samples/           # Directory (full path from repo root)
-  - secretmanager/custom/*.go        # Pattern (if supported)
+  - google/cloud/bigquery_storage_v1/client.py          # Specific file
+  - google/cloud/bigquery_storage_v1/samples/           # Directory
+  - google/cloud/bigquery_storage_v1/custom/*.go        # Pattern
 ```
 
-**Use cases:**
-- Handwritten client wrappers
-- Custom helper functions
-- Integration tests
-- Documentation
+#### `disabled`
 
-## Language-Specific Configuration
+**Type:** boolean
+**Required:** No
 
-Each language can have additional fields. See:
-- [go.md](go.md#configuration) - Go-specific fields
-- [python.md](python.md#configuration) - Python-specific fields
-- [rust.md](rust.md#configuration) - Rust-specific fields
+Disable generation for this API. Must include a `reason` field.
+
+```yaml
+- google/cloud/broken/v1:
+    disabled: true
+    reason: "Missing required BUILD.bazel service_config"
+```
+
+#### `versions`
+
+**Type:** array (strings)
+**Required:** No
+
+For multi-version APIs, specify which versions to include. By default, all discovered versions are included.
+
+```yaml
+# API has v1, v1alpha, v1beta, v1beta2, v1beta3
+# Only generate v1 and v1beta3
+- google/ai/generativelanguage:
+    versions: [v1, v1beta3]
+```
+
+#### Language-Specific Fields
+
+See language-specific documentation:
+- [go.md](go.md) - Go-specific fields
+- [python.md](python.md) - Python-specific fields
+- [rust.md](rust.md) - Rust-specific fields
+
+---
+
+## Name Derivation Rules
+
+Library names are derived from API paths using language conventions:
+
+### Python (service-level packaging)
+
+```
+API path: google/cloud/secretmanager/v1
+Service:  secretmanager
+Namespace: cloud
+Name:     google-cloud-secretmanager
+
+API path: google/ai/generativelanguage/v1
+Service:  generativelanguage
+Namespace: ai
+Name:     google-ai-generativelanguage
+```
+
+### Go (service-level packaging)
+
+```
+API path: google/cloud/secretmanager/v1
+Service:  secretmanager
+Name:     secretmanager
+
+API path: google/analytics/admin/v1alpha
+Service:  admin (from google/analytics/admin)
+Name:     analytics
+```
+
+### Rust (version-level packaging)
+
+```
+API path: google/cloud/secretmanager/v1
+Name:     google-cloud-secretmanager-v1
+
+API path: google/cloud/secretmanager/v1beta2
+Name:     google-cloud-secretmanager-v1beta2
+```
+
+### Dart (version-level packaging)
+
+```
+API path: google/cloud/secretmanager/v1
+Name:     google_cloud_secretmanager_v1
+
+API path: google/ai/generativelanguage/v1beta
+Name:     google_cloud_ai_generativelanguage_v1beta
+```
+
+---
+
+## Multi-Version Handling
+
+### Service-Level Packaging (Python, Go)
+
+All versions of a service are bundled into one library:
+
+```yaml
+# Discovered APIs:
+# - google/ai/generativelanguage/v1
+# - google/ai/generativelanguage/v1alpha
+# - google/ai/generativelanguage/v1beta
+# - google/ai/generativelanguage/v1beta2
+# - google/ai/generativelanguage/v1beta3
+
+# Result: ONE library with all 5 versions
+# Name: google-ai-generativelanguage (Python)
+# Name: ai (Go)
+```
+
+**To generate only specific versions:**
+
+```yaml
+- google/ai/generativelanguage:
+    versions: [v1, v1beta3]  # Skip alpha, beta, beta2
+```
+
+### Version-Level Packaging (Rust, Dart)
+
+Each version becomes a separate library:
+
+```yaml
+# Discovered APIs:
+# - google/cloud/aiplatform/v1
+# - google/cloud/aiplatform/v1beta1
+
+# Result: TWO libraries
+# Rust: google-cloud-aiplatform-v1, google-cloud-aiplatform-v1beta1
+# Dart: google_cloud_aiplatform_v1, google_cloud_aiplatform_v1beta1
+```
+
+**To generate only v1:**
+
+```yaml
+- google/cloud/aiplatform/v1  # Only list the one you want
+```
+
+---
 
 ## Complete Examples
 
-### Go Example
-
-```yaml
-version: v1
-language: go
-
-sources:
-  googleapis:
-    url: https://github.com/googleapis/googleapis/archive/abc123.tar.gz
-    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
-
-container:
-  image: us-central1-docker.pkg.dev/.../librarian-go
-  tag: latest
-
-generate:
-  dir: ./
-
-release:
-  tag_format: '{name}/v{version}'
-
-libraries:
-  # Fully generated library
-  - name: secretmanager
-    path: secretmanager/
-    version: 1.2.0
-    generate:
-      apis:
-        - path: google/cloud/secretmanager/v1
-        - path: google/cloud/secretmanager/v1beta2
-
-  # Hybrid library (generated + handwritten)
-  - name: bigquery
-    path: bigquery/
-    version: 2.5.0
-    generate:
-      apis:
-        - path: google/cloud/bigquery/storage/v1
-    keep:
-      - bigquery/client.go
-
-  # Handwritten library
-  - name: pubsub
-    path: pubsub/
-    version: 3.0.0
-```
-
-### Python Example
+### Python with Auto-Discovery
 
 ```yaml
 version: v1
@@ -454,34 +505,86 @@ language: python
 
 sources:
   googleapis:
-    url: https://github.com/googleapis/googleapis/archive/abc123.tar.gz
-    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
-
-container:
-  image: us-central1-docker.pkg.dev/.../librarian-python
-  tag: latest
-
-generate:
-  dir: packages/
+    url: https://github.com/googleapis/googleapis/archive/COMMIT.tar.gz
+    sha256: HASH
 
 defaults:
+  generate_dir: packages/
+  packaging: service
   transport: grpc+rest
   rest_numeric_enums: true
 
 release:
   tag_format: '{name}/v{version}'
 
+auto_discover: true
+
 libraries:
-  - name: google-cloud-secret-manager
-    path: packages/google-cloud-secret-manager/
-    version: 2.20.0
-    generate:
-      apis:
-        - path: google/cloud/secretmanager/v1
-          transport: grpc+rest
+  # Exception: handwritten code
+  - google/cloud/bigquery/storage/v1:
+      keep:
+        - google/cloud/bigquery_storage_v1/client.py
+        - google/cloud/bigquery_storage_v1/reader.py
+        - google/cloud/bigquery_storage_v1/writer.py
+
+  - google/cloud/automl/v1beta1:
+      keep:
+        - docs/automl_v1beta1/tables.rst
+        - google/cloud/automl_v1beta1/services/tables
+
+  # Exception: custom name
+  - google/cloud/translate:
+      keep:
+        - google/cloud/translate_v2
+        - tests/unit/v2
 ```
 
-### Rust Example
+**Result**: ~200+ libraries generated, only 3 need explicit config.
+
+---
+
+### Go with Auto-Discovery
+
+```yaml
+version: v1
+language: go
+
+sources:
+  googleapis:
+    url: https://github.com/googleapis/googleapis/archive/COMMIT.tar.gz
+    sha256: HASH
+
+defaults:
+  generate_dir: '{name}/'
+  packaging: service
+  transport: grpc+rest
+
+release:
+  tag_format: '{name}/v{version}'
+
+auto_discover: true
+
+libraries:
+  # Exception: handwritten IAM client
+  - google/cloud/batch/v1:
+      keep:
+        - ^batch/apiv1/iam_policy_client\.go$
+
+  - google/cloud/vmmigration/v1:
+      keep:
+        - ^vmmigration/apiv1/iam_policy_client\.go$
+
+  # Exception: handwritten library (no generation)
+  - pubsub:
+      auto_discover: false  # Don't generate, fully handwritten
+
+  - storage:
+      auto_discover: false
+```
+
+---
+
+### Rust with Auto-Discovery
 
 ```yaml
 version: v1
@@ -489,45 +592,110 @@ language: rust
 
 sources:
   googleapis:
-    url: https://github.com/googleapis/googleapis/archive/abc123.tar.gz
-    sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
+    url: https://github.com/googleapis/googleapis/archive/COMMIT.tar.gz
+    sha256: HASH
   discovery:
-    url: https://github.com/googleapis/discovery-artifact-manager/archive/xyz789.tar.gz
-    sha256: 867048ec8f0850a4d77ad836319e4c0a0c624928611af8a900cd77e676164e8e
+    url: https://github.com/googleapis/discovery-artifact-manager/archive/COMMIT.tar.gz
+    sha256: HASH
 
-container:
-  image: us-central1-docker.pkg.dev/.../librarian-rust
-  tag: latest
-
-generate:
-  dir: src/generated/
+defaults:
+  generate_dir: src/generated/{api.path}
+  packaging: version
+  release_level: stable
+  rust:
+    disabled_rustdoc_warnings:
+      - redundant_explicit_links
+      - broken_intra_doc_links
 
 release:
   tag_format: '{name}/v{version}'
 
-libraries:
-  # Protobuf-based API
-  - name: google-cloud-secretmanager-v1
-    path: src/generated/cloud/secretmanager/v1/
-    version: 1.1.0
-    generate:
-      specification_format: protobuf
-      apis:
-        - path: google/cloud/secretmanager/v1
+auto_discover: true
 
-  # Discovery-based API
-  - name: google-cloud-compute-v1
-    path: src/generated/cloud/compute/v1/
-    version: 0.2.1
-    generate:
+# Filter: only stable versions
+discover_filter:
+  exclude: [*.v1alpha, *.v1beta*]
+
+libraries:
+  # Exception: include beta version for this service
+  - google/cloud/aiplatform/v1beta1:
+      rust:
+        per_service_features: true
+
+  # Exception: special Compute config (Discovery-based)
+  - google/cloud/compute/v1:
       specification_format: disco
-      apis:
-        - path: discoveries/compute.v1.json
+      rust:
+        per_service_features: true
+        default_features:
+          - instances
+          - projects
 ```
+
+---
+
+### Dart without Auto-Discovery
+
+```yaml
+version: v1
+language: dart
+
+sources:
+  googleapis:
+    url: https://github.com/googleapis/googleapis/archive/COMMIT.tar.gz
+    sha256: HASH
+  protobuf:
+    url: https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz
+    sha256: HASH
+    extracted_name: protobuf-29.3
+    subdir: src
+
+defaults:
+  generate_dir: generated/
+  packaging: version
+  dart:
+    copyright_year: 2025
+
+release:
+  tag_format: '{name}/v{version}'
+
+auto_discover: false
+
+libraries:
+  # Common protos
+  - google/api
+  - google/iam/v1
+  - google/cloud/location
+
+  # Service APIs
+  - google/cloud/secretmanager/v1
+  - google/cloud/functions/v2
+
+  # With overrides
+  - google/cloud/aiplatform/v1beta1:
+      dart:
+        api_keys_environment_variables: GOOGLE_API_KEY
+```
+
+---
 
 ## Configuration Best Practices
 
-### 1. Use Immutable Source References
+### 1. Use Auto-Discovery
+
+Enable auto-discovery to minimize configuration:
+
+```yaml
+# Good: auto-discover everything
+auto_discover: true
+
+# Only list exceptions
+libraries:
+  - google/cloud/bigquery/storage/v1:
+      keep: [...]
+```
+
+### 2. Use Immutable Source References
 
 Always use commit-specific URLs with SHA256 hashes:
 
@@ -538,132 +706,87 @@ sources:
     sha256: 81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98
 ```
 
-Don't use branch names like `main`:
+### 3. Use Defaults
+
+Put common settings in `defaults` to avoid repetition:
+
 ```yaml
-# Bad: not reproducible
-url: https://github.com/googleapis/googleapis/archive/main.tar.gz
+defaults:
+  generate_dir: packages/
+  transport: grpc+rest
+  rest_numeric_enums: true
 ```
 
-### 2. Minimize `keep` Patterns
+### 4. Minimal Keep Lists
 
 Only add `keep` entries when you've actually added handwritten code:
 
 ```yaml
 # Good: minimal keep list
 keep:
-  - secretmanager/client.go
+  - google/cloud/bigquery_storage_v1/client.py
 
 # Bad: preemptive keep list
 keep:
-  - secretmanager/client.go
-  - secretmanager/helpers.go
-  - secretmanager/custom/
+  - google/cloud/bigquery_storage_v1/client.py
+  - google/cloud/bigquery_storage_v1/helpers.py  # Doesn't exist yet
 ```
 
-### 3. Use Defaults for Common Settings
+### 5. Document Disabled APIs
 
-Put common settings in `defaults` to avoid repetition:
+Always include a reason when disabling:
 
 ```yaml
-defaults:
-  transport: grpc+rest
-  rest_numeric_enums: true
+- google/cloud/broken/v1:
+    disabled: true
+    reason: "BUILD.bazel missing required service_config"
+```
 
+---
+
+## Migration from Explicit Config
+
+To migrate from an explicit config (listing all libraries) to auto-discovery:
+
+1. **Add auto_discover: true**
+2. **Remove all standard libraries** that follow naming conventions
+3. **Keep only exceptions** (handwritten code, custom names, disabled)
+4. **Test**: `librarian generate --all --dry-run`
+
+**Example migration:**
+
+**Before (1,612 lines):**
+```yaml
 libraries:
-  - name: secretmanager
+  - name: google-cloud-secret-manager
+    version: 2.20.0
     generate:
       apis:
         - path: google/cloud/secretmanager/v1
-          # Inherits transport and rest_numeric_enums from defaults
-```
-
-### 4. Document Disabled Libraries
-
-Always include a comment with an issue link when disabling a library:
-
-```yaml
-# Disabled: BUILD.bazel missing required service_config
-# See: https://github.com/googleapis/googleapis/issues/12345
-libraries:
-  - name: broken-api
-    disabled: true
+  - name: google-cloud-storage
+    version: 2.10.0
     generate:
       apis:
-        - path: google/cloud/broken/v1
+        - path: google/storage/v2
+  # ... 229 more libraries
 ```
 
-### 5. Keep Configuration Close to Code
+**After (99 lines):**
+```yaml
+auto_discover: true
 
-The `librarian.yaml` file should live at the repository root alongside the code it configures.
-
-### 6. CLI Flags vs YAML Fields
-
-CLI flags use dashes while YAML fields use underscores:
-
-```bash
-# CLI flag (with dashes)
-librarian create mylib --apis google/cloud/foo/v1 --specification-format protobuf
-
-# YAML field (with underscores)
-generate:
-  specification_format: protobuf
+libraries:
+  # Only exceptions remain
+  - google/cloud/storage:
+      keep:
+        - google/cloud/storage/client.py
 ```
 
-This is a standard convention across most CLI tools (e.g., `--dry-run` flag becomes `dry_run` in config files).
+---
 
-## Configuration Migration
+## See Also
 
-### From Old .librarian Format
-
-The old format used three separate files:
-- `.librarian/config.yaml`
-- `.librarian/state.yaml`
-- `.librarian/generator-input/repo-config.yaml`
-
-The new format consolidates everything into `librarian.yaml`.
-
-**Migration command:**
-```bash
-librarian convert --input .librarian/ --output librarian.yaml
-```
-
-### From Sidekick (.sidekick.toml)
-
-Rust projects using Sidekick can migrate to librarian:
-
-```bash
-librarian convert --input .sidekick.toml --output librarian.yaml
-```
-
-## Schema Validation
-
-Librarian validates the configuration file on every command. Common errors:
-
-**Missing required fields:**
-```
-Error: librarian.yaml is missing required field 'language'
-```
-
-**Invalid language:**
-```
-Error: Unsupported language 'javascript'. Supported: go, python, rust
-```
-
-**Invalid API path:**
-```
-Error: API path 'google/cloud/invalid/v1' not found in googleapis
-```
-
-**Disabled library:**
-```
-Error: Library 'aiplatform' is disabled
-See: https://github.com/org/repo/issues/123
-```
-
-## Next Steps
-
-- Read [overview.md](overview.md) for CLI commands and workflows
-- Read language-specific docs:
-  - [go.md](go.md)
-  - [python.md](python.md)
-  - [rust.md](rust.md)
+- [alternatives.md](alternatives.md) - Design alternatives and why they were rejected
+- [go.md](go.md) - Go-specific configuration
+- [python.md](python.md) - Python-specific configuration
+- [rust.md](rust.md) - Rust-specific configuration

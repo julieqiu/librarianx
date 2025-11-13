@@ -21,6 +21,7 @@ sources:
         extracted_name: protobuf-29.3
         subdir: src
 defaults:
+    generate_dir: src/generated/{api.path}
     release_level: stable
     rust:
         disabled_rustdoc_warnings:
@@ -108,8 +109,6 @@ defaults:
             pre_installed:
                 cargo: cargo
                 git: git
-generate:
-    output: src/generated/{api.path}
 release:
     tag_format: '{name}/v{version}'
     remote: upstream
