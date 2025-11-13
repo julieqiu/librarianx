@@ -413,7 +413,7 @@ func TestFileExists(t *testing.T) {
 
 func createTempFile(t *testing.T, content string) string {
 	t.Helper()
-	tmpfile, err := os.CreateTemp("", "test-*.txt")
+	tmpfile, err := os.CreateTemp(t.TempDir(), "test-*.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

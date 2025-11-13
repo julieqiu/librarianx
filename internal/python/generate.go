@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package python provides the core generation logic for creating Python client libraries.
 package python
 
 import (

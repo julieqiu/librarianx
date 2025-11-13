@@ -59,5 +59,5 @@ func Release(ctx context.Context, lib *config.Library, version string, changes [
 // Publishing to PyPI is handled separately via CI/CD automation.
 // This function is provided for interface compatibility.
 func Publish(ctx context.Context, lib *config.Library, repoDir string) error {
-	return fmt.Errorf("Python libraries do not use 'librarian publish'. Publishing to PyPI is handled via CI/CD automation")
+	return fmt.Errorf("python libraries do not use 'librarian publish'. Publishing to PyPI is handled via CI/CD automation")
 }

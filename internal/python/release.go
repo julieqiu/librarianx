@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package python provides Python-specific release functionality for client libraries.
 package python
 
 import (
@@ -293,7 +292,7 @@ func updateGlobalChangelog(path, libName, version string, changes []*Change) err
 		return err
 	}
 
-	entry := formatGlobalChangelogEntry(libName, version, changes)
+	entry := formatGlobalChangelogEntry(version, changes)
 
 	// Find section for this library, or create it
 	lines := strings.Split(string(content), "\n")
@@ -307,7 +306,7 @@ func updateGlobalChangelog(path, libName, version string, changes []*Change) err
 }
 
 // formatGlobalChangelogEntry formats a global changelog entry.
-func formatGlobalChangelogEntry(libName, version string, changes []*Change) string {
+func formatGlobalChangelogEntry(version string, changes []*Change) string {
 	today := time.Now().Format("2006-01-02")
 
 	var buf strings.Builder
