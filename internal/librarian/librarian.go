@@ -20,6 +20,7 @@ import (
 	"compress/gzip"
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -30,6 +31,8 @@ import (
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/fetch"
+	"github.com/googleapis/librarian/internal/golang"
+	"github.com/googleapis/librarian/internal/golang/generate"
 	"github.com/googleapis/librarian/internal/python"
 	"github.com/googleapis/librarian/internal/sidekick/sidekick"
 	"github.com/urfave/cli/v3"
@@ -683,8 +686,113 @@ func runGenerate(ctx context.Context, libraryName string) error {
 	}
 }
 
-func generateGo(ctx context.Context, cfg *config.Config, library *config.Library) error {
-	return fmt.Errorf("go generation not yet fully implemented - needs integration with internal/generate/golang")
+func generateGo(ctx context.Context, cfg *config.Config, library *config.Library) (err error) {
+	// Determine output directory
+	outputDir := "{name}/"
+	if cfg.Generate != nil && cfg.Generate.Output != "" {
+		outputDir = cfg.Generate.Output
+	}
+
+	location, err := library.GeneratedLocation(outputDir)
+	if err != nil {
+		return fmt.Errorf("failed to determine output location: %w", err)
+	}
+
+	// Convert to absolute path
+	absLocation, err := filepath.Abs(location)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for %s: %w", location, err)
+	}
+
+	// Download googleapis if available
+	if cfg.Sources.Googleapis == nil {
+		return fmt.Errorf("googleapis source is not configured in librarian.yaml")
+	}
+
+	var googleapisRoot string
+	googleapisRoot, err = downloadAndExtractTarball(cfg.Sources.Googleapis)
+	if err != nil {
+		err = fmt.Errorf("failed to download and extract googleapis: %w", err)
+		return
+	}
+	defer func() {
+		cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// Create temporary librarian directory structure
+	librarianDir, err := os.MkdirTemp("", "librarian-go-*")
+	if err != nil {
+		return fmt.Errorf("failed to create temporary librarian directory: %w", err)
+	}
+	defer func() {
+		cerr := os.RemoveAll(librarianDir)
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// Create generator-input directory
+	generatorInputDir := filepath.Join(librarianDir, "generator-input")
+	if err := os.MkdirAll(generatorInputDir, 0755); err != nil {
+		return fmt.Errorf("failed to create generator-input directory: %w", err)
+	}
+
+	// Create minimal repo-config.yaml
+	repoConfigPath := filepath.Join(generatorInputDir, "repo-config.yaml")
+	repoConfigContent := "modules: []\n"
+	if err := os.WriteFile(repoConfigPath, []byte(repoConfigContent), 0644); err != nil {
+		return fmt.Errorf("failed to write repo-config.yaml: %w", err)
+	}
+
+	// Create generate-request.json
+	generateRequest := struct {
+		ID   string `json:"id"`
+		APIs []struct {
+			Path string `json:"path"`
+		} `json:"apis"`
+	}{
+		ID: library.Name,
+	}
+
+	for _, apiPath := range library.Apis {
+		generateRequest.APIs = append(generateRequest.APIs, struct {
+			Path string `json:"path"`
+		}{Path: apiPath})
+	}
+
+	requestJSON, err := json.Marshal(generateRequest)
+	if err != nil {
+		return fmt.Errorf("failed to marshal generate request: %w", err)
+	}
+
+	requestPath := filepath.Join(librarianDir, "generate-request.json")
+	if err := os.WriteFile(requestPath, requestJSON, 0644); err != nil {
+		return fmt.Errorf("failed to write generate-request.json: %w", err)
+	}
+
+	// Create output directory if it doesn't exist
+	if err := os.MkdirAll(absLocation, 0755); err != nil {
+		return fmt.Errorf("failed to create output directory: %w", err)
+	}
+
+	// Call golang.Generate
+	genCfg := &generate.Config{
+		LibrarianDir:         librarianDir,
+		InputDir:             generatorInputDir,
+		OutputDir:            absLocation,
+		SourceDir:            googleapisRoot,
+		DisablePostProcessor: false,
+	}
+
+	if err := golang.Generate(ctx, genCfg); err != nil {
+		return fmt.Errorf("go generation failed: %w", err)
+	}
+
+	fmt.Printf("Generated Go library %q at %s\n", library.Name, location)
+	return nil
 }
 
 func generatePython(ctx context.Context, cfg *config.Config, library *config.Library) (err error) {
