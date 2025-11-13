@@ -1,0 +1,1614 @@
+version: v1
+language: python
+
+container:
+  image: us-central1-docker.pkg.dev/cloud-sdk-librarian-prod/images-prod/python-librarian-generator
+  tag: latest
+
+sources:
+  googleapis:
+    url: TBD
+    sha256: TBD
+
+defaults:
+  generate_dir: packages/
+  transport: grpc+rest
+  rest_numeric_enums: true
+
+release:
+  tag_format: '{name}/v{version}'
+
+libraries:
+  - name: google-ads-admanager
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/ads/admanager/v1
+      keep:
+  - name: google-ads-marketingplatform-admin
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/marketingplatform/admin/v1alpha
+      keep:
+  - name: google-ai-generativelanguage
+    version: 0.9.0
+    generate:
+      apis:
+        - path: google/ai/generativelanguage/v1
+        - path: google/ai/generativelanguage/v1beta
+        - path: google/ai/generativelanguage/v1beta3
+        - path: google/ai/generativelanguage/v1beta2
+        - path: google/ai/generativelanguage/v1alpha
+      keep:
+  - name: google-analytics-admin
+    version: 0.26.0
+    generate:
+      apis:
+        - path: google/analytics/admin/v1beta
+        - path: google/analytics/admin/v1alpha
+      keep:
+  - name: google-analytics-data
+    version: 0.19.0
+    generate:
+      apis:
+        - path: google/analytics/data/v1alpha
+        - path: google/analytics/data/v1beta
+      keep:
+  - name: google-apps-card
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/apps/card/v1
+      keep:
+        - tests/unit/gapic/card_v1/test_card.py
+  - name: google-apps-chat
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/chat/v1
+      keep:
+  - name: google-apps-events-subscriptions
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/apps/events/subscriptions/v1
+        - path: google/apps/events/subscriptions/v1beta
+      keep:
+  - name: google-apps-meet
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/apps/meet/v2beta
+        - path: google/apps/meet/v2
+      keep:
+  - name: google-apps-script-type
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/apps/script/type
+        - path: google/apps/script/type/gmail
+        - path: google/apps/script/type/docs
+        - path: google/apps/script/type/drive
+        - path: google/apps/script/type/sheets
+        - path: google/apps/script/type/calendar
+        - path: google/apps/script/type/slides
+      keep:
+        - tests/unit/gapic/calendar/test_calendar.py
+        - tests/unit/gapic/docs/test_docs.py
+        - tests/unit/gapic/drive/test_drive.py
+        - tests/unit/gapic/gmail/test_gmail.py
+        - tests/unit/gapic/sheets/test_sheets.py
+        - tests/unit/gapic/slides/test_slides.py
+        - tests/unit/gapic/type/test_type.py
+  - name: google-area120-tables
+    version: 0.12.0
+    generate:
+      apis:
+        - path: google/area120/tables/v1alpha1
+      keep:
+  - name: google-cloud-access-approval
+    version: 1.17.0
+    generate:
+      apis:
+        - path: google/cloud/accessapproval/v1
+      keep:
+  - name: google-cloud-access-context-manager
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/identity/accesscontextmanager/v1
+        - path: google/identity/accesscontextmanager/type
+  - name: google-cloud-advisorynotifications
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/cloud/advisorynotifications/v1
+      keep:
+  - name: google-cloud-alloydb
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/cloud/alloydb/v1beta
+        - path: google/cloud/alloydb/v1
+        - path: google/cloud/alloydb/v1alpha
+      keep:
+  - name: google-cloud-alloydb-connectors
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/alloydb/connectors/v1
+        - path: google/cloud/alloydb/connectors/v1alpha
+        - path: google/cloud/alloydb/connectors/v1beta
+      keep:
+        - tests/unit/gapic/connectors_v1/test_connectors.py
+  - name: google-cloud-api-gateway
+    version: 1.13.0
+    generate:
+      apis:
+        - path: google/cloud/apigateway/v1
+      keep:
+  - name: google-cloud-api-keys
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/api/apikeys/v2
+      keep:
+  - name: google-cloud-apigee-connect
+    version: 1.13.0
+    generate:
+      apis:
+        - path: google/cloud/apigeeconnect/v1
+      keep:
+  - name: google-cloud-apigee-registry
+    version: 0.7.0
+    generate:
+      apis:
+        - path: google/cloud/apigeeregistry/v1
+      keep:
+  - name: google-cloud-apihub
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/cloud/apihub/v1
+      keep:
+  - name: google-cloud-appengine-admin
+    version: 1.15.0
+    generate:
+      apis:
+        - path: google/appengine/v1
+      keep:
+  - name: google-cloud-appengine-logging
+    version: 1.7.0
+    generate:
+      apis:
+        - path: google/appengine/logging/v1
+      keep:
+        - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
+  - name: google-cloud-apphub
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/apphub/v1
+      keep:
+  - name: google-cloud-artifact-registry
+    version: 1.17.0
+    generate:
+      apis:
+        - path: google/devtools/artifactregistry/v1
+        - path: google/devtools/artifactregistry/v1beta2
+      keep:
+  - name: google-cloud-asset
+    version: 4.1.0
+    generate:
+      apis:
+        - path: google/cloud/asset/v1p5beta1
+        - path: google/cloud/asset/v1
+        - path: google/cloud/asset/v1p1beta1
+        - path: google/cloud/asset/v1p2beta1
+      keep:
+  - name: google-cloud-assured-workloads
+    version: 2.1.0
+    generate:
+      apis:
+        - path: google/cloud/assuredworkloads/v1
+        - path: google/cloud/assuredworkloads/v1beta1
+      keep:
+  - name: google-cloud-audit-log
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/cloud/audit
+  - name: google-cloud-automl
+    version: 2.17.0
+    generate:
+      apis:
+        - path: google/cloud/automl/v1beta1
+        - path: google/cloud/automl/v1
+      keep:
+        - docs/automl_v1beta1/tables.rst
+        - google/cloud/automl_v1beta1/services/tables
+        - samples/README
+        - tests/unit/test_gcs_client_v1beta1.py
+        - tests/unit/test_tables_client_v1beta1.py
+  - name: google-cloud-backupdr
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/backupdr/v1
+      keep:
+  - name: google-cloud-bare-metal-solution
+    version: 1.11.0
+    generate:
+      apis:
+        - path: google/cloud/baremetalsolution/v2
+      keep:
+  - name: google-cloud-batch
+    version: 0.18.0
+    generate:
+      apis:
+        - path: google/cloud/batch/v1alpha
+        - path: google/cloud/batch/v1
+      keep:
+  - name: google-cloud-beyondcorp-appconnections
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/beyondcorp/appconnections/v1
+      keep:
+  - name: google-cloud-beyondcorp-appconnectors
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/beyondcorp/appconnectors/v1
+      keep:
+  - name: google-cloud-beyondcorp-appgateways
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/beyondcorp/appgateways/v1
+      keep:
+  - name: google-cloud-beyondcorp-clientconnectorservices
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/beyondcorp/clientconnectorservices/v1
+      keep:
+  - name: google-cloud-beyondcorp-clientgateways
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/beyondcorp/clientgateways/v1
+      keep:
+  - name: google-cloud-biglake
+    version: 0.1.1
+    generate:
+      apis:
+        - path: google/cloud/biglake/v1
+      keep:
+  - name: google-cloud-bigquery-analyticshub
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/analyticshub/v1
+      keep:
+  - name: google-cloud-bigquery-biglake
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/biglake/v1alpha1
+        - path: google/cloud/bigquery/biglake/v1
+      keep:
+  - name: google-cloud-bigquery-connection
+    version: 1.19.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/connection/v1
+      keep:
+  - name: google-cloud-bigquery-data-exchange
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/dataexchange/v1beta1
+      keep:
+  - name: google-cloud-bigquery-datapolicies
+    version: 0.7.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/datapolicies/v2beta1
+        - path: google/cloud/bigquery/datapolicies/v2
+        - path: google/cloud/bigquery/datapolicies/v1beta1
+        - path: google/cloud/bigquery/datapolicies/v1
+      keep:
+  - name: google-cloud-bigquery-datatransfer
+    version: 3.20.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/datatransfer/v1
+      keep:
+  - name: google-cloud-bigquery-logging
+    version: 1.7.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/logging/v1
+      keep:
+        - tests/unit/gapic/bigquery_logging_v1/test_bigquery_logging_v1.py
+  - name: google-cloud-bigquery-migration
+    version: 0.12.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/migration/v2alpha
+        - path: google/cloud/bigquery/migration/v2
+      keep:
+  - name: google-cloud-bigquery-reservation
+    version: 1.21.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/reservation/v1
+      keep:
+  - name: google-cloud-bigquery-storage
+    version: 2.34.0
+    generate:
+      apis:
+        - path: google/cloud/bigquery/storage/v1beta2
+        - path: google/cloud/bigquery/storage/v1alpha
+        - path: google/cloud/bigquery/storage/v1beta
+        - path: google/cloud/bigquery/storage/v1
+      keep:
+        - docs/.*/library.rst
+        - docs/samples
+        - google/cloud/bigquery_storage_v1/client.py
+        - google/cloud/bigquery_storage_v1/exceptions.py
+        - google/cloud/bigquery_storage_v1/gapic_types.py
+        - google/cloud/bigquery_storage_v1/reader.py
+        - google/cloud/bigquery_storage_v1/writer.py
+        - google/cloud/bigquery_storage_v1beta2/client.py
+        - google/cloud/bigquery_storage_v1beta2/exceptions.py
+        - google/cloud/bigquery_storage_v1beta2/writer.py
+        - CONTRIBUTING
+        - samples/__init__.py
+        - samples/conftest.py
+        - samples/pyarrow
+        - samples/quickstart
+        - samples/snippets
+        - samples/to_dataframe
+        - scripts/readme-gen
+        - testing/.gitignore
+        - tests/unit/.*.py
+  - name: google-cloud-billing
+    version: 1.17.0
+    generate:
+      apis:
+        - path: google/cloud/billing/v1
+      keep:
+  - name: google-cloud-billing-budgets
+    version: 1.18.0
+    generate:
+      apis:
+        - path: google/cloud/billing/budgets/v1
+        - path: google/cloud/billing/budgets/v1beta1
+      keep:
+  - name: google-cloud-binary-authorization
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/binaryauthorization/v1
+        - path: google/cloud/binaryauthorization/v1beta1
+      keep:
+  - name: google-cloud-build
+    version: 3.33.0
+    generate:
+      apis:
+        - path: google/devtools/cloudbuild/v1
+        - path: google/devtools/cloudbuild/v2
+      keep:
+  - name: google-cloud-capacityplanner
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/capacityplanner/v1beta
+      keep:
+  - name: google-cloud-certificate-manager
+    version: 1.11.0
+    generate:
+      apis:
+        - path: google/cloud/certificatemanager/v1
+      keep:
+  - name: google-cloud-channel
+    version: 1.24.0
+    generate:
+      apis:
+        - path: google/cloud/channel/v1
+      keep:
+  - name: google-cloud-chronicle
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/chronicle/v1
+      keep:
+  - name: google-cloud-cloudcontrolspartner
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/cloudcontrolspartner/v1beta
+        - path: google/cloud/cloudcontrolspartner/v1
+      keep:
+  - name: google-cloud-cloudsecuritycompliance
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/cloudsecuritycompliance/v1
+      keep:
+  - name: google-cloud-commerce-consumer-procurement
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/commerce/consumer/procurement/v1
+        - path: google/cloud/commerce/consumer/procurement/v1alpha1
+      keep:
+  - name: google-cloud-common
+    version: 1.7.0
+    generate:
+      apis:
+        - path: google/cloud/common
+      keep:
+        - tests/unit/gapic/common/test_common.py
+  - name: google-cloud-compute
+    version: 1.40.0
+    generate:
+      apis:
+        - path: google/cloud/compute/v1
+      keep:
+  - name: google-cloud-compute-v1beta
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/compute/v1beta
+      keep:
+  - name: google-cloud-confidentialcomputing
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/cloud/confidentialcomputing/v1
+      keep:
+  - name: google-cloud-config
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/config/v1
+      keep:
+  - name: google-cloud-configdelivery
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/configdelivery/v1beta
+        - path: google/cloud/configdelivery/v1alpha
+        - path: google/cloud/configdelivery/v1
+      keep:
+  - name: google-cloud-contact-center-insights
+    version: 1.24.0
+    generate:
+      apis:
+        - path: google/cloud/contactcenterinsights/v1
+      keep:
+  - name: google-cloud-container
+    version: 2.61.0
+    generate:
+      apis:
+        - path: google/container/v1
+        - path: google/container/v1beta1
+      keep:
+  - name: google-cloud-containeranalysis
+    version: 2.19.0
+    generate:
+      apis:
+        - path: google/devtools/containeranalysis/v1
+      keep:
+        - tests/unit/test_get_grafeas_client.py
+  - name: google-cloud-contentwarehouse
+    version: 0.8.0
+    generate:
+      apis:
+        - path: google/cloud/contentwarehouse/v1
+      keep:
+  - name: google-cloud-data-fusion
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/datafusion/v1
+      keep:
+  - name: google-cloud-data-qna
+    version: 0.11.0
+    generate:
+      apis:
+        - path: google/cloud/dataqna/v1alpha
+      keep:
+  - name: google-cloud-datacatalog
+    version: 3.28.0
+    generate:
+      apis:
+        - path: google/cloud/datacatalog/v1
+        - path: google/cloud/datacatalog/v1beta1
+      keep:
+  - name: google-cloud-datacatalog-lineage
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/cloud/datacatalog/lineage/v1
+      keep:
+  - name: google-cloud-dataflow-client
+    version: 0.10.0
+    generate:
+      apis:
+        - path: google/dataflow/v1beta3
+      keep:
+  - name: google-cloud-dataform
+    version: 0.7.0
+    generate:
+      apis:
+        - path: google/cloud/dataform/v1beta1
+        - path: google/cloud/dataform/v1
+      keep:
+  - name: google-cloud-datalabeling
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/datalabeling/v1beta1
+      keep:
+  - name: google-cloud-dataplex
+    version: 2.14.0
+    generate:
+      apis:
+        - path: google/cloud/dataplex/v1
+      keep:
+  - name: google-cloud-dataproc
+    version: 5.23.0
+    generate:
+      apis:
+        - path: google/cloud/dataproc/v1
+      keep:
+  - name: google-cloud-dataproc-metastore
+    version: 1.20.0
+    generate:
+      apis:
+        - path: google/cloud/metastore/v1alpha
+        - path: google/cloud/metastore/v1beta
+        - path: google/cloud/metastore/v1
+      keep:
+  - name: google-cloud-datastream
+    version: 1.16.0
+    generate:
+      apis:
+        - path: google/cloud/datastream/v1
+        - path: google/cloud/datastream/v1alpha1
+      keep:
+  - name: google-cloud-deploy
+    version: 2.8.0
+    generate:
+      apis:
+        - path: google/cloud/deploy/v1
+      keep:
+  - name: google-cloud-developerconnect
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/developerconnect/v1
+      keep:
+  - name: google-cloud-devicestreaming
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/devicestreaming/v1
+      keep:
+  - name: google-cloud-dialogflow
+    version: 2.43.0
+    generate:
+      apis:
+        - path: google/cloud/dialogflow/v2beta1
+        - path: google/cloud/dialogflow/v2
+      keep:
+  - name: google-cloud-dialogflow-cx
+    version: 2.0.0
+    generate:
+      apis:
+        - path: google/cloud/dialogflow/cx/v3
+        - path: google/cloud/dialogflow/cx/v3beta1
+      keep:
+  - name: google-cloud-discoveryengine
+    version: 0.15.0
+    generate:
+      apis:
+        - path: google/cloud/discoveryengine/v1
+        - path: google/cloud/discoveryengine/v1beta
+        - path: google/cloud/discoveryengine/v1alpha
+      keep:
+  - name: google-cloud-dlp
+    version: 3.33.0
+    generate:
+      apis:
+        - path: google/privacy/dlp/v2
+      keep:
+  - name: google-cloud-dms
+    version: 1.13.0
+    generate:
+      apis:
+        - path: google/cloud/clouddms/v1
+      keep:
+  - name: google-cloud-documentai
+    version: 3.7.0
+    generate:
+      apis:
+        - path: google/cloud/documentai/v1beta3
+        - path: google/cloud/documentai/v1
+      keep:
+  - name: google-cloud-domains
+    version: 1.11.0
+    generate:
+      apis:
+        - path: google/cloud/domains/v1beta1
+        - path: google/cloud/domains/v1
+      keep:
+  - name: google-cloud-edgecontainer
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/cloud/edgecontainer/v1
+      keep:
+  - name: google-cloud-edgenetwork
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/edgenetwork/v1
+      keep:
+  - name: google-cloud-enterpriseknowledgegraph
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/cloud/enterpriseknowledgegraph/v1
+      keep:
+  - name: google-cloud-essential-contacts
+    version: 1.11.0
+    generate:
+      apis:
+        - path: google/cloud/essentialcontacts/v1
+      keep:
+  - name: google-cloud-eventarc
+    version: 1.17.0
+    generate:
+      apis:
+        - path: google/cloud/eventarc/v1
+      keep:
+  - name: google-cloud-eventarc-publishing
+    version: 0.8.0
+    generate:
+      apis:
+        - path: google/cloud/eventarc/publishing/v1
+      keep:
+  - name: google-cloud-filestore
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/filestore/v1
+      keep:
+  - name: google-cloud-financialservices
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/financialservices/v1
+      keep:
+  - name: google-cloud-functions
+    version: 1.21.0
+    generate:
+      apis:
+        - path: google/cloud/functions/v2
+        - path: google/cloud/functions/v1
+      keep:
+  - name: google-cloud-gdchardwaremanagement
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/gdchardwaremanagement/v1alpha
+      keep:
+  - name: google-cloud-geminidataanalytics
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/cloud/geminidataanalytics/v1beta
+        - path: google/cloud/geminidataanalytics/v1alpha
+      keep:
+  - name: google-cloud-gke-backup
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/cloud/gkebackup/v1
+      keep:
+  - name: google-cloud-gke-connect-gateway
+    version: 0.11.0
+    generate:
+      apis:
+        - path: google/cloud/gkeconnect/gateway/v1beta1
+        - path: google/cloud/gkeconnect/gateway/v1
+      keep:
+  - name: google-cloud-gke-hub
+    version: 1.19.0
+    generate:
+      apis:
+        - path: google/cloud/gkehub/v1
+        - path: google/cloud/gkehub/v1beta1
+      keep:
+        - docs/gkehub_v1/configmanagement_v1
+        - docs/gkehub_v1/multiclusteringress_v1
+        - google/cloud/gkehub_v1/configmanagement_v1
+        - google/cloud/gkehub_v1/multiclusteringress_v1
+  - name: google-cloud-gke-multicloud
+    version: 0.6.22
+    generate:
+      apis:
+        - path: google/cloud/gkemulticloud/v1
+      keep:
+  - name: google-cloud-gkerecommender
+    version: 0.1.0
+    generate:
+      apis:
+        - path: google/cloud/gkerecommender/v1
+      keep:
+  - name: google-cloud-gsuiteaddons
+    version: 0.3.18
+    generate:
+      apis:
+        - path: google/cloud/gsuiteaddons/v1
+      keep:
+  - name: google-cloud-hypercomputecluster
+    version: 0.0.0
+    generate:
+      apis:
+        - path: google/cloud/hypercomputecluster/v1beta
+      keep:
+  - name: google-cloud-iam
+    version: 2.20.0
+    generate:
+      apis:
+        - path: google/iam/v3
+        - path: google/iam/v3beta
+        - path: google/iam/admin/v1
+        - path: google/iam/v2
+        - path: google/iam/credentials/v1
+        - path: google/iam/v2beta
+      keep:
+  - name: google-cloud-iam-logging
+    version: 1.5.0
+    generate:
+      apis:
+        - path: google/iam/v1/logging
+      keep:
+        - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
+  - name: google-cloud-iap
+    version: 1.18.0
+    generate:
+      apis:
+        - path: google/cloud/iap/v1
+      keep:
+  - name: google-cloud-ids
+    version: 1.11.0
+    generate:
+      apis:
+        - path: google/cloud/ids/v1
+      keep:
+  - name: google-cloud-kms
+    version: 3.7.0
+    generate:
+      apis:
+        - path: google/cloud/kms/v1
+      keep:
+  - name: google-cloud-kms-inventory
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/kms/inventory/v1
+      keep:
+  - name: google-cloud-language
+    version: 2.18.0
+    generate:
+      apis:
+        - path: google/cloud/language/v1
+        - path: google/cloud/language/v1beta2
+        - path: google/cloud/language/v2
+      keep:
+  - name: google-cloud-licensemanager
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/licensemanager/v1
+      keep:
+  - name: google-cloud-life-sciences
+    version: 0.10.0
+    generate:
+      apis:
+        - path: google/cloud/lifesciences/v2beta
+      keep:
+  - name: google-cloud-locationfinder
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/locationfinder/v1
+      keep:
+  - name: google-cloud-lustre
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/lustre/v1
+      keep:
+  - name: google-cloud-maintenance-api
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/maintenance/api/v1beta
+      keep:
+  - name: google-cloud-managed-identities
+    version: 1.13.0
+    generate:
+      apis:
+        - path: google/cloud/managedidentities/v1
+      keep:
+  - name: google-cloud-managedkafka
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/managedkafka/v1
+      keep:
+  - name: google-cloud-managedkafka-schemaregistry
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/managedkafka/schemaregistry/v1
+      keep:
+  - name: google-cloud-media-translation
+    version: 0.12.0
+    generate:
+      apis:
+        - path: google/cloud/mediatranslation/v1beta1
+      keep:
+  - name: google-cloud-memcache
+    version: 1.13.0
+    generate:
+      apis:
+        - path: google/cloud/memcache/v1
+        - path: google/cloud/memcache/v1beta2
+      keep:
+  - name: google-cloud-memorystore
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/memorystore/v1beta
+        - path: google/cloud/memorystore/v1
+      keep:
+  - name: google-cloud-migrationcenter
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/migrationcenter/v1
+      keep:
+  - name: google-cloud-modelarmor
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/modelarmor/v1beta
+        - path: google/cloud/modelarmor/v1
+      keep:
+  - name: google-cloud-monitoring
+    version: 2.28.0
+    generate:
+      apis:
+        - path: google/monitoring/v3
+      keep:
+        - docs/query.rst
+        - google/cloud/monitoring_v3/_dataframe.py
+        - google/cloud/monitoring_v3/query.py
+        - tests/unit/test__dataframe.py
+        - tests/unit/test_query.py
+  - name: google-cloud-monitoring-dashboards
+    version: 2.19.0
+    generate:
+      apis:
+        - path: google/monitoring/dashboard/v1
+      keep:
+        - google/monitoring
+        - tests/unit/gapic/dashboard_v1
+  - name: google-cloud-monitoring-metrics-scopes
+    version: 1.10.0
+    generate:
+      apis:
+        - path: google/monitoring/metricsscope/v1
+      keep:
+  - name: google-cloud-netapp
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/cloud/netapp/v1
+      keep:
+  - name: google-cloud-network-connectivity
+    version: 2.11.0
+    generate:
+      apis:
+        - path: google/cloud/networkconnectivity/v1
+        - path: google/cloud/networkconnectivity/v1alpha1
+      keep:
+  - name: google-cloud-network-management
+    version: 1.29.0
+    generate:
+      apis:
+        - path: google/cloud/networkmanagement/v1
+      keep:
+  - name: google-cloud-network-security
+    version: 0.9.21
+    generate:
+      apis:
+        - path: google/cloud/networksecurity/v1alpha1
+        - path: google/cloud/networksecurity/v1beta1
+        - path: google/cloud/networksecurity/v1
+      keep:
+  - name: google-cloud-network-services
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/cloud/networkservices/v1
+      keep:
+  - name: google-cloud-notebooks
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/notebooks/v1beta1
+        - path: google/cloud/notebooks/v1
+        - path: google/cloud/notebooks/v2
+      keep:
+  - name: google-cloud-optimization
+    version: 1.12.0
+    generate:
+      apis:
+        - path: google/cloud/optimization/v1
+      keep:
+  - name: google-cloud-oracledatabase
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/oracledatabase/v1
+      keep:
+  - name: google-cloud-orchestration-airflow
+    version: 1.18.0
+    generate:
+      apis:
+        - path: google/cloud/orchestration/airflow/service/v1
+        - path: google/cloud/orchestration/airflow/service/v1beta1
+      keep:
+  - name: google-cloud-org-policy
+    version: 1.15.0
+    generate:
+      apis:
+        - path: google/cloud/orgpolicy/v1
+        - path: google/cloud/orgpolicy/v2
+      keep:
+        - pytest.ini
+        - google/cloud/orgpolicy/v1/__init__.py
+        - tests/unit/test_packaging.py
+  - name: google-cloud-os-config
+    version: 1.22.0
+    generate:
+      apis:
+        - path: google/cloud/osconfig/v1alpha
+        - path: google/cloud/osconfig/v1
+      keep:
+  - name: google-cloud-os-login
+    version: 2.18.0
+    generate:
+      apis:
+        - path: google/cloud/oslogin/v1
+      keep:
+        - google/cloud/oslogin_v1/common
+        - docs/oslogin_v1/common/types.rst
+  - name: google-cloud-parallelstore
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/parallelstore/v1
+        - path: google/cloud/parallelstore/v1beta
+      keep:
+  - name: google-cloud-parametermanager
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/parametermanager/v1
+      keep:
+  - name: google-cloud-phishing-protection
+    version: 1.15.0
+    generate:
+      apis:
+        - path: google/cloud/phishingprotection/v1beta1
+      keep:
+  - name: google-cloud-policy-troubleshooter
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/policytroubleshooter/v1
+      keep:
+  - name: google-cloud-policysimulator
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/policysimulator/v1
+      keep:
+  - name: google-cloud-policytroubleshooter-iam
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/policytroubleshooter/iam/v3
+      keep:
+  - name: google-cloud-private-ca
+    version: 1.16.0
+    generate:
+      apis:
+        - path: google/cloud/security/privateca/v1
+        - path: google/cloud/security/privateca/v1beta1
+      keep:
+  - name: google-cloud-private-catalog
+    version: 0.10.0
+    generate:
+      apis:
+        - path: google/cloud/privatecatalog/v1beta1
+      keep:
+  - name: google-cloud-privilegedaccessmanager
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/privilegedaccessmanager/v1
+      keep:
+  - name: google-cloud-quotas
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/api/cloudquotas/v1
+        - path: google/api/cloudquotas/v1beta
+      keep:
+  - name: google-cloud-rapidmigrationassessment
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/rapidmigrationassessment/v1
+      keep:
+  - name: google-cloud-recaptcha-enterprise
+    version: 1.29.0
+    generate:
+      apis:
+        - path: google/cloud/recaptchaenterprise/v1
+      keep:
+  - name: google-cloud-recommendations-ai
+    version: 0.11.0
+    generate:
+      apis:
+        - path: google/cloud/recommendationengine/v1beta1
+      keep:
+  - name: google-cloud-recommender
+    version: 2.19.0
+    generate:
+      apis:
+        - path: google/cloud/recommender/v1beta1
+        - path: google/cloud/recommender/v1
+      keep:
+  - name: google-cloud-redis
+    version: 2.19.0
+    generate:
+      apis:
+        - path: google/cloud/redis/v1
+        - path: google/cloud/redis/v1beta1
+      keep:
+  - name: google-cloud-redis-cluster
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/redis/cluster/v1
+        - path: google/cloud/redis/cluster/v1beta1
+      keep:
+  - name: google-cloud-resource-manager
+    version: 1.15.0
+    generate:
+      apis:
+        - path: google/cloud/resourcemanager/v3
+      keep:
+  - name: google-cloud-retail
+    version: 2.7.0
+    generate:
+      apis:
+        - path: google/cloud/retail/v2
+        - path: google/cloud/retail/v2alpha
+        - path: google/cloud/retail/v2beta
+      keep:
+  - name: google-cloud-run
+    version: 0.12.0
+    generate:
+      apis:
+        - path: google/cloud/run/v2
+      keep:
+  - name: google-cloud-saasplatform-saasservicemgmt
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/saasplatform/saasservicemgmt/v1beta1
+      keep:
+  - name: google-cloud-scheduler
+    version: 2.17.0
+    generate:
+      apis:
+        - path: google/cloud/scheduler/v1
+        - path: google/cloud/scheduler/v1beta1
+      keep:
+  - name: google-cloud-secret-manager
+    version: 2.25.0
+    generate:
+      apis:
+        - path: google/cloud/secretmanager/v1
+        - path: google/cloud/secretmanager/v1beta2
+        - path: google/cloud/secrets/v1beta1
+      keep:
+  - name: google-cloud-securesourcemanager
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/securesourcemanager/v1
+      keep:
+  - name: google-cloud-security-publicca
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/cloud/security/publicca/v1
+        - path: google/cloud/security/publicca/v1beta1
+      keep:
+  - name: google-cloud-securitycenter
+    version: 1.41.0
+    generate:
+      apis:
+        - path: google/cloud/securitycenter/v2
+        - path: google/cloud/securitycenter/v1p1beta1
+        - path: google/cloud/securitycenter/v1beta1
+        - path: google/cloud/securitycenter/v1
+      keep:
+  - name: google-cloud-securitycentermanagement
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/securitycentermanagement/v1
+      keep:
+  - name: google-cloud-service-control
+    version: 1.17.0
+    generate:
+      apis:
+        - path: google/api/servicecontrol/v2
+        - path: google/api/servicecontrol/v1
+      keep:
+  - name: google-cloud-service-directory
+    version: 1.15.0
+    generate:
+      apis:
+        - path: google/cloud/servicedirectory/v1
+        - path: google/cloud/servicedirectory/v1beta1
+      keep:
+  - name: google-cloud-service-management
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/api/servicemanagement/v1
+      keep:
+  - name: google-cloud-service-usage
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/api/serviceusage/v1
+      keep:
+  - name: google-cloud-servicehealth
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/servicehealth/v1
+      keep:
+  - name: google-cloud-shell
+    version: 1.13.0
+    generate:
+      apis:
+        - path: google/cloud/shell/v1
+      keep:
+  - name: google-cloud-source-context
+    version: 1.8.0
+    generate:
+      apis:
+        - path: google/devtools/source/v1
+      keep:
+        - tests/unit/gapic/source_context_v1/test_source_context_v1.py
+  - name: google-cloud-speech
+    version: 2.34.0
+    generate:
+      apis:
+        - path: google/cloud/speech/v1
+        - path: google/cloud/speech/v2
+        - path: google/cloud/speech/v1p1beta1
+      keep:
+        - google/cloud/speech_v1/helpers.py
+        - tests/unit/test_helpers.py
+  - name: google-cloud-storage-control
+    version: 1.8.0
+    generate:
+      apis:
+        - path: google/storage/control/v2
+      keep:
+  - name: google-cloud-storage-transfer
+    version: 1.18.0
+    generate:
+      apis:
+        - path: google/storagetransfer/v1
+      keep:
+  - name: google-cloud-storagebatchoperations
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/storagebatchoperations/v1
+      keep:
+  - name: google-cloud-storageinsights
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/storageinsights/v1
+      keep:
+  - name: google-cloud-support
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/support/v2beta
+        - path: google/cloud/support/v2
+      keep:
+  - name: google-cloud-talent
+    version: 2.18.0
+    generate:
+      apis:
+        - path: google/cloud/talent/v4beta1
+        - path: google/cloud/talent/v4
+      keep:
+  - name: google-cloud-tasks
+    version: 2.20.0
+    generate:
+      apis:
+        - path: google/cloud/tasks/v2beta2
+        - path: google/cloud/tasks/v2beta3
+        - path: google/cloud/tasks/v2
+      keep:
+        - snippets/README.md
+  - name: google-cloud-telcoautomation
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/cloud/telcoautomation/v1
+        - path: google/cloud/telcoautomation/v1alpha1
+      keep:
+        - snippets/README.md
+  - name: google-cloud-texttospeech
+    version: 2.33.0
+    generate:
+      apis:
+        - path: google/cloud/texttospeech/v1
+        - path: google/cloud/texttospeech/v1beta1
+      keep:
+  - name: google-cloud-tpu
+    version: 1.24.0
+    generate:
+      apis:
+        - path: google/cloud/tpu/v2alpha1
+        - path: google/cloud/tpu/v2
+        - path: google/cloud/tpu/v1
+      keep:
+  - name: google-cloud-trace
+    version: 1.17.0
+    generate:
+      apis:
+        - path: google/devtools/cloudtrace/v2
+        - path: google/devtools/cloudtrace/v1
+      keep:
+  - name: google-cloud-translate
+    version: 3.22.0
+    generate:
+      apis:
+        - path: google/cloud/translate/v3beta1
+        - path: google/cloud/translate/v3
+      keep:
+        - docs/client.rst
+        - docs/v2.rst
+        - google/cloud/translate_v2
+        - tests/unit/v2
+  - name: google-cloud-video-live-stream
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/video/livestream/v1
+      keep:
+  - name: google-cloud-video-stitcher
+    version: 0.9.0
+    generate:
+      apis:
+        - path: google/cloud/video/stitcher/v1
+      keep:
+  - name: google-cloud-video-transcoder
+    version: 1.18.0
+    generate:
+      apis:
+        - path: google/cloud/video/transcoder/v1
+      keep:
+  - name: google-cloud-videointelligence
+    version: 2.17.0
+    generate:
+      apis:
+        - path: google/cloud/videointelligence/v1p3beta1
+        - path: google/cloud/videointelligence/v1
+        - path: google/cloud/videointelligence/v1p2beta1
+        - path: google/cloud/videointelligence/v1p1beta1
+        - path: google/cloud/videointelligence/v1beta2
+      keep:
+  - name: google-cloud-vision
+    version: 3.11.0
+    generate:
+      apis:
+        - path: google/cloud/vision/v1p3beta1
+        - path: google/cloud/vision/v1
+        - path: google/cloud/vision/v1p1beta1
+        - path: google/cloud/vision/v1p2beta1
+        - path: google/cloud/vision/v1p4beta1
+      keep:
+        - google/cloud/vision_helpers
+        - tests/unit/test_decorators.py
+        - tests/unit/test_helpers.py
+  - name: google-cloud-visionai
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/cloud/visionai/v1alpha1
+        - path: google/cloud/visionai/v1
+      keep:
+  - name: google-cloud-vm-migration
+    version: 1.13.0
+    generate:
+      apis:
+        - path: google/cloud/vmmigration/v1
+      keep:
+  - name: google-cloud-vmwareengine
+    version: 1.9.0
+    generate:
+      apis:
+        - path: google/cloud/vmwareengine/v1
+      keep:
+  - name: google-cloud-vpc-access
+    version: 1.14.0
+    generate:
+      apis:
+        - path: google/cloud/vpcaccess/v1
+      keep:
+  - name: google-cloud-webrisk
+    version: 1.19.0
+    generate:
+      apis:
+        - path: google/cloud/webrisk/v1beta1
+        - path: google/cloud/webrisk/v1
+      keep:
+  - name: google-cloud-websecurityscanner
+    version: 1.18.0
+    generate:
+      apis:
+        - path: google/cloud/websecurityscanner/v1alpha
+        - path: google/cloud/websecurityscanner/v1beta
+        - path: google/cloud/websecurityscanner/v1
+      keep:
+  - name: google-cloud-workflows
+    version: 1.19.0
+    generate:
+      apis:
+        - path: google/cloud/workflows/executions/v1
+        - path: google/cloud/workflows/executions/v1beta
+        - path: google/cloud/workflows/v1
+        - path: google/cloud/workflows/v1beta
+      keep:
+  - name: google-cloud-workstations
+    version: 0.6.0
+    generate:
+      apis:
+        - path: google/cloud/workstations/v1beta
+        - path: google/cloud/workstations/v1
+      keep:
+  - name: google-geo-type
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/geo/type
+      keep:
+        - tests/unit/gapic/type/test_type.py
+  - name: google-maps-addressvalidation
+    version: 0.4.0
+    generate:
+      apis:
+        - path: google/maps/addressvalidation/v1
+      keep:
+  - name: google-maps-areainsights
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/maps/areainsights/v1
+      keep:
+  - name: google-maps-fleetengine
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/maps/fleetengine/v1
+      keep:
+  - name: google-maps-fleetengine-delivery
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/maps/fleetengine/delivery/v1
+      keep:
+  - name: google-maps-mapsplatformdatasets
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/maps/mapsplatformdatasets/v1
+      keep:
+  - name: google-maps-places
+    version: 0.5.0
+    generate:
+      apis:
+        - path: google/maps/places/v1
+      keep:
+  - name: google-maps-routeoptimization
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/maps/routeoptimization/v1
+      keep:
+        - samples/README.rst
+  - name: google-maps-routing
+    version: 0.7.0
+    generate:
+      apis:
+        - path: google/maps/routing/v2
+      keep:
+  - name: google-maps-solar
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/maps/solar/v1
+      keep:
+  - name: google-shopping-css
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/shopping/css/v1
+      keep:
+  - name: google-shopping-merchant-accounts
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/accounts/v1
+        - path: google/shopping/merchant/accounts/v1beta
+      keep:
+  - name: google-shopping-merchant-conversions
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/conversions/v1
+        - path: google/shopping/merchant/conversions/v1beta
+      keep:
+  - name: google-shopping-merchant-datasources
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/datasources/v1
+        - path: google/shopping/merchant/datasources/v1beta
+      keep:
+  - name: google-shopping-merchant-inventories
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/inventories/v1beta
+        - path: google/shopping/merchant/inventories/v1
+      keep:
+  - name: google-shopping-merchant-issueresolution
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/issueresolution/v1
+        - path: google/shopping/merchant/issueresolution/v1beta
+      keep:
+  - name: google-shopping-merchant-lfp
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/lfp/v1beta
+        - path: google/shopping/merchant/lfp/v1
+      keep:
+  - name: google-shopping-merchant-notifications
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/notifications/v1
+        - path: google/shopping/merchant/notifications/v1beta
+      keep:
+  - name: google-shopping-merchant-ordertracking
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/ordertracking/v1
+        - path: google/shopping/merchant/ordertracking/v1beta
+      keep:
+  - name: google-shopping-merchant-products
+    version: 1.2.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/products/v1
+        - path: google/shopping/merchant/products/v1beta
+      keep:
+  - name: google-shopping-merchant-productstudio
+    version: 0.2.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/productstudio/v1alpha
+      keep:
+  - name: google-shopping-merchant-promotions
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/promotions/v1
+        - path: google/shopping/merchant/promotions/v1beta
+      keep:
+  - name: google-shopping-merchant-quota
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/quota/v1beta
+        - path: google/shopping/merchant/quota/v1
+      keep:
+  - name: google-shopping-merchant-reports
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/reports/v1beta
+        - path: google/shopping/merchant/reports/v1
+        - path: google/shopping/merchant/reports/v1alpha
+      keep:
+  - name: google-shopping-merchant-reviews
+    version: 0.3.0
+    generate:
+      apis:
+        - path: google/shopping/merchant/reviews/v1beta
+      keep:
+  - name: google-shopping-type
+    version: 1.1.0
+    generate:
+      apis:
+        - path: google/shopping/type
+      keep:
+        - tests/unit/gapic/type/test_type.py
+  - name: googleapis-common-protos
+    version: 1.71.0
+    generate:
+      apis:
+        - path: google/api
+        - path: google/cloud/location
+        - path: google/logging/type
+        - path: google/rpc
+        - path: google/rpc/context
+        - path: google/type
+  - name: grafeas
+    version: 1.16.0
+    generate:
+      apis:
+        - path: grafeas/v1
+      keep:
+        - grafeas/grafeas.py
+        - grafeas/grafeas/__init__.py
+        - grafeas/grafeas/grafeas_v1/types.py
+  - name: grpc-google-iam-v1
+    version: 0.14.2
+    generate:
+      apis:
+        - path: google/iam/v1
