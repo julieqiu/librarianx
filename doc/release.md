@@ -686,64 +686,230 @@ Having two commands makes this explicit.
 
 No `--skip-publish`, `--no-tag`, `--push`, etc. Just two simple commands.
 
-## Implementation Notes
+## Implementation Architecture
 
-### Existing Infrastructure
+The release system uses a clean separation between generic workflow and language-specific logic.
 
-The release implementation leverages existing container-based code generation:
+### Directory Structure
 
-1. **CLI Layer** (`internal/librarian/` or new `internal/release/`):
-   - Parses commits since last tag
-   - Determines version bump
-   - Runs tests
-   - Invokes container's `release-stage` command
-   - Creates git commit/tag
-   - Pushes to remote
+```
+internal/
+├── librarian/
+│   └── release.go          # Generic orchestration (git, commits, versioning)
+└── release/
+    ├── golang.go           # Go-specific release logic
+    ├── python.go           # Python-specific release logic
+    └── rust.go             # Rust-specific release logic (future)
+```
 
-2. **Container Layer** (existing `internal/generate/golang/release`):
-   - Already implemented for updating files
-   - Reads `release-stage-request.json`
-   - Updates CHANGES.md, version files, snippet metadata
-   - Writes to output directory
+### Generic Workflow (internal/librarian/release.go)
 
-### Container Invocation
+The CLI command handles all language-agnostic operations:
 
-The `librarian release` command prepares a request JSON:
+**1. Git History Analysis**
+```go
+// Find last tag
+lastTag := findLastTag(repo, libraryName)
 
-```json
-{
-  "libraries": [{
-    "id": "secretmanager",
-    "version": "1.16.0",
-    "release_triggered": true,
-    "source_roots": ["secretmanager"],
-    "apis": [{"path": "google/cloud/secretmanager/v1"}],
-    "changes": [
-      {
-        "type": "feat",
-        "subject": "add Secret rotation support",
-        "commit_hash": "abc1234..."
-      },
-      {
-        "type": "fix",
-        "subject": "handle nil pointers",
-        "commit_hash": "def5678..."
-      }
-    ],
-    "tag_format": "{id}/v{version}"
-  }]
+// Get commits since tag
+commits := getCommitsSince(repo, lastTag, libraryPath)
+```
+
+**2. Conventional Commit Parsing**
+```go
+// Parse each commit
+type Commit struct {
+    Hash           string
+    Type           string  // feat, fix, chore, docs, etc.
+    Subject        string
+    BreakingChange bool
+}
+
+commits := parseConventionalCommits(gitLog)
+```
+
+**3. Version Bump Determination**
+```go
+// Determine bump from commits
+func determineVersionBump(commits []*Commit) VersionBump {
+    if hasBreakingChange(commits) {
+        return Major  // X.0.0
+    }
+    if hasFeature(commits) {
+        return Minor  // 0.X.0
+    }
+    return Patch      // 0.0.X
 }
 ```
 
-Then invokes the container which updates the files.
+**4. Call Language-Specific Release**
+```go
+// Dispatch to language implementation
+switch cfg.Language {
+case "go":
+    err = golang.Release(ctx, lib, version, commits)
+case "python":
+    err = python.Release(ctx, lib, version, commits)
+case "rust":
+    err = rust.Release(ctx, lib, version, commits)
+}
+```
 
-### Language-Specific Publish
+**5. Git Operations**
+```go
+// Create commit
+git.Add(libPath)
+git.Commit(fmt.Sprintf("chore(release): %s v%s", lib.Name, version))
 
-The `librarian publish` command delegates to language-specific implementations:
+// Create and push tag
+git.Tag(tagName, message)
+git.Push("origin", tagName)
+```
 
-- **Go**: `internal/release/golang/publish.go` - Verifies pkg.go.dev indexing
-- **Python**: `internal/release/python/publish.go` - Runs `python -m build` and `twine upload`
-- **Rust**: `internal/release/rust/publish.go` - Runs `cargo semver-checks` and `cargo publish`
+### Language-Specific Implementation
+
+Each language file (`golang.go`, `python.go`, etc.) implements the same interface:
+
+```go
+package release
+
+// Release updates language-specific files and runs tests
+type Release interface {
+    // Release performs language-specific release preparation
+    Release(ctx context.Context, lib *config.Library, version string, changes []*Change) error
+
+    // Publish performs language-specific registry publishing
+    Publish(ctx context.Context, lib *config.Library) error
+}
+```
+
+**Example: internal/release/golang.go**
+```go
+package release
+
+func Release(ctx context.Context, lib *config.Library, version string, changes []*Change) error {
+    // 1. Run tests
+    if err := runGoTests(ctx, lib.Path); err != nil {
+        return err
+    }
+
+    // 2. Update CHANGES.md
+    if err := updateChangelog(lib, version, changes); err != nil {
+        return err
+    }
+
+    // 3. Update internal/version.go
+    if err := updateVersionFile(lib, version); err != nil {
+        return err
+    }
+
+    // 4. Update snippet metadata
+    if err := updateSnippetMetadata(lib, version); err != nil {
+        return err
+    }
+
+    return nil
+}
+
+func Publish(ctx context.Context, lib *config.Library) error {
+    // Verify pkg.go.dev indexing
+    return verifyPkgGoDev(lib)
+}
+```
+
+### Data Flow
+
+```
+User runs: librarian release secretmanager --execute
+
+1. CLI (internal/librarian/release.go)
+   ├─> Find last tag: secretmanager/v1.15.0
+   ├─> Parse commits since tag
+   ├─> Determine version: 1.16.0
+   │
+   ├─> Call language-specific release
+   │   └─> golang.Release()
+   │       ├─> Run tests
+   │       ├─> Update CHANGES.md
+   │       ├─> Update version.go
+   │       └─> Update snippet metadata
+   │
+   ├─> Create commit
+   ├─> Create tag: secretmanager/v1.16.0
+   └─> Push tag to remote
+
+2. User runs: librarian publish secretmanager --execute
+   └─> golang.Publish()
+       └─> Verify pkg.go.dev indexing
+```
+
+### Commit Data Structure
+
+Commits are parsed into a common structure used by all languages:
+
+```go
+type Change struct {
+    Type           string  // feat, fix, chore, docs, perf, refactor, revert
+    Scope          string  // Optional: secretmanager, pubsub, etc.
+    Subject        string  // Commit subject line
+    Body           string  // Full commit body
+    BreakingChange bool    // Has BREAKING CHANGE or !
+    CommitHash     string  // Git commit SHA
+}
+```
+
+### Version Bump Logic
+
+The CLI determines version bumps using conventional commits:
+
+```go
+// Analyze commits to determine bump type
+func analyzeCommits(commits []*Change, currentVersion string) (string, error) {
+    bump := Patch
+
+    for _, c := range commits {
+        if c.BreakingChange {
+            bump = Major
+            break
+        }
+        if c.Type == "feat" && bump < Minor {
+            bump = Minor
+        }
+    }
+
+    return bumpVersion(currentVersion, bump)
+}
+
+// Apply bump to current version
+func bumpVersion(current string, bump VersionBump) string {
+    parts := parseSemver(current)
+
+    switch bump {
+    case Major:
+        return fmt.Sprintf("%d.0.0", parts.Major+1)
+    case Minor:
+        return fmt.Sprintf("%d.%d.0", parts.Major, parts.Minor+1)
+    case Patch:
+        return fmt.Sprintf("%d.%d.%d", parts.Major, parts.Minor, parts.Patch+1)
+    }
+}
+```
+
+### Error Handling
+
+Each layer reports errors appropriately:
+
+**CLI layer errors:**
+- Working directory not clean
+- No commits since last tag
+- Tag already exists
+- Git push failed
+
+**Language-specific errors:**
+- Tests failed
+- File update failed
+- Publish credentials missing
+- Registry upload failed
 
 ## Related Documentation
 

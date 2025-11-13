@@ -322,14 +322,93 @@ replace cloud.google.com/go/secretmanager => ../../../secretmanager
 
 ## Release Process
 
-Go releases follow the standard librarian release workflow with Go-specific steps.
+Go releases follow the standard librarian release workflow with Go-specific implementation details.
+
+### Overview
+
+Go uses a two-command release process:
+
+1. **`librarian release`** - Prepares files, creates commit, tags, and pushes
+2. **`librarian publish`** - Verifies pkg.go.dev indexing (optional)
 
 ### Version Files
 
 Librarian updates these files during release:
 
 - `internal/version.go` - Module-level version constant
-- `apiv1/version.go` - API-level version variable (references internal.Version)
+- `CHANGES.md` - Changelog with new version entries
+- `internal/generated/snippets/{library}/apiv*/snippet_metadata.*.json` - Snippet metadata files
+
+### Go-Specific Implementation
+
+**For the complete release workflow, see [doc/release.md](release.md#implementation-architecture).**
+
+Go-specific logic is implemented in `internal/release/golang.go`:
+
+```go
+// Release performs Go-specific release preparation
+func Release(ctx context.Context, lib *config.Library, version string, changes []*Change) error {
+    // 1. Run Go tests
+    if err := runGoTests(ctx, lib.Path); err != nil {
+        return err
+    }
+
+    // 2. Update CHANGES.md with Google Cloud Go format
+    if err := updateChangelog(lib, version, changes); err != nil {
+        return err
+    }
+
+    // 3. Update internal/version.go
+    if err := updateVersionFile(lib, version); err != nil {
+        return err
+    }
+
+    // 4. Update snippet metadata JSON files
+    if err := updateSnippetMetadata(lib, version); err != nil {
+        return err
+    }
+
+    return nil
+}
+
+// Publish verifies pkg.go.dev indexing
+func Publish(ctx context.Context, lib *config.Library) error {
+    return verifyPkgGoDev(lib)
+}
+```
+
+#### 1. Running Tests
+
+```go
+func runGoTests(ctx context.Context, libPath string) error {
+    cmd := exec.CommandContext(ctx, "go", "test", "./...")
+    cmd.Dir = libPath
+    output, err := cmd.CombinedOutput()
+    if err != nil {
+        return fmt.Errorf("tests failed:\n%s", output)
+    }
+    return nil
+}
+```
+
+#### 2. Updating CHANGES.md
+
+Groups changes by type and generates Google Cloud Go changelog format (see [Changelog Format](#changelog-format) below).
+
+#### 3. Updating internal/version.go
+
+Generates version file from template:
+
+```go
+package internal
+
+// Version is the current version of this client.
+const Version = "1.16.0"
+```
+
+#### 4. Updating Snippet Metadata
+
+Finds and updates all `snippet_metadata.*.json` files, replacing the version field
 
 ### Tag Format
 
@@ -341,8 +420,10 @@ release:
 ```
 
 Examples:
-- `secretmanager/v1.2.0`
-- `pubsub/v3.0.0`
+- `secretmanager/v1.16.0`
+- `pubsub/v2.5.1`
+- `spanner/v4.0.0`
+- `secretmanager/v1.16.0-rc.1` (pre-release)
 
 ### Module Versioning (v2+)
 
@@ -357,6 +438,42 @@ libraries:
 
 This creates tags like `bigquery/v2.0.0` and uses import path `cloud.google.com/go/bigquery/v2`.
 
+### Changelog Format
+
+Go uses Google Cloud Go changelog style:
+
+```markdown
+# Changes
+
+## [1.16.0](https://github.com/googleapis/google-cloud-go/releases/tag/secretmanager%2Fv1.16.0) (2025-11-12)
+
+### Features
+
+* add Secret rotation support ([abc1234](https://github.com/googleapis/google-cloud-go/commit/abc1234...))
+* another feature ([def5678](https://github.com/googleapis/google-cloud-go/commit/def5678...))
+
+### Bug Fixes
+
+* handle nil pointers correctly ([123456a](https://github.com/googleapis/google-cloud-go/commit/123456a...))
+
+### Performance Improvements
+
+* optimize client creation ([789abcd](https://github.com/googleapis/google-cloud-go/commit/789abcd...))
+
+### Documentation
+
+* update README examples ([fedcba9](https://github.com/googleapis/google-cloud-go/commit/fedcba9...))
+
+## [1.15.0]...
+```
+
+**Features:**
+- Release URL in section header
+- Date in ISO format
+- Grouped by type (Features, Bug Fixes, Performance Improvements, Reverts, Documentation)
+- Commit links with shortened hash
+- Alphabetically sorted within sections
+
 ### Publishing
 
 Go libraries are automatically indexed by pkg.go.dev when tags are pushed. No manual publishing step is required.
@@ -365,9 +482,62 @@ Go libraries are automatically indexed by pkg.go.dev when tags are pushed. No ma
 # Release creates and pushes tag
 librarian release secretmanager --execute
 
-# pkg.go.dev automatically indexes the new version
-# Available at: https://pkg.go.dev/cloud.google.com/go/secretmanager@v1.2.0
+# Verify indexing (optional)
+librarian publish secretmanager --execute
 ```
+
+**What publish does for Go:**
+
+1. Finds latest tag: `secretmanager/v1.16.0`
+2. Verifies tag exists in remote
+3. Checks pkg.go.dev indexing status
+4. Prints tracking URL
+
+**Output:**
+```
+Publishing secretmanager...
+
+✓ Found tag: secretmanager/v1.16.0
+✓ Tag exists in remote
+✓ Published to pkg.go.dev (auto-indexed)
+
+Track: https://pkg.go.dev/cloud.google.com/go/secretmanager/apiv1@v1.16.0
+
+Note: pkg.go.dev indexes new tags within a few minutes.
+```
+
+### Pre-Release Versions
+
+Go supports pre-release versions in semver format:
+
+```bash
+# Create release candidate
+librarian release secretmanager --execute --version 1.16.0-rc.1
+
+# Tag: secretmanager/v1.16.0-rc.1
+# Import: go get cloud.google.com/go/secretmanager@v1.16.0-rc.1
+```
+
+Pre-release versions require explicit version in `go.mod`:
+```bash
+go get cloud.google.com/go/secretmanager/apiv1@v1.16.0-rc.1
+```
+
+### Root Module Libraries
+
+For single-module repositories (like gapic-generator-go), use special handling:
+
+```yaml
+libraries:
+  - name: root-module  # Special ID
+    path: ./
+    go:
+      source_roots: ["."]
+```
+
+Files are placed in repository root:
+- `CHANGES.md` (not `{library}/CHANGES.md`)
+- `internal/version.go` (not `{library}/internal/version.go`)
 
 ## Container Architecture
 
