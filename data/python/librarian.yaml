@@ -10,8 +10,10 @@ sources:
     url: TBD
     sha256: TBD
 
-generate:
-  output_dir: packages/
+defaults:
+  generate_dir: packages/
+  transport: grpc+rest
+  rest_numeric_enums: true
 
 release:
   tag_format: '{name}/v{version}'

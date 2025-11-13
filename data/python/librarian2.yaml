@@ -1,0 +1,99 @@
+version: v1
+language: python
+
+sources:
+  googleapis:
+    url: TBD
+    sha256: TBD
+
+defaults:
+  generate_dir: packages/
+  transport: grpc+rest
+  rest_numeric_enums: true
+
+release:
+  tag_format: '{name}/v{version}'
+
+# Auto-discover everything from googleapis api-index-v1.json
+auto_discover: true
+
+# Only configure exceptions to the defaults
+libraries:
+  # Exception: needs handwritten code
+  - google-cloud-automl:
+      keep:
+        - docs/automl_v1beta1/tables.rst
+        - google/cloud/automl_v1beta1/services/tables
+        - samples/README
+        - tests/unit/test_gcs_client_v1beta1.py
+        - tests/unit/test_tables_client_v1beta1.py
+
+  - google-cloud-bigquery-storage:
+      keep:
+        - docs/.*/library.rst
+        - docs/samples
+        - google/cloud/bigquery_storage_v1/client.py
+        - google/cloud/bigquery_storage_v1/exceptions.py
+        - google/cloud/bigquery_storage_v1/gapic_types.py
+        - google/cloud/bigquery_storage_v1/reader.py
+        - google/cloud/bigquery_storage_v1/writer.py
+        - google/cloud/bigquery_storage_v1beta2/client.py
+        - google/cloud/bigquery_storage_v1beta2/exceptions.py
+        - google/cloud/bigquery_storage_v1beta2/writer.py
+        - CONTRIBUTING
+        - samples/__init__.py
+        - samples/conftest.py
+        - samples/pyarrow
+        - samples/quickstart
+        - samples/snippets
+        - samples/to_dataframe
+        - scripts/readme-gen
+        - testing/.gitignore
+        - tests/unit/.*.py
+
+  - google-cloud-containeranalysis:
+      keep:
+        - tests/unit/test_get_grafeas_client.py
+
+  - google-cloud-monitoring:
+      keep:
+        - docs/query.rst
+        - google/cloud/monitoring_v3/_dataframe.py
+        - google/cloud/monitoring_v3/query.py
+        - tests/unit/test__dataframe.py
+        - tests/unit/test_query.py
+
+  - google-cloud-org-policy:
+      keep:
+        - pytest.ini
+        - google/cloud/orgpolicy/v1/__init__.py
+        - tests/unit/test_packaging.py
+
+  - google-cloud-os-login:
+      keep:
+        - google/cloud/oslogin_v1/common
+        - docs/oslogin_v1/common/types.rst
+
+  - google-cloud-speech:
+      keep:
+        - google/cloud/speech_v1/helpers.py
+        - tests/unit/test_helpers.py
+
+  - google-cloud-translate:
+      keep:
+        - docs/client.rst
+        - docs/v2.rst
+        - google/cloud/translate_v2
+        - tests/unit/v2
+
+  - google-cloud-vision:
+      keep:
+        - google/cloud/vision_helpers
+        - tests/unit/test_decorators.py
+        - tests/unit/test_helpers.py
+
+  - grafeas:
+      keep:
+        - grafeas/grafeas.py
+        - grafeas/grafeas/__init__.py
+        - grafeas/grafeas/grafeas_v1/types.py

@@ -638,3 +638,171 @@ We ultimately went with two commands (`librarian release` and `librarian publish
 - Reduces cognitive load (two concepts instead of three)
 
 The two-command design provides sufficient control without excessive granularity. Users can review changes with `git show HEAD` after `librarian release`, and retry publish independently if it fails. No sequential dependencies to remember, no subcommand namespace confusion, and the common case (release + publish) is just two simple commands.
+
+---
+
+## Alternative: Explicit Library Configuration (Rejected)
+
+### The Problem
+
+The initial librarian.yaml design required explicitly listing every library with full metadata:
+
+```yaml
+libraries:
+  - name: google-cloud-secret-manager
+    version: 2.20.0
+    path: packages/google-cloud-secret-manager/
+    generate:
+      apis:
+        - path: google/cloud/secretmanager/v1
+        - path: google/cloud/secretmanager/v1beta2
+```
+
+This resulted in **extremely verbose config files**:
+- Python: 1,612 lines for 231 libraries
+- Go: 1,165 lines for 183 libraries
+- Rust: 1,407 lines for 226 libraries
+
+### Why This Was Problematic
+
+1. **Duplicated Information**: Library names, paths, and API paths follow predictable patterns but had to be repeated explicitly
+2. **Manual Maintenance**: Every new API required manual config entry
+3. **Version Discovery**: API versions (v1, v1beta, etc.) had to be listed even though they're discoverable from googleapis
+4. **Signal-to-Noise**: The vast majority of libraries followed standard patterns, but exceptions were buried in repetition
+
+### Alternative Approaches Considered
+
+#### Option 1: Template-Based Generation with Macros
+
+```yaml
+templates:
+  standard-library:
+    generate:
+      output_dir: packages/
+    release:
+      tag_format: '{name}/v{version}'
+
+bulk_libraries:
+  - pattern: google-cloud-{service}
+    versions:
+      - service: secret-manager
+        version: 2.20.0
+```
+
+**Rejected because**: Still requires listing all libraries, just with different syntax. Doesn't solve the fundamental problem.
+
+#### Option 2: External Library Registry
+
+```yaml
+import:
+  - libraries.yaml
+  - custom-libraries.yaml
+```
+
+**Rejected because**: Splits configuration across multiple files. Doesn't reduce total lines, just reorganizes them.
+
+#### Option 3: Name Derivation with api-index-v1.json
+
+```yaml
+auto_discover: true
+
+# Read from googleapis/api-index-v1.json
+# Names derived from API paths
+```
+
+**Rejected because**: Couples librarian to googleapis internal JSON format. What Russ Cox would call "configuration depending on implementation details."
+
+### What We Chose: Filesystem-Based Auto-Discovery
+
+```yaml
+version: v1
+language: python
+
+sources:
+  googleapis:
+    url: https://github.com/googleapis/googleapis/archive/COMMIT.tar.gz
+    sha256: HASH
+
+defaults:
+  generate_dir: packages/
+  transport: grpc+rest
+  rest_numeric_enums: true
+
+release:
+  tag_format: '{name}/v{version}'
+
+# Auto-discover by traversing googleapis filesystem
+auto_discover: true
+
+# Only list exceptions
+libraries:
+  # Exception: handwritten code
+  - google/cloud/bigquery/storage/v1:
+      keep:
+        - google/cloud/bigquery_storage_v1/client.py
+        - google/cloud/bigquery_storage_v1/reader.py
+
+  # Exception: custom name
+  - google/cloud/automl/v1beta1:
+      name: google-cloud-automl
+```
+
+**Why this works:**
+
+1. **Minimal config**: Only exceptions listed (~10-20 libraries instead of 200+)
+2. **Filesystem as source of truth**: Scans googleapis directory tree to discover APIs
+3. **Language-specific packaging**: Automatically groups versions for Python/Go, separates for Rust/Dart
+4. **Name derivation**: Names inferred from API paths using language conventions
+5. **Explicit overrides**: Can override name, add keep rules, or disable when needed
+
+**Results:**
+- Python: 1,612 lines → 99 lines (93.9% reduction)
+- Go: 1,165 lines → 142 lines (87.8% reduction)
+- Rust: 1,407 lines → 385 lines (72.6% reduction)
+- Dart: 185 lines → 111 lines (40% reduction)
+
+### Discovery Algorithm
+
+Librarian traverses the googleapis filesystem:
+
+```
+googleapis/google/cloud/secretmanager/
+├── v1/              # Found: google.cloud.secretmanager.v1
+│   ├── BUILD.bazel
+│   ├── service.proto
+│   └── secretmanager_v1.yaml
+└── v1beta2/         # Found: google.cloud.secretmanager.v1beta2
+    └── ...
+```
+
+For **service-level packaging** (Python/Go):
+- Groups `google.cloud.secretmanager.{v1,v1beta2}` → ONE library `google-cloud-secretmanager`
+- All versions bundled in single package
+
+For **version-level packaging** (Rust/Dart):
+- `google.cloud.secretmanager.v1` → `google-cloud-secretmanager-v1`
+- `google.cloud.secretmanager.v1beta2` → `google-cloud-secretmanager-v1beta2`
+- Separate crates/packages per version
+
+### Design Principles
+
+> "If you need 1,600 lines to describe your system, that's not a configuration problem—that's a fundamental design problem."
+
+> "Configuration is code in a worse language. Every time you add a config field, ask: could this be inferred?"
+
+The new design embodies these principles:
+- **Auto-discover** instead of explicitly listing
+- **Derive names** from API paths instead of repeating them
+- **Implicit conventions** in code instead of explicit patterns in config
+- **Exceptions only** - configure what's different, not what's the same
+
+### Migration Path
+
+For repositories with existing explicit configs:
+
+1. **Add auto_discover: true** to enable discovery
+2. **Remove standard libraries** that follow patterns
+3. **Keep only exceptions** (handwritten code, custom names, disabled APIs)
+4. **Test**: `librarian generate --all --dry-run`
+
+The old explicit format remains supported for backward compatibility, but new repos should use auto-discovery.

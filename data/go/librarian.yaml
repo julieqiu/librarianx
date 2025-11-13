@@ -9,8 +9,10 @@ global:
           permissions: read-write
         - path: CHANGES.md
           permissions: read-write
-generate:
-    output: '{name}/'
+defaults:
+    generate_dir: '{name}/'
+    transport: grpc+rest
+    rest_numeric_enums: true
 release:
     tag_format: '{name}/v{version}'
 libraries:
