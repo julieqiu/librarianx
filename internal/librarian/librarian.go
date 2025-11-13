@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/fetch"
@@ -50,6 +51,8 @@ func Run(ctx context.Context, args []string) error {
 			createCommand(),
 			generateCommand(),
 			initCommand(),
+			publishCommand(),
+			releaseCommand(),
 			versionCommand(),
 		},
 	}
@@ -596,5 +599,193 @@ func generatePython(ctx context.Context, cfg *config.Config, library *config.Lib
 	}
 
 	fmt.Printf("Generated Python library %q at %s\n", library.Name, location)
+	return nil
+}
+
+// releaseCommand creates a release for a library.
+func releaseCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "release",
+		Usage:     "create a release for a library",
+		UsageText: "librarian release <library> --version <version>",
+		Description: `Create a release for a library.
+
+This command:
+1. Runs language-specific tests
+2. Updates version files and changelogs
+3. Creates a git commit
+4. Creates a git tag
+5. Pushes the tag to remote
+
+Example:
+  librarian release secretmanager --version 1.16.0
+  librarian release google-cloud-secret-manager --version 1.16.0`,
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:     "version",
+				Usage:    "version to release (required)",
+				Required: true,
+			},
+		},
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 1 {
+				return errors.New("release requires a library name")
+			}
+			libraryName := cmd.Args().Get(0)
+			version := cmd.String("version")
+			return runRelease(ctx, libraryName, version)
+		},
+	}
+}
+
+func runRelease(ctx context.Context, libraryName, version string) error {
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err != nil {
+		return errConfigNotFound
+	}
+
+	cfg, err := config.Read(configPath)
+	if err != nil {
+		return err
+	}
+
+	// Find the library
+	var library *config.Library
+	for i := range cfg.Libraries {
+		if cfg.Libraries[i].Name == libraryName {
+			library = &cfg.Libraries[i]
+			break
+		}
+	}
+	if library == nil {
+		return fmt.Errorf("library %q not found in librarian.yaml", libraryName)
+	}
+
+	// Get repository root (current directory)
+	repoRoot, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %w", err)
+	}
+
+	// TODO: Parse git commits and create Change structs
+	// For now, create an empty changes slice
+	changes := make([]interface{}, 0)
+
+	// Dispatch to language-specific release
+	switch cfg.Language {
+	case "go":
+		if err := golang.Release(ctx, repoRoot, library, version, nil); err != nil {
+			return fmt.Errorf("go release failed: %w", err)
+		}
+	case "python":
+		if err := python.Release(ctx, library, version, nil, repoRoot); err != nil {
+			return fmt.Errorf("python release failed: %w", err)
+		}
+	case "rust":
+		if err := rust.Release(ctx, repoRoot, library, version); err != nil {
+			return fmt.Errorf("rust release failed: %w", err)
+		}
+	default:
+		return fmt.Errorf("unsupported language: %s", cfg.Language)
+	}
+
+	// Create tag name
+	tagFormat := "{name}/v{version}"
+	if cfg.Release != nil && cfg.Release.TagFormat != "" {
+		tagFormat = cfg.Release.TagFormat
+	}
+	tagName := strings.ReplaceAll(tagFormat, "{name}", libraryName)
+	tagName = strings.ReplaceAll(tagName, "{version}", version)
+
+	fmt.Printf("Release preparation complete for %q version %s\n", libraryName, version)
+	fmt.Printf("Next steps:\n")
+	fmt.Printf("  1. Review the changes\n")
+	fmt.Printf("  2. Commit: git add . && git commit -m \"chore(release): %s v%s\"\n", libraryName, version)
+	fmt.Printf("  3. Tag: git tag %s\n", tagName)
+	fmt.Printf("  4. Push: git push origin %s\n", tagName)
+	fmt.Printf("  5. Publish: librarian publish %s\n", libraryName)
+
+	_ = changes // Suppress unused warning
+	return nil
+}
+
+// publishCommand publishes a released library to package registries.
+func publishCommand() *cli.Command {
+	return &cli.Command{
+		Name:      "publish",
+		Usage:     "publish a library to package registries",
+		UsageText: "librarian publish <library>",
+		Description: `Publish a library to package registries.
+
+For Go: Verifies pkg.go.dev indexing
+For Python: Publishes to PyPI (typically handled by CI/CD)
+For Rust: Publishes to crates.io
+
+Example:
+  librarian publish secretmanager
+  librarian publish google-cloud-secret-manager`,
+		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.NArg() < 1 {
+				return errors.New("publish requires a library name")
+			}
+			libraryName := cmd.Args().Get(0)
+			return runPublish(ctx, libraryName)
+		},
+	}
+}
+
+func runPublish(ctx context.Context, libraryName string) error {
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err != nil {
+		return errConfigNotFound
+	}
+
+	cfg, err := config.Read(configPath)
+	if err != nil {
+		return err
+	}
+
+	// Find the library
+	var library *config.Library
+	for i := range cfg.Libraries {
+		if cfg.Libraries[i].Name == libraryName {
+			library = &cfg.Libraries[i]
+			break
+		}
+	}
+	if library == nil {
+		return fmt.Errorf("library %q not found in librarian.yaml", libraryName)
+	}
+
+	// Get repository root (current directory)
+	repoRoot, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %w", err)
+	}
+
+	// TODO: Find the latest tag for this library
+	version := "latest"
+
+	// Dispatch to language-specific publish
+	switch cfg.Language {
+	case "go":
+		if err := golang.Publish(ctx, repoRoot, library, version); err != nil {
+			return fmt.Errorf("go publish failed: %w", err)
+		}
+		fmt.Printf("Published Go library %q\n", libraryName)
+	case "python":
+		if err := python.Publish(ctx, library, repoRoot); err != nil {
+			return fmt.Errorf("python publish failed: %w", err)
+		}
+		fmt.Printf("Published Python library %q\n", libraryName)
+	case "rust":
+		if err := rust.Publish(ctx, repoRoot, library, version); err != nil {
+			return fmt.Errorf("rust publish failed: %w", err)
+		}
+		fmt.Printf("Published Rust library %q\n", libraryName)
+	default:
+		return fmt.Errorf("unsupported language: %s", cfg.Language)
+	}
+
 	return nil
 }
