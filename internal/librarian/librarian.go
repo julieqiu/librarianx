@@ -78,33 +78,28 @@ func initCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "init",
 		Usage:     "initialize librarian in current directory",
-		UsageText: "librarian init [language]",
+		UsageText: "librarian init <language>",
 		Description: `Initialize librarian in current directory.
-Creates librarian.yaml with default settings.
-
-If no language is specified, the directory will be setup for release only.
-If language is specified, creates configuration for that language.
+Creates librarian.yaml with default settings for the specified language.
 Supported languages: go, python, rust
 
 Example:
-  librarian init
   librarian init go
-  librarian init python`,
+  librarian init python
+  librarian init rust`,
 		Action: func(ctx context.Context, cmd *cli.Command) error {
-			language := ""
-			if cmd.NArg() > 0 {
-				language = cmd.Args().Get(0)
+			if cmd.NArg() < 1 {
+				return errors.New("init requires a language argument")
 			}
+			language := cmd.Args().Get(0)
 
-			// Fetch latest googleapis commit and SHA256 if language is specified
+			// Fetch latest googleapis commit and SHA256
 			var source *config.Source
-			if language != "" {
-				var err error
-				source, err = fetch.LatestGoogleapis()
-				if err != nil {
-					fmt.Fprintf(os.Stderr, "Warning: failed to fetch latest googleapis commit: %v\n", err)
-					fmt.Fprintf(os.Stderr, "Using empty source configuration. You can update it later with 'librarian update --googleapis'\n")
-				}
+			var err error
+			source, err = fetch.LatestGoogleapis()
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Warning: failed to fetch latest googleapis commit: %v\n", err)
+				fmt.Fprintf(os.Stderr, "Using empty source configuration. You can update it later with 'librarian update --googleapis'\n")
 			}
 
 			return runInit(language, source)

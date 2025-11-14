@@ -77,21 +77,9 @@ func TestInitCommand_NoLanguage(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := Run(t.Context(), []string{"librarian", "init"}); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := os.Stat("librarian.yaml"); os.IsNotExist(err) {
-		t.Fatal("librarian.yaml was not created")
-	}
-
-	cfg, err := os.ReadFile("librarian.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if len(cfg) == 0 {
-		t.Error("created config is empty")
+	err := Run(t.Context(), []string{"librarian", "init"})
+	if err == nil {
+		t.Error("init should fail when no language is provided")
 	}
 }
 
@@ -100,10 +88,6 @@ func TestRunInit_CreatesConfig(t *testing.T) {
 		name     string
 		language string
 	}{
-		{
-			name:     "no language",
-			language: "",
-		},
 		{
 			name:     "go",
 			language: "go",
@@ -171,11 +155,6 @@ func TestRunInit_ConfigContent(t *testing.T) {
 		wantHasSources bool
 	}{
 		{
-			name:           "no language",
-			language:       "",
-			wantHasSources: false,
-		},
-		{
 			name:           "go",
 			language:       "go",
 			wantHasSources: false, // nil source passed in test
@@ -227,7 +206,7 @@ func TestRunSet(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("", nil); err != nil {
+	if err := runInit("go", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -278,7 +257,7 @@ func TestRunSet_InvalidField(t *testing.T) {
 			tmpDir := t.TempDir()
 			t.Chdir(tmpDir)
 
-			if err := runInit("", nil); err != nil {
+			if err := runInit("go", nil); err != nil {
 				t.Fatal(err)
 			}
 
@@ -348,7 +327,7 @@ func TestRunUnset_InvalidField(t *testing.T) {
 			tmpDir := t.TempDir()
 			t.Chdir(tmpDir)
 
-			if err := runInit("", nil); err != nil {
+			if err := runInit("go", nil); err != nil {
 				t.Fatal(err)
 			}
 
