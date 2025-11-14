@@ -19,8 +19,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/fetch"
@@ -610,7 +612,35 @@ func runGenerateAll(ctx context.Context) error {
 		return fmt.Errorf("no libraries configured in librarian.yaml")
 	}
 
-	// Check if wildcard is present
+	// Check if googleapis source is configured (needed for wildcard discovery)
+	if cfg.Sources.Googleapis == nil {
+		return fmt.Errorf("googleapis source is not configured in librarian.yaml")
+	}
+
+	// Download and extract googleapis for discovery
+	fmt.Println("Downloading googleapis for API discovery...")
+	googleapisRoot, err := fetch.DownloadAndExtractTarball(cfg.Sources.Googleapis)
+	if err != nil {
+		return fmt.Errorf("failed to download and extract googleapis: %w", err)
+	}
+	defer func() {
+		cerr := os.RemoveAll(filepath.Dir(googleapisRoot))
+		if err == nil {
+			err = cerr
+		}
+	}()
+
+	// Get all libraries for generation (includes discovered APIs if wildcard is present)
+	libraries, err := cfg.GetLibrariesForGeneration(googleapisRoot)
+	if err != nil {
+		return fmt.Errorf("failed to get libraries for generation: %w", err)
+	}
+
+	if len(libraries) == 0 {
+		return fmt.Errorf("no libraries to generate")
+	}
+
+	// Check if wildcard is present to show discovery message
 	hasWildcard := false
 	for _, entry := range cfg.Libraries {
 		if entry.Name == "*" {
@@ -620,38 +650,29 @@ func runGenerateAll(ctx context.Context) error {
 	}
 
 	if hasWildcard {
-		// TODO(https://github.com/julieqiu/librarianx/issues/XXX): Implement wildcard API discovery
-		return fmt.Errorf("wildcard ('*') library discovery is not yet implemented; please specify libraries explicitly")
+		fmt.Printf("Discovered %d libraries from googleapis\n", len(libraries))
 	}
 
-	// Generate all explicitly listed libraries
+	// Generate all libraries
 	generated := 0
 	skipped := 0
 	failed := 0
 
-	for _, entry := range cfg.Libraries {
-		// Skip wildcard entries (already handled above)
-		if entry.Name == "*" {
-			continue
-		}
-
-		// Convert to Library for backward compatibility
-		library := entry.ToLibrary()
-
+	for _, library := range libraries {
 		// Skip handwritten libraries (no APIs to generate)
 		if len(library.Apis) == 0 {
-			fmt.Printf("Skipping %q (handwritten library)\n", entry.Name)
+			fmt.Printf("Skipping %q (handwritten library)\n", library.Name)
 			skipped++
 			continue
 		}
 
-		fmt.Printf("Generating %q...\n", entry.Name)
-		if err := runGenerate(ctx, entry.Name); err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to generate %q: %v\n", entry.Name, err)
+		fmt.Printf("Generating %q...\n", library.Name)
+		if err := runGenerateLibrary(ctx, cfg, library, googleapisRoot); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to generate %q: %v\n", library.Name, err)
 			failed++
 			continue
 		}
-		fmt.Printf("  ✓ %q\n", entry.Name)
+		fmt.Printf("  ✓ %q\n", library.Name)
 		generated++
 	}
 
@@ -662,6 +683,117 @@ func runGenerateAll(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+// cleanOutputDirectory deletes all files in the library's output directory
+// except those listed in the keep field. This ensures reproducible generation.
+func cleanOutputDirectory(library *config.Library, outputTemplate string) error {
+	// Determine the library's output location
+	location, err := library.GeneratedLocation(outputTemplate)
+	if err != nil {
+		return fmt.Errorf("failed to determine output location: %w", err)
+	}
+
+	// If directory doesn't exist, nothing to clean
+	if _, err := os.Stat(location); os.IsNotExist(err) {
+		return nil
+	}
+
+	// Build a map of files to keep (relative to library location)
+	keepMap := make(map[string]bool)
+	if library.Generate != nil {
+		for _, keepPath := range library.Generate.Keep {
+			// Normalize path separators
+			normalizedPath := filepath.Clean(keepPath)
+			keepMap[normalizedPath] = true
+		}
+	}
+
+	// Walk the directory and delete files not in keep list
+	return filepath.WalkDir(location, func(path string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Don't delete the root directory itself
+		if path == location {
+			return nil
+		}
+
+		// Get path relative to library location
+		relPath, err := filepath.Rel(location, path)
+		if err != nil {
+			return err
+		}
+
+		// Check if this path (or any parent) is in keep list
+		shouldKeep := false
+		checkPath := relPath
+		for {
+			if keepMap[checkPath] {
+				shouldKeep = true
+				break
+			}
+			parent := filepath.Dir(checkPath)
+			if parent == "." || parent == checkPath {
+				break
+			}
+			checkPath = parent
+		}
+
+		// If not in keep list, delete it
+		if !shouldKeep {
+			if err := os.RemoveAll(path); err != nil {
+				return fmt.Errorf("failed to delete %s: %w", path, err)
+			}
+			// If we deleted a directory, skip walking into it
+			if d.IsDir() {
+				return filepath.SkipDir
+			}
+		}
+
+		return nil
+	})
+}
+
+func runGenerateLibrary(ctx context.Context, cfg *config.Config, library *config.Library, googleapisRoot string) error {
+	// Try to configure the library if it's explicitly defined in the config.
+	// For auto-discovered libraries (from wildcard), this will fail, which is expected.
+	// Rust doesn't need configuration at this stage, and auto-discovered libraries
+	// will be configured by the language-specific generator.
+	if err := configureLibrary(cfg, library.Name); err != nil {
+		// Only fail if the library is explicitly configured but configuration failed
+		// for reasons other than "not found"
+		if !strings.Contains(err.Error(), "not found") {
+			return fmt.Errorf("failed to configure library: %w", err)
+		}
+		// For auto-discovered libraries (not in config), skip configuration
+		// The language-specific generator will handle directory creation
+	}
+
+	// Clean the output directory before generation (except files in keep list)
+	outputTemplate := "{name}/"
+	if cfg.Defaults != nil && cfg.Defaults.Output != "" {
+		outputTemplate = cfg.Defaults.Output
+	} else if cfg.Generate != nil && cfg.Generate.Output != "" {
+		outputTemplate = cfg.Generate.Output
+	}
+
+	if err := cleanOutputDirectory(library, outputTemplate); err != nil {
+		return fmt.Errorf("failed to clean output directory: %w", err)
+	}
+
+	// Dispatch to language-specific generator
+	switch cfg.Language {
+	case "go":
+		return golang.Generate(ctx, cfg, library, googleapisRoot)
+	case "rust":
+		return rust.Generate(ctx, cfg, library, googleapisRoot)
+	case "python":
+		return python.Generate(ctx, cfg, library, googleapisRoot)
+	default:
+		return fmt.Errorf("unsupported language: %s", cfg.Language)
+	}
 }
 
 func runGenerate(ctx context.Context, libraryName string) error {

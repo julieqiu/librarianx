@@ -32,8 +32,11 @@ func Generate(ctx context.Context, cfg *config.Config, library *config.Library, 
 	}
 
 	// Determine output directory
+	// Use library-specific location if set, otherwise use defaults.output template
 	outputDir := "{name}/"
-	if cfg.Generate != nil && cfg.Generate.Output != "" {
+	if cfg.Defaults != nil && cfg.Defaults.Output != "" {
+		outputDir = cfg.Defaults.Output
+	} else if cfg.Generate != nil && cfg.Generate.Output != "" {
 		outputDir = cfg.Generate.Output
 	}
 

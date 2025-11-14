@@ -126,13 +126,23 @@ func (c *command) run(rootConfig *config.Config, cmdLine *CommandLine) error {
 
 // parseCmdLine parses the command line arguments and returns a CommandLine struct.
 func (c *command) parseCmdLine(args []string) (*CommandLine, error) {
+	// Create a new FlagSet for each parse to avoid "flag redefined" errors
+	// when calling parseCmdLine multiple times (e.g., in generate --all)
+	fs := flag.NewFlagSet(c.usageLine, flag.ContinueOnError)
+
+	// Copy this command's flags
+	c.flags.VisitAll(func(f *flag.Flag) {
+		fs.Var(f.Value, f.Name, f.Usage)
+	})
+
+	// Copy parent flags if present
 	if c.parent != nil {
 		c.parent.visitAllFlags(func(f *flag.Flag) {
-			c.flags.Var(f.Value, f.Name, f.Usage)
+			fs.Var(f.Value, f.Name, f.Usage)
 		})
 	}
 
-	if err := c.flags.Parse(args); err != nil {
+	if err := fs.Parse(args); err != nil {
 		return nil, err
 	}
 

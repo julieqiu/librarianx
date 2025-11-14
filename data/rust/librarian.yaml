@@ -113,41 +113,6 @@ release:
         - .sidekick.toml
 libraries:
     - '*'
-    - google-firestore-v1:
-        api: google/firestore/v1
-        path: src/firestore/src/generated/convert/firestore/
-        rust:
-            module_path: crate::generated::gapic::model
-            template_override: templates/convert-prost
-    - google-type:
-        api: google/type
-        path: src/firestore/src/generated/convert/type/
-        rust:
-            module_path: gtype::model
-            template_override: templates/convert-prost
-    - google-firestore-v1:
-        api: google/firestore/v1
-        path: src/firestore/src/generated/gapic/
-        rust:
-            template_override: templates/grpc-client
-            package_name_override: google-cloud-firestore
-    - google-firestore-v1:
-        api: google/firestore/v1
-        path: src/firestore/src/generated/protos/firestore/
-        rust:
-            template_override: templates/prost
-    - google-rpc:
-        api: google/rpc
-        path: src/gax-internal/src/generated/convert/rpc/
-        rust:
-            module_path: rpc::model
-            template_override: templates/convert-prost
-            package_name_override: google-cloud-gax-internal
-    - google-rpc:
-        api: google/rpc
-        path: src/gax-internal/src/generated/protos/rpc/
-        rust:
-            template_override: templates/prost
     - google-api-apikeys-v2:
         api: google/api/apikeys/v2
         rust:
@@ -363,6 +328,7 @@ libraries:
                   source: google.cloud.recommender.v1
     - google-cloud-secretmanager-v1:
         api: google/cloud/secretmanager/v1
+        path: src/generated/cloud/secretmanager/v1
         rust:
             generate_setter_samples: true
     - google-cloud-storageinsights-v1:

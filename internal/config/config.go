@@ -131,6 +131,10 @@ type Defaults struct {
 	// ReleaseLevel is the default release level ("stable" or "preview").
 	ReleaseLevel string `yaml:"release_level,omitempty"`
 
+	// ExcludeAPIs is a list of API path patterns to exclude from wildcard discovery.
+	// Patterns can use * as wildcard (e.g., "google/ads/*", "google/actions/*").
+	ExcludeAPIs []string `yaml:"exclude_apis,omitempty"`
+
 	// Rust contains default Rust-specific settings.
 	Rust *RustDefaults `yaml:"rust,omitempty"`
 }

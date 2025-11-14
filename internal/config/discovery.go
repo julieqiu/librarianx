@@ -15,6 +15,7 @@
 package config
 
 import (
+	"embed"
 	"io/fs"
 	"os"
 	"path/filepath"
@@ -23,7 +24,52 @@ import (
 	"strings"
 
 	"github.com/googleapis/librarian/internal/naming"
+	"gopkg.in/yaml.v3"
 )
+
+//go:embed service_config_overrides.yaml
+var serviceConfigOverridesFS embed.FS
+
+// ServiceConfigOverrides contains the overrides from service_config_overrides.yaml.
+type ServiceConfigOverrides struct {
+	ServiceConfigs map[string]string `yaml:"service_configs"`
+	ExcludeAPIs    []string          `yaml:"exclude_apis"`
+}
+
+// defaultExclusions caches the loaded exclusions from service_config_overrides.yaml.
+var defaultExclusions []string
+
+// loadServiceConfigOverrides loads the service_config_overrides.yaml file.
+func loadServiceConfigOverrides() (*ServiceConfigOverrides, error) {
+	data, err := serviceConfigOverridesFS.ReadFile("service_config_overrides.yaml")
+	if err != nil {
+		return nil, err
+	}
+
+	var overrides ServiceConfigOverrides
+	if err := yaml.Unmarshal(data, &overrides); err != nil {
+		return nil, err
+	}
+
+	return &overrides, nil
+}
+
+// getDefaultExclusions returns the default API exclusions from service_config_overrides.yaml.
+// Results are cached after first load.
+func getDefaultExclusions() []string {
+	if defaultExclusions != nil {
+		return defaultExclusions
+	}
+
+	overrides, err := loadServiceConfigOverrides()
+	if err != nil {
+		// If we can't load the file, return empty list (fail gracefully)
+		return []string{}
+	}
+
+	defaultExclusions = overrides.ExcludeAPIs
+	return defaultExclusions
+}
 
 // DiscoveredAPI represents a discovered API from the googleapis filesystem.
 type DiscoveredAPI struct {
@@ -171,7 +217,8 @@ func GroupByService(apis []*DiscoveredAPI) map[string][]string {
 }
 
 // FilterDiscoveredAPIs filters discovered APIs based on the libraries configuration.
-// It returns only APIs that are not explicitly configured in the libraries list.
+// It returns only APIs that are not explicitly configured in the libraries list
+// and do not match any exclude patterns.
 func (c *Config) FilterDiscoveredAPIs(discovered []*DiscoveredAPI) []*DiscoveredAPI {
 	// Check if wildcard is enabled
 	hasWildcard := false
@@ -205,15 +252,74 @@ func (c *Config) FilterDiscoveredAPIs(discovered []*DiscoveredAPI) []*Discovered
 		}
 	}
 
-	// Filter out configured APIs
+	// Get exclude patterns - start with defaults from service_config_overrides.yaml
+	excludePatterns := getDefaultExclusions()
+
+	// Add user-provided exclusions from librarian.yaml
+	if c.Defaults != nil {
+		excludePatterns = append(excludePatterns, c.Defaults.ExcludeAPIs...)
+	}
+
+	// Filter out configured APIs and excluded patterns
 	var filtered []*DiscoveredAPI
 	for _, api := range discovered {
-		if !configured[api.Path] {
-			filtered = append(filtered, api)
+		// Skip if explicitly configured
+		if configured[api.Path] {
+			continue
 		}
+
+		// Skip if matches any exclude pattern
+		if matchesAnyPattern(api.Path, excludePatterns) {
+			continue
+		}
+
+		filtered = append(filtered, api)
 	}
 
 	return filtered
+}
+
+// matchesAnyPattern checks if a path matches any of the given patterns.
+// Patterns can use * as a wildcard (e.g., "google/ads/*").
+func matchesAnyPattern(path string, patterns []string) bool {
+	for _, pattern := range patterns {
+		if matchesPattern(path, pattern) {
+			return true
+		}
+	}
+	return false
+}
+
+// matchesPattern checks if a path matches a pattern with * wildcards.
+func matchesPattern(path, pattern string) bool {
+	// Simple wildcard matching
+	// Convert pattern to a simple check
+	if !strings.Contains(pattern, "*") {
+		// Exact match
+		return path == pattern
+	}
+
+	// Handle suffix wildcard: "google/ads/*"
+	if strings.HasSuffix(pattern, "/*") {
+		prefix := strings.TrimSuffix(pattern, "/*")
+		return strings.HasPrefix(path, prefix+"/")
+	}
+
+	// Handle prefix wildcard: "*/v1"
+	if strings.HasPrefix(pattern, "*/") {
+		suffix := strings.TrimPrefix(pattern, "*/")
+		return strings.HasSuffix(path, "/"+suffix)
+	}
+
+	// Handle middle wildcard: "google/*/v1"
+	// For simplicity, split on * and check parts
+	parts := strings.Split(pattern, "*")
+	if len(parts) != 2 {
+		// Only support single * for now
+		return false
+	}
+
+	return strings.HasPrefix(path, parts[0]) && strings.HasSuffix(path, parts[1])
 }
 
 // GetAllLibraries returns all libraries, combining explicitly configured ones
@@ -253,19 +359,49 @@ func (c *Config) GetAllLibraries(googleapisRoot string) ([]LibraryEntry, error) 
 	filtered := c.FilterDiscoveredAPIs(discovered)
 
 	// Add discovered APIs as library entries
-	// Derive library name from API path using language conventions
+	// Derive library name and path from API path using language conventions
 	packaging := c.GetOneLibraryPer()
+	output := ""
+	if c.Defaults != nil {
+		output = c.Defaults.Output
+	}
 	for _, api := range filtered {
 		name := naming.DeriveLibraryName(api.Path, c.Language, packaging)
+		path := deriveLibraryPath(api.Path, c.Language, output)
+
 		libraries = append(libraries, LibraryEntry{
 			Name: name,
 			Config: &LibraryConfig{
-				API: api.Path,
+				API:  api.Path,
+				Path: path,
 			},
 		})
 	}
 
 	return libraries, nil
+}
+
+// deriveLibraryPath derives the output path for an auto-discovered library.
+// For Rust: google/cloud/bigquery/v2 → src/generated/cloud/bigquery/v2/
+// For other languages, the path is typically not set (uses default).
+func deriveLibraryPath(apiPath, language, output string) string {
+	// Only Rust needs custom path derivation for auto-discovered libraries
+	if language != "rust" {
+		return ""
+	}
+
+	// Remove "google/" prefix if present
+	path := apiPath
+	if strings.HasPrefix(path, "google/") {
+		path = strings.TrimPrefix(path, "google/")
+	}
+
+	// Append to output directory
+	if output != "" && !strings.HasSuffix(output, "/") {
+		output = output + "/"
+	}
+
+	return output + path + "/"
 }
 
 // GetLibrariesForGeneration returns libraries grouped appropriately based on packaging strategy.

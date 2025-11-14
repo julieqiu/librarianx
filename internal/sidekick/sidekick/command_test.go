@@ -92,3 +92,18 @@ func TestLookupStopsOnFirstFlag(t *testing.T) {
 		t.Fatalf("expected lookup to return all args after first flag, got %v", args)
 	}
 }
+
+func TestParseCmdLineMultipleTimes(t *testing.T) {
+	// Create a command with flags
+	testCmd := newCommand("sidekick test", "test command", "", rootCmd, nil)
+	var testFlag string
+	testCmd.addFlagString(&testFlag, "test-flag", "a test flag")
+
+	// Parse multiple times to ensure flags aren't redefined
+	for i := 0; i < 3; i++ {
+		_, err := testCmd.parseCmdLine([]string{"--test-flag", "value"})
+		if err != nil {
+			t.Fatalf("parseCmdLine failed on iteration %d: %v", i, err)
+		}
+	}
+}

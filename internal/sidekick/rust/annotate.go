@@ -67,6 +67,8 @@ type modelAnnotations struct {
 	// If true, the generated code includes detailed tracing attributes on HTTP
 	// requests.
 	DetailedTracingAttributes bool
+	// The API Title (e.g. "Secret Manager API").
+	Title string
 }
 
 // IsWktCrate returns true when bootstrapping the well-known types crate the templates add some
@@ -609,6 +611,7 @@ func annotateModel(model *api.API, codec *codec) *modelAnnotations {
 		}),
 		GenerateSetterSamples:     codec.generateSetterSamples,
 		DetailedTracingAttributes: codec.detailedTracingAttributes,
+		Title:                     model.Title,
 	}
 
 	codec.addFeatureAnnotations(model, ann)

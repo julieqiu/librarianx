@@ -1301,30 +1301,6 @@ libraries:
             skipped_ids:
                 - .google.longrunning.Operation
             module_path: longrunning::model
-    - name: storage-generated-convert-storage
-      path: src/storage/src/generated/convert/storage
-      generate:
-        api: google/storage/v2
-        rust:
-            included_ids:
-                - .google.storage.v2.Storage.DeleteBucket
-                - .google.storage.v2.Storage.GetBucket
-                - .google.storage.v2.Storage.CreateBucket
-                - .google.storage.v2.Storage.ListBuckets
-                - .google.storage.v2.Storage.LockBucketRetentionPolicy
-                - .google.storage.v2.Storage.GetIamPolicy
-                - .google.storage.v2.Storage.SetIamPolicy
-                - .google.storage.v2.Storage.TestIamPermissions
-                - .google.storage.v2.Storage.UpdateBucket
-                - .google.storage.v2.Storage.ComposeObject
-                - .google.storage.v2.Storage.DeleteObject
-                - .google.storage.v2.Storage.RestoreObject
-                - .google.storage.v2.Storage.GetObject
-                - .google.storage.v2.Storage.UpdateObject
-                - .google.storage.v2.Storage.ListObjects
-                - .google.storage.v2.Storage.RewriteObject
-                - .google.storage.v2.Storage.MoveObject
-            module_path: crate::generated::gapic::model
     - name: storage-generated-convert-type
       path: src/storage/src/generated/convert/type
       generate:

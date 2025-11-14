@@ -2027,3 +2027,50 @@ func TestParseOptionsGenerateSetterSamples(t *testing.T) {
 		t.Errorf("generateSetterSamples should be true")
 	}
 }
+
+func TestIsLinkDestination(t *testing.T) {
+	for _, test := range []struct {
+		name       string
+		line       string
+		matchStart int
+		matchEnd   int
+		want       bool
+	}{
+		{
+			name:       "valid link",
+			line:       "See [documentation](https://example.com) for details",
+			matchStart: 20,
+			matchEnd:   39,
+			want:       true,
+		},
+		{
+			name:       "not a link destination",
+			line:       "Visit https://example.com for details",
+			matchStart: 6,
+			matchEnd:   25,
+			want:       false,
+		},
+		{
+			name:       "matchEnd at end of line",
+			line:       "See [documentation](https://example.com)",
+			matchStart: 19,
+			matchEnd:   40,
+			want:       false,
+		},
+		{
+			name:       "matchEnd beyond line length",
+			line:       "See [documentation](https://example.com)",
+			matchStart: 19,
+			matchEnd:   100,
+			want:       false,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := isLinkDestination(test.line, test.matchStart, test.matchEnd)
+			if got != test.want {
+				t.Errorf("isLinkDestination(%q, %d, %d) = %v, want %v",
+					test.line, test.matchStart, test.matchEnd, got, test.want)
+			}
+		})
+	}
+}

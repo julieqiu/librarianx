@@ -1020,7 +1020,7 @@ func escapeUrls(line string) string {
 
 // isLinkDestination verifies whether the url is part of a link destination.
 func isLinkDestination(line string, matchStart, matchEnd int) bool {
-	return strings.HasSuffix(line[:matchStart], "](") && line[matchEnd] == ')'
+	return strings.HasSuffix(line[:matchStart], "](") && matchEnd < len(line) && line[matchEnd] == ')'
 }
 
 func processList(list *ast.List, indentLevel int, documentationBytes []byte, elementID string) []string {

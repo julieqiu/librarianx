@@ -33,8 +33,8 @@ func TestDiscoverAPIs(t *testing.T) {
 	}{
 		{"google/cloud/secretmanager/v1", true},
 		{"google/cloud/secretmanager/v1beta1", true},
-		{"google/ai/generativelanguage/v1", true},
-		{"google/ai/generativelanguage/v1beta", false},
+		{"google/cloud/vision/v1", true},
+		{"google/cloud/vision/v2", false},
 		{"google/type", false}, // No version directory
 	}
 
@@ -63,12 +63,12 @@ func TestDiscoverAPIs(t *testing.T) {
 		t.Errorf("got %d APIs, want 4", len(discovered))
 	}
 
-	// Check first API
+	// Check first API (alphabetically)
 	if len(discovered) > 0 {
 		want := &DiscoveredAPI{
-			Path:         "google/ai/generativelanguage/v1",
-			Service:      "generativelanguage",
-			Namespace:    "ai",
+			Path:         "google/cloud/secretmanager/v1",
+			Service:      "secretmanager",
+			Namespace:    "cloud",
 			Version:      "v1",
 			HasBuildFile: true,
 		}
@@ -93,9 +93,9 @@ func TestGroupByService(t *testing.T) {
 			Version:   "v1beta1",
 		},
 		{
-			Path:      "google/ai/generativelanguage/v1",
-			Service:   "generativelanguage",
-			Namespace: "ai",
+			Path:      "google/cloud/vision/v1",
+			Service:   "vision",
+			Namespace: "cloud",
 			Version:   "v1",
 		},
 	}
@@ -113,10 +113,10 @@ func TestGroupByService(t *testing.T) {
 		t.Errorf("got %d secretmanager APIs, want 2", len(secretmanagerAPIs))
 	}
 
-	// Check ai/generativelanguage group
-	genaiAPIs := groups["ai/generativelanguage"]
-	if len(genaiAPIs) != 1 {
-		t.Errorf("got %d generativelanguage APIs, want 1", len(genaiAPIs))
+	// Check cloud/vision group
+	visionAPIs := groups["cloud/vision"]
+	if len(visionAPIs) != 1 {
+		t.Errorf("got %d vision APIs, want 1", len(visionAPIs))
 	}
 }
 
@@ -136,7 +136,7 @@ func TestFilterDiscoveredAPIs(t *testing.T) {
 	discovered := []*DiscoveredAPI{
 		{Path: "google/cloud/secretmanager/v1"},
 		{Path: "google/cloud/secretmanager/v1beta1"},
-		{Path: "google/ai/generativelanguage/v1"},
+		{Path: "google/cloud/vision/v1"},
 	}
 
 	filtered := cfg.FilterDiscoveredAPIs(discovered)
@@ -149,7 +149,7 @@ func TestFilterDiscoveredAPIs(t *testing.T) {
 	// Verify the filtered APIs
 	want := []string{
 		"google/cloud/secretmanager/v1beta1",
-		"google/ai/generativelanguage/v1",
+		"google/cloud/vision/v1",
 	}
 
 	for i, api := range filtered {
@@ -186,6 +186,115 @@ func TestFilterDiscoveredAPIs_AutoDiscoverDisabled(t *testing.T) {
 	}
 }
 
+func TestFilterDiscoveredAPIs_WithExcludePatterns(t *testing.T) {
+	cfg := &Config{
+		Defaults: &Defaults{
+			ExcludeAPIs: []string{
+				"google/ads/*",
+				"google/actions/*",
+			},
+		},
+		Libraries: []LibraryEntry{
+			{Name: "*"},
+		},
+	}
+
+	discovered := []*DiscoveredAPI{
+		{Path: "google/cloud/secretmanager/v1"},
+		{Path: "google/ads/admanager/v1"},
+		{Path: "google/ads/googleads/v19"},
+		{Path: "google/actions/sdk/v2"},
+		{Path: "google/api/apikeys/v2"},
+	}
+
+	filtered := cfg.FilterDiscoveredAPIs(discovered)
+
+	// Should filter out google/ads/* and google/actions/*
+	want := []string{
+		"google/cloud/secretmanager/v1",
+		"google/api/apikeys/v2",
+	}
+
+	if len(filtered) != len(want) {
+		t.Errorf("got %d filtered APIs, want %d", len(filtered), len(want))
+	}
+
+	for i, api := range filtered {
+		if i >= len(want) {
+			break
+		}
+		if api.Path != want[i] {
+			t.Errorf("filtered[%d].Path = %q, want %q", i, api.Path, want[i])
+		}
+	}
+}
+
+func TestMatchesPattern(t *testing.T) {
+	for _, test := range []struct {
+		name    string
+		path    string
+		pattern string
+		want    bool
+	}{
+		{
+			name:    "exact match",
+			path:    "google/cloud/secretmanager/v1",
+			pattern: "google/cloud/secretmanager/v1",
+			want:    true,
+		},
+		{
+			name:    "exact no match",
+			path:    "google/cloud/secretmanager/v1",
+			pattern: "google/cloud/secretmanager/v2",
+			want:    false,
+		},
+		{
+			name:    "suffix wildcard match",
+			path:    "google/ads/admanager/v1",
+			pattern: "google/ads/*",
+			want:    true,
+		},
+		{
+			name:    "suffix wildcard no match",
+			path:    "google/cloud/secretmanager/v1",
+			pattern: "google/ads/*",
+			want:    false,
+		},
+		{
+			name:    "prefix wildcard match",
+			path:    "google/cloud/secretmanager/v1",
+			pattern: "*/v1",
+			want:    true,
+		},
+		{
+			name:    "prefix wildcard no match",
+			path:    "google/cloud/secretmanager/v1",
+			pattern: "*/v2",
+			want:    false,
+		},
+		{
+			name:    "middle wildcard match",
+			path:    "google/cloud/secretmanager/v1",
+			pattern: "google/*/v1",
+			want:    true,
+		},
+		{
+			name:    "middle wildcard no match",
+			path:    "google/cloud/secretmanager/v1",
+			pattern: "google/*/v2",
+			want:    false,
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := matchesPattern(test.path, test.pattern)
+			if got != test.want {
+				t.Errorf("matchesPattern(%q, %q) = %v, want %v",
+					test.path, test.pattern, got, test.want)
+			}
+		})
+	}
+}
+
 func TestGetLibrariesForGeneration_ServiceLevel(t *testing.T) {
 	// Create a temporary googleapis structure
 	tmpDir := t.TempDir()
@@ -194,7 +303,7 @@ func TestGetLibrariesForGeneration_ServiceLevel(t *testing.T) {
 	testAPIs := []string{
 		"google/cloud/secretmanager/v1",
 		"google/cloud/secretmanager/v1beta1",
-		"google/ai/generativelanguage/v1",
+		"google/cloud/vision/v1",
 	}
 
 	for _, apiPath := range testAPIs {
@@ -223,7 +332,7 @@ func TestGetLibrariesForGeneration_ServiceLevel(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// Should have 2 service groups: cloud/secretmanager and ai/generativelanguage
+	// Should have 2 service groups: cloud/secretmanager and cloud/vision
 	if len(libraries) != 2 {
 		t.Errorf("got %d libraries, want 2", len(libraries))
 	}
@@ -272,6 +381,7 @@ func TestGetLibrariesForGeneration_VersionLevel(t *testing.T) {
 		Language: "rust",
 		Defaults: &Defaults{
 			OneLibraryPer: "version",
+			Output:        "src/generated/",
 		},
 		Libraries: []LibraryEntry{
 			{Name: "*"},
@@ -301,13 +411,81 @@ func TestGetLibrariesForGeneration_VersionLevel(t *testing.T) {
 	for _, lib := range libraries {
 		if lib.Name == "google-cloud-secretmanager-v1" {
 			hasV1 = true
+			// Check that location is set correctly for Rust
+			if lib.Location != "src/generated/cloud/secretmanager/v1/" {
+				t.Errorf("library location = %q, want %q", lib.Location, "src/generated/cloud/secretmanager/v1/")
+			}
 		}
 		if lib.Name == "google-cloud-secretmanager-v1beta1" {
 			hasV1beta1 = true
+			if lib.Location != "src/generated/cloud/secretmanager/v1beta1/" {
+				t.Errorf("library location = %q, want %q", lib.Location, "src/generated/cloud/secretmanager/v1beta1/")
+			}
 		}
 	}
 
 	if !hasV1 || !hasV1beta1 {
 		t.Errorf("missing expected versioned library names; hasV1=%v, hasV1beta1=%v", hasV1, hasV1beta1)
+	}
+}
+
+func TestDeriveLibraryPath(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		apiPath  string
+		language string
+		output   string
+		want     string
+	}{
+		{
+			name:     "rust with output",
+			apiPath:  "google/cloud/bigquery/v2",
+			language: "rust",
+			output:   "src/generated/",
+			want:     "src/generated/cloud/bigquery/v2/",
+		},
+		{
+			name:     "rust without trailing slash",
+			apiPath:  "google/cloud/secretmanager/v1",
+			language: "rust",
+			output:   "src/generated",
+			want:     "src/generated/cloud/secretmanager/v1/",
+		},
+		{
+			name:     "rust api namespace",
+			apiPath:  "google/api/apikeys/v2",
+			language: "rust",
+			output:   "src/generated/",
+			want:     "src/generated/api/apikeys/v2/",
+		},
+		{
+			name:     "rust no namespace",
+			apiPath:  "google/type",
+			language: "rust",
+			output:   "src/generated/",
+			want:     "src/generated/type/",
+		},
+		{
+			name:     "python returns empty",
+			apiPath:  "google/cloud/bigquery/v2",
+			language: "python",
+			output:   "packages/",
+			want:     "",
+		},
+		{
+			name:     "go returns empty",
+			apiPath:  "google/cloud/bigquery/v2",
+			language: "go",
+			output:   "./",
+			want:     "",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := deriveLibraryPath(test.apiPath, test.language, test.output)
+			if got != test.want {
+				t.Errorf("deriveLibraryPath(%q, %q, %q) = %q, want %q",
+					test.apiPath, test.language, test.output, got, test.want)
+			}
+		})
 	}
 }

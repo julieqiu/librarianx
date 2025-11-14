@@ -136,6 +136,20 @@ func TestClippyWarnings(t *testing.T) {
 	}
 }
 
+func TestTitle(t *testing.T) {
+	model := newTestAnnotateModelAPI()
+	model.Title = "Test API Title"
+	codec, err := newCodec("protobuf", map[string]string{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	got := annotateModel(model, codec)
+	want := "Test API Title"
+	if diff := cmp.Diff(want, got.Title); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func newTestAnnotateModelAPI() *api.API {
 	service0 := &api.Service{
 		Name: "Service0",
