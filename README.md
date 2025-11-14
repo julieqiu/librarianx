@@ -218,7 +218,6 @@ libraries:
 ```bash
 # Initialize repository
 $ librarian init <language>
-$ librarian init python --all  # Start with wildcard
 
 # Generate libraries
 $ librarian generate --all

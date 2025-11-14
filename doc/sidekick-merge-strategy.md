@@ -6,7 +6,7 @@ This document outlines the strategy for merging sidekick functionality into libr
 
 ### Librarian Commands
 
-- `librarian init [language]` - Initialize repository for library management
+- `librarian init <language>` - Initialize repository for library management
 - `librarian add <path> [api...]` - Track a directory for management
 - `librarian edit <path>` - Edit artifact configuration
 - `librarian remove <path>` - Remove artifact from tracking
