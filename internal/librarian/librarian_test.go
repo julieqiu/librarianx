@@ -105,7 +105,7 @@ func TestRunInit_CreatesConfig(t *testing.T) {
 			tmpDir := t.TempDir()
 			t.Chdir(tmpDir)
 
-			if err := runInit(test.language, nil); err != nil {
+			if err := runInit(test.language, nil, false); err != nil {
 				t.Fatal(err)
 			}
 
@@ -129,11 +129,11 @@ func TestRunInit_PreventsOverwrite(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := runInit("go", nil); err == nil {
+	if err := runInit("go", nil, false); err == nil {
 		t.Error("runInit() should fail when librarian.yaml exists")
 	} else if !errors.Is(err, errConfigAlreadyExists) {
 		t.Errorf("want %v; got %v", errConfigAlreadyExists, err)
@@ -174,7 +174,7 @@ func TestRunInit_ConfigContent(t *testing.T) {
 			tmpDir := t.TempDir()
 			t.Chdir(tmpDir)
 
-			if err := runInit(test.language, nil); err != nil {
+			if err := runInit(test.language, nil, false); err != nil {
 				t.Fatal(err)
 			}
 
@@ -206,7 +206,7 @@ func TestRunSet(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -257,7 +257,7 @@ func TestRunSet_InvalidField(t *testing.T) {
 			tmpDir := t.TempDir()
 			t.Chdir(tmpDir)
 
-			if err := runInit("go", nil); err != nil {
+			if err := runInit("go", nil, false); err != nil {
 				t.Fatal(err)
 			}
 
@@ -275,7 +275,7 @@ func TestRunUnset(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -327,7 +327,7 @@ func TestRunUnset_InvalidField(t *testing.T) {
 			tmpDir := t.TempDir()
 			t.Chdir(tmpDir)
 
-			if err := runInit("go", nil); err != nil {
+			if err := runInit("go", nil, false); err != nil {
 				t.Fatal(err)
 			}
 
@@ -346,7 +346,7 @@ func TestRunAdd(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -385,7 +385,7 @@ func TestRunAdd_Duplicate(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -404,7 +404,7 @@ func TestRunAdd_WithLocation(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -431,7 +431,7 @@ func TestRunGenerate_LibraryNotFound(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -445,7 +445,7 @@ func TestRunGenerate_HandwrittenLibrary(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	if err := runInit("go", nil); err != nil {
+	if err := runInit("go", nil, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -544,5 +544,86 @@ func TestGenerateRust_RequiresSingleAPI(t *testing.T) {
 	want := "rust generation requires exactly one API per library"
 	if err != nil && !strings.Contains(err.Error(), want) {
 		t.Errorf("error = %v, want it to contain %q", err, want)
+	}
+}
+
+func TestRunInitRust_All(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInitRust(true); err != nil {
+		t.Fatal(err)
+	}
+
+	cfg, err := config.Read("librarian.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if cfg.Language != "rust" {
+		t.Errorf("Language = %q, want %q", cfg.Language, "rust")
+	}
+
+	if len(cfg.Libraries) != 1 {
+		t.Fatalf("Libraries length = %d, want 1", len(cfg.Libraries))
+	}
+
+	if cfg.Libraries[0].Name != "*" {
+		t.Errorf("Libraries[0].Name = %q, want %q", cfg.Libraries[0].Name, "*")
+	}
+
+	if cfg.Defaults == nil {
+		t.Fatal("Defaults is nil")
+	}
+
+	if cfg.Defaults.Output != "src/generated/" {
+		t.Errorf("Defaults.Output = %q, want %q", cfg.Defaults.Output, "src/generated/")
+	}
+
+	if cfg.Defaults.OneLibraryPer != "version" {
+		t.Errorf("Defaults.OneLibraryPer = %q, want %q", cfg.Defaults.OneLibraryPer, "version")
+	}
+
+	if cfg.Defaults.ReleaseLevel != "stable" {
+		t.Errorf("Defaults.ReleaseLevel = %q, want %q", cfg.Defaults.ReleaseLevel, "stable")
+	}
+
+	if cfg.Defaults.Rust == nil {
+		t.Fatal("Defaults.Rust is nil")
+	}
+
+	if len(cfg.Defaults.Rust.DisabledRustdocWarnings) != 2 {
+		t.Errorf("DisabledRustdocWarnings length = %d, want 2", len(cfg.Defaults.Rust.DisabledRustdocWarnings))
+	}
+}
+
+func TestRunGenerateAll_NoLibraries(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil, false); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runGenerateAll(t.Context())
+	if err == nil {
+		t.Error("runGenerateAll() should fail when no libraries are configured")
+	}
+}
+
+func TestRunGenerateAll_Wildcard(t *testing.T) {
+	tmpDir := t.TempDir()
+	t.Chdir(tmpDir)
+
+	if err := runInit("go", nil, true); err != nil {
+		t.Fatal(err)
+	}
+
+	err := runGenerateAll(t.Context())
+	if err == nil {
+		t.Error("runGenerateAll() should fail with wildcard (not yet implemented)")
+	}
+	if !strings.Contains(err.Error(), "wildcard") {
+		t.Errorf("error should mention wildcard, got: %v", err)
 	}
 }

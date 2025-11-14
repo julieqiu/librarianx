@@ -78,7 +78,7 @@ func initCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "init",
 		Usage:     "initialize librarian in current directory",
-		UsageText: "librarian init <language>",
+		UsageText: "librarian init <language> [--all]",
 		Description: `Initialize librarian in current directory.
 Creates librarian.yaml with default settings for the specified language.
 Supported languages: go, python, rust
@@ -86,14 +86,26 @@ Supported languages: go, python, rust
 Example:
   librarian init go
   librarian init python
-  librarian init rust`,
+  librarian init rust --all`,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "all",
+				Usage: "initialize with wildcard library discovery",
+			},
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if cmd.NArg() < 1 {
 				return errors.New("init requires a language argument")
 			}
 			language := cmd.Args().Get(0)
+			all := cmd.Bool("all")
 
-			// Fetch latest googleapis commit and SHA256
+			// For Rust, use pinned sources
+			if language == "rust" {
+				return runInitRust(all)
+			}
+
+			// For other languages, fetch latest googleapis commit and SHA256
 			var source *config.Source
 			var err error
 			source, err = fetch.LatestGoogleapis()
@@ -102,12 +114,12 @@ Example:
 				fmt.Fprintf(os.Stderr, "Using empty source configuration. You can update it later with 'librarian update --googleapis'\n")
 			}
 
-			return runInit(language, source)
+			return runInit(language, source, all)
 		},
 	}
 }
 
-func runInit(language string, source *config.Source) error {
+func runInit(language string, source *config.Source, all bool) error {
 	// Check if librarian.yaml already exists
 	const configPath = "librarian.yaml"
 	if _, err := os.Stat(configPath); err == nil {
@@ -116,6 +128,75 @@ func runInit(language string, source *config.Source) error {
 
 	// Create default config based on language
 	cfg := config.New(Version(), language, source)
+
+	// Add wildcard library if --all is specified
+	if all {
+		cfg.Libraries = []config.LibraryEntry{
+			{Name: "*", Config: nil},
+		}
+	}
+
+	// Write config to librarian.yaml
+	if err := cfg.Write(configPath); err != nil {
+		return fmt.Errorf("failed to write config: %w", err)
+	}
+
+	fmt.Printf("Created librarian.yaml\n")
+	return nil
+}
+
+// runInitRust initializes a Rust repository with pinned source dependencies.
+func runInitRust(all bool) error {
+	// Check if librarian.yaml already exists
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err == nil {
+		return errConfigAlreadyExists
+	}
+
+	// Create config with pinned Rust sources
+	cfg := &config.Config{
+		Version:  Version(),
+		Language: "rust",
+		Sources: config.Sources{
+			Googleapis: &config.Source{
+				URL:    "https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz",
+				SHA256: "81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98",
+			},
+			Discovery: &config.Source{
+				URL:    "https://github.com/googleapis/discovery-artifact-manager/archive/b27c80574e918a7e2a36eb21864d1d2e45b8c032.tar.gz",
+				SHA256: "67c8d3792f0ebf5f0582dce675c379d0f486604eb0143814c79e788954aa1212",
+			},
+			ProtobufSrc: &config.Source{
+				URL:    "https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz",
+				SHA256: "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e",
+			},
+			Conformance: &config.Source{
+				URL:    "https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz",
+				SHA256: "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e",
+			},
+		},
+		Release: &config.Release{
+			TagFormat: "{name}/v{version}",
+		},
+	}
+
+	// Add wildcard library and Rust defaults if --all is specified
+	if all {
+		cfg.Libraries = []config.LibraryEntry{
+			{Name: "*", Config: nil},
+		}
+		cfg.Defaults = &config.Defaults{
+			Output:        "src/generated/",
+			OneLibraryPer: "version",
+			ReleaseLevel:  "stable",
+			Rust: &config.RustDefaults{
+				DisabledRustdocWarnings: []string{
+					"redundant_explicit_links",
+					"broken_intra_doc_links",
+				},
+			},
+		}
+	}
 
 	// Write config to librarian.yaml
 	if err := cfg.Write(configPath); err != nil {
@@ -482,23 +563,105 @@ func runUnset(key string) error {
 func generateCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "generate",
-		Usage:     "generate code for an library",
-		UsageText: "librarian generate <library>",
-		Description: `Generate code for an library from API definitions.
+		Usage:     "generate code for libraries",
+		UsageText: "librarian generate [<library>] [--all]",
+		Description: `Generate code for libraries from API definitions.
 
 This command generates client library code from googleapis API definitions
 based on the configuration in librarian.yaml.
 
 Example:
-  librarian generate secretmanager`,
+  librarian generate secretmanager
+  librarian generate --all`,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "all",
+				Usage: "generate all libraries in configuration",
+			},
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			all := cmd.Bool("all")
+
+			if all {
+				return runGenerateAll(ctx)
+			}
+
 			if cmd.NArg() < 1 {
-				return errors.New("generate requires an library name")
+				return errors.New("generate requires a library name or --all flag")
 			}
 			library := cmd.Args().Get(0)
 			return runGenerate(ctx, library)
 		},
 	}
+}
+
+func runGenerateAll(ctx context.Context) error {
+	const configPath = "librarian.yaml"
+	if _, err := os.Stat(configPath); err != nil {
+		return errConfigNotFound
+	}
+
+	cfg, err := config.Read(configPath)
+	if err != nil {
+		return err
+	}
+
+	if len(cfg.Libraries) == 0 {
+		return fmt.Errorf("no libraries configured in librarian.yaml")
+	}
+
+	// Check if wildcard is present
+	hasWildcard := false
+	for _, entry := range cfg.Libraries {
+		if entry.Name == "*" {
+			hasWildcard = true
+			break
+		}
+	}
+
+	if hasWildcard {
+		// TODO(https://github.com/julieqiu/librarianx/issues/XXX): Implement wildcard API discovery
+		return fmt.Errorf("wildcard ('*') library discovery is not yet implemented; please specify libraries explicitly")
+	}
+
+	// Generate all explicitly listed libraries
+	generated := 0
+	skipped := 0
+	failed := 0
+
+	for _, entry := range cfg.Libraries {
+		// Skip wildcard entries (already handled above)
+		if entry.Name == "*" {
+			continue
+		}
+
+		// Convert to Library for backward compatibility
+		library := entry.ToLibrary()
+
+		// Skip handwritten libraries (no APIs to generate)
+		if len(library.Apis) == 0 {
+			fmt.Printf("Skipping %q (handwritten library)\n", entry.Name)
+			skipped++
+			continue
+		}
+
+		fmt.Printf("Generating %q...\n", entry.Name)
+		if err := runGenerate(ctx, entry.Name); err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to generate %q: %v\n", entry.Name, err)
+			failed++
+			continue
+		}
+		fmt.Printf("  ✓ %q\n", entry.Name)
+		generated++
+	}
+
+	fmt.Printf("\nSummary: %d generated, %d skipped, %d failed\n", generated, skipped, failed)
+
+	if failed > 0 {
+		return fmt.Errorf("%d libraries failed to generate", failed)
+	}
+
+	return nil
 }
 
 func runGenerate(ctx context.Context, libraryName string) error {
