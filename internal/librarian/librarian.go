@@ -104,7 +104,7 @@ Example:
 
 			// For Rust, use pinned sources
 			if language == "rust" {
-				return runInitRust(all)
+				return rust.Init(Version(), all)
 			}
 
 			// For other languages, fetch latest googleapis commit and SHA256
@@ -135,68 +135,6 @@ func runInit(language string, source *config.Source, all bool) error {
 	if all {
 		cfg.Libraries = []config.LibraryEntry{
 			{Name: "*", Config: nil},
-		}
-	}
-
-	// Write config to librarian.yaml
-	if err := cfg.Write(configPath); err != nil {
-		return fmt.Errorf("failed to write config: %w", err)
-	}
-
-	fmt.Printf("Created librarian.yaml\n")
-	return nil
-}
-
-// runInitRust initializes a Rust repository with pinned source dependencies.
-func runInitRust(all bool) error {
-	// Check if librarian.yaml already exists
-	const configPath = "librarian.yaml"
-	if _, err := os.Stat(configPath); err == nil {
-		return errConfigAlreadyExists
-	}
-
-	// Create config with pinned Rust sources
-	cfg := &config.Config{
-		Version:  Version(),
-		Language: "rust",
-		Sources: config.Sources{
-			Googleapis: &config.Source{
-				URL:    "https://github.com/googleapis/googleapis/archive/9fcfbea0aa5b50fa22e190faceb073d74504172b.tar.gz",
-				SHA256: "81e6057ffd85154af5268c2c3c8f2408745ca0f7fa03d43c68f4847f31eb5f98",
-			},
-			Discovery: &config.Source{
-				URL:    "https://github.com/googleapis/discovery-artifact-manager/archive/b27c80574e918a7e2a36eb21864d1d2e45b8c032.tar.gz",
-				SHA256: "67c8d3792f0ebf5f0582dce675c379d0f486604eb0143814c79e788954aa1212",
-			},
-			ProtobufSrc: &config.Source{
-				URL:    "https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz",
-				SHA256: "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e",
-			},
-			Conformance: &config.Source{
-				URL:    "https://github.com/protocolbuffers/protobuf/releases/download/v29.3/protobuf-29.3.tar.gz",
-				SHA256: "008a11cc56f9b96679b4c285fd05f46d317d685be3ab524b2a310be0fbad987e",
-			},
-		},
-		Release: &config.Release{
-			TagFormat: "{name}/v{version}",
-		},
-	}
-
-	// Add wildcard library and Rust defaults if --all is specified
-	if all {
-		cfg.Libraries = []config.LibraryEntry{
-			{Name: "*", Config: nil},
-		}
-		cfg.Defaults = &config.Defaults{
-			Output:        "src/generated/",
-			OneLibraryPer: "version",
-			ReleaseLevel:  "stable",
-			Rust: &config.RustDefaults{
-				DisabledRustdocWarnings: []string{
-					"redundant_explicit_links",
-					"broken_intra_doc_links",
-				},
-			},
 		}
 	}
 

@@ -547,56 +547,6 @@ func TestGenerateRust_RequiresSingleAPI(t *testing.T) {
 	}
 }
 
-func TestRunInitRust_All(t *testing.T) {
-	tmpDir := t.TempDir()
-	t.Chdir(tmpDir)
-
-	if err := runInitRust(true); err != nil {
-		t.Fatal(err)
-	}
-
-	cfg, err := config.Read("librarian.yaml")
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if cfg.Language != "rust" {
-		t.Errorf("Language = %q, want %q", cfg.Language, "rust")
-	}
-
-	if len(cfg.Libraries) != 1 {
-		t.Fatalf("Libraries length = %d, want 1", len(cfg.Libraries))
-	}
-
-	if cfg.Libraries[0].Name != "*" {
-		t.Errorf("Libraries[0].Name = %q, want %q", cfg.Libraries[0].Name, "*")
-	}
-
-	if cfg.Defaults == nil {
-		t.Fatal("Defaults is nil")
-	}
-
-	if cfg.Defaults.Output != "src/generated/" {
-		t.Errorf("Defaults.Output = %q, want %q", cfg.Defaults.Output, "src/generated/")
-	}
-
-	if cfg.Defaults.OneLibraryPer != "version" {
-		t.Errorf("Defaults.OneLibraryPer = %q, want %q", cfg.Defaults.OneLibraryPer, "version")
-	}
-
-	if cfg.Defaults.ReleaseLevel != "stable" {
-		t.Errorf("Defaults.ReleaseLevel = %q, want %q", cfg.Defaults.ReleaseLevel, "stable")
-	}
-
-	if cfg.Defaults.Rust == nil {
-		t.Fatal("Defaults.Rust is nil")
-	}
-
-	if len(cfg.Defaults.Rust.DisabledRustdocWarnings) != 2 {
-		t.Errorf("DisabledRustdocWarnings length = %d, want 2", len(cfg.Defaults.Rust.DisabledRustdocWarnings))
-	}
-}
-
 func TestRunGenerateAll_NoLibraries(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
@@ -616,8 +566,8 @@ func TestRunGenerateAll_Wildcard(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Chdir(tmpDir)
 
-	// Use runInitRust to get a real googleapis source
-	if err := runInitRust(true); err != nil {
+	// Use rust.Init to get a real googleapis source
+	if err := rust.Init(Version(), true); err != nil {
 		t.Fatal(err)
 	}
 
