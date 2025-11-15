@@ -41,24 +41,24 @@ func TestRustProstConvert(t *testing.T) {
 		},
 	}
 
-	for _, test := range configs {
+	for _, config := range configs {
 		cmdLine := &CommandLine{
 			Command:             []string{},
 			SpecificationFormat: "protobuf",
-			SpecificationSource: test.Source,
+			SpecificationSource: config.Source,
 			Source: map[string]string{
 				"googleapis-root": googleapisRoot,
 				"skipped-ids":     ".google.rpc.Status",
 			},
-			ServiceConfig: test.ServiceConfig,
+			ServiceConfig: config.ServiceConfig,
 			Language:      "rust",
-			Output:        path.Join(outDir, test.Name),
+			Output:        path.Join(outDir, config.Name),
 			Codec: map[string]string{
 				"copyright-year":    "2024",
 				"template-override": "templates/convert-prost",
 			},
 		}
-		for k, v := range test.ExtraOptions {
+		for k, v := range config.ExtraOptions {
 			cmdLine.Codec[k] = v
 		}
 		cmdGenerate, _, _ := cmdSidekick.lookup([]string{"generate"})

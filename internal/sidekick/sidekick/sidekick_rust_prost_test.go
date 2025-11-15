@@ -48,8 +48,8 @@ func TestRustProstFromProtobuf(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, test := range []string{".sidekick.toml", "google.r#type.rs"} {
-		filename := path.Join(outDir, test)
+	for _, expected := range []string{".sidekick.toml", "google.r#type.rs"} {
+		filename := path.Join(outDir, expected)
 		stat, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			t.Errorf("missing %s: %s", filename, err)

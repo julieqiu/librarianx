@@ -1035,7 +1035,7 @@ func TestPathInfoAnnotations(t *testing.T) {
 		{[]*api.PathBinding{binding("GET"), binding("POST")}, "false"},
 		{[]*api.PathBinding{binding("POST"), binding("POST")}, "false"},
 	}
-	for _, test := range testCases {
+	for _, testCase := range testCases {
 		request := &api.Message{
 			Name:    "Request",
 			Package: "test.v1",
@@ -1052,7 +1052,7 @@ func TestPathInfoAnnotations(t *testing.T) {
 			InputTypeID:  ".test.v1.Request",
 			OutputTypeID: ".test.v1.Response",
 			PathInfo: &api.PathInfo{
-				Bindings: test.Bindings,
+				Bindings: testCase.Bindings,
 			},
 		}
 		service := &api.Service{
@@ -1076,7 +1076,7 @@ func TestPathInfoAnnotations(t *testing.T) {
 		annotateModel(model, codec)
 
 		pathInfoAnn := method.PathInfo.Codec.(*pathInfoAnnotation)
-		if pathInfoAnn.IsIdempotent != test.DefaultIdempotency {
+		if pathInfoAnn.IsIdempotent != testCase.DefaultIdempotency {
 			t.Errorf("fail")
 		}
 	}
@@ -1820,13 +1820,13 @@ func TestEnumAnnotationsValuesForExamples(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		t.Run(test.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
 			enum := &api.Enum{
 				Name:    "TestEnum",
 				ID:      ".test.v1.TestEnum",
 				Package: "test.v1",
-				Values:  test.values,
+				Values:  tc.values,
 			}
 			model := api.NewTestAPI([]*api.Message{}, []*api.Enum{enum}, []*api.Service{})
 			if err := api.CrossReference(model); err != nil {
@@ -1839,7 +1839,7 @@ func TestEnumAnnotationsValuesForExamples(t *testing.T) {
 			annotateModel(model, codec)
 
 			got := enum.Codec.(*enumAnnotation).ValuesForExamples
-			if diff := cmp.Diff(test.wantExamples, got, cmpopts.IgnoreFields(api.EnumValue{}, "Parent")); diff != "" {
+			if diff := cmp.Diff(tc.wantExamples, got, cmpopts.IgnoreFields(api.EnumValue{}, "Parent")); diff != "" {
 				t.Errorf("mismatch in ValuesForExamples (-want, +got)\n:%s", diff)
 			}
 		})
@@ -1927,18 +1927,18 @@ func TestOneOfExampleFieldSelection(t *testing.T) {
 		},
 	}
 
-	for _, test := range testCases {
-		t.Run(test.name, func(t *testing.T) {
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
 			group := &api.OneOf{
 				Name:   "test_oneof",
 				ID:     ".test.Message.test_oneof",
-				Fields: test.fields,
+				Fields: tc.fields,
 			}
 			message := &api.Message{
 				Name:    "Message",
 				ID:      ".test.Message",
 				Package: "test",
-				Fields:  test.fields,
+				Fields:  tc.fields,
 				OneOfs:  []*api.OneOf{group},
 			}
 			oneMesage := &api.Message{
@@ -1957,7 +1957,7 @@ func TestOneOfExampleFieldSelection(t *testing.T) {
 			annotateModel(model, codec)
 
 			got := group.Codec.(*oneOfAnnotation).ExampleField
-			if diff := cmp.Diff(test.want, got); diff != "" {
+			if diff := cmp.Diff(tc.want, got); diff != "" {
 				t.Errorf("mismatch in ExampleField (-want, +got)\n:%s", diff)
 			}
 		})

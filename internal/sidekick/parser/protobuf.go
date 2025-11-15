@@ -155,7 +155,7 @@ const (
 	fileDescriptorPublicDependency = 10
 	fileDescriptorWeakDependency   = 11
 	fileDescriptorSyntax           = 12
-	fileDescriptorLibrary          = 14
+	fileDescriptorEdition          = 14
 
 	// From https://pkg.go.dev/google.golang.org/protobuf/types/descriptorpb#ServiceDescriptorProto
 
@@ -284,7 +284,7 @@ func makeAPIForProtobuf(serviceConfig *serviceconfig.Service, req *pluginpb.Code
 			case fileDescriptorName, fileDescriptorPackage, fileDescriptorDependency,
 				fileDescriptorExtension, fileDescriptorOptions, fileDescriptorSourceCodeInfo,
 				fileDescriptorPublicDependency, fileDescriptorWeakDependency,
-				fileDescriptorSyntax, fileDescriptorLibrary:
+				fileDescriptorSyntax, fileDescriptorEdition:
 				// We ignore this type of documentation because it produces no
 				// output in the generated code.
 			default:

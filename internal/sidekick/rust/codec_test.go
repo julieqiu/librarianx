@@ -449,9 +449,9 @@ func testOneOfEnumNameImpl(t *testing.T, c *codec, name string, want string) {
 
 func TestWellKnownTypesExist(t *testing.T) {
 	model := api.NewTestAPI([]*api.Message{}, []*api.Enum{}, []*api.Service{})
-	for _, test := range []string{"Any", "Duration", "Empty", "FieldMask", "Timestamp"} {
-		if _, ok := model.State.MessageByID[fmt.Sprintf(".google.protobuf.%s", test)]; !ok {
-			t.Errorf("cannot find well-known message %s in API", test)
+	for _, name := range []string{"Any", "Duration", "Empty", "FieldMask", "Timestamp"} {
+		if _, ok := model.State.MessageByID[fmt.Sprintf(".google.protobuf.%s", name)]; !ok {
+			t.Errorf("cannot find well-known message %s in API", name)
 		}
 	}
 }
@@ -506,8 +506,8 @@ func TestGeneratedFiles(t *testing.T) {
 
 func expectGeneratedFile(t *testing.T, name string, files []language.GeneratedFile) {
 	t.Helper()
-	for _, test := range files {
-		if strings.HasSuffix(test.OutputPath, name) {
+	for _, g := range files {
+		if strings.HasSuffix(g.OutputPath, name) {
 			return
 		}
 	}
@@ -516,8 +516,8 @@ func expectGeneratedFile(t *testing.T, name string, files []language.GeneratedFi
 
 func unexpectedGeneratedFile(t *testing.T, name string, files []language.GeneratedFile) {
 	t.Helper()
-	for _, test := range files {
-		if strings.HasSuffix(test.OutputPath, name) {
+	for _, g := range files {
+		if strings.HasSuffix(g.OutputPath, name) {
 			t.Errorf("unexpectedly found %s in %v", name, files)
 		}
 	}
@@ -697,23 +697,23 @@ func TestFieldType(t *testing.T) {
 		"f_map":                    "std::collections::HashMap<i32,i32>",
 	}
 	c := createRustCodec()
-	for _, test := range message.Fields {
-		want, ok := expectedTypes[test.Name]
+	for _, field := range message.Fields {
+		want, ok := expectedTypes[field.Name]
 		if !ok {
-			t.Fatalf("missing expected value for %s", test.Name)
+			t.Fatalf("missing expected value for %s", field.Name)
 		}
-		got := fieldType(test, model.State, false, c.modulePath, model.PackageName, c.packageMapping)
+		got := fieldType(field, model.State, false, c.modulePath, model.PackageName, c.packageMapping)
 		if got != want {
-			t.Errorf("mismatched field type for %s, got=%s, want=%s", test.Name, got, want)
+			t.Errorf("mismatched field type for %s, got=%s, want=%s", field.Name, got, want)
 		}
 
-		want, ok = expectedPrimitiveTypes[test.Name]
+		want, ok = expectedPrimitiveTypes[field.Name]
 		if !ok {
-			t.Fatalf("missing expected value for %s", test.Name)
+			t.Fatalf("missing expected value for %s", field.Name)
 		}
-		got = fieldType(test, model.State, true, c.modulePath, model.PackageName, c.packageMapping)
+		got = fieldType(field, model.State, true, c.modulePath, model.PackageName, c.packageMapping)
 		if got != want {
-			t.Errorf("mismatched field type for %s, got=%s, want=%s", test.Name, got, want)
+			t.Errorf("mismatched field type for %s, got=%s, want=%s", field.Name, got, want)
 		}
 	}
 }
@@ -741,14 +741,14 @@ func TestOneOfFieldType(t *testing.T) {
 		"f_map":                    "std::collections::HashMap<i32,i32>",
 	}
 	c := createRustCodec()
-	for _, test := range message.Fields {
-		want, ok := expectedTypes[test.Name]
+	for _, field := range message.Fields {
+		want, ok := expectedTypes[field.Name]
 		if !ok {
-			t.Fatalf("missing expected value for %s", test.Name)
+			t.Fatalf("missing expected value for %s", field.Name)
 		}
-		got := oneOfFieldType(test, model.State, c.modulePath, model.PackageName, c.packageMapping)
+		got := oneOfFieldType(field, model.State, c.modulePath, model.PackageName, c.packageMapping)
 		if got != want {
-			t.Errorf("mismatched field type for %s, got=%s, want=%s", test.Name, got, want)
+			t.Errorf("mismatched field type for %s, got=%s, want=%s", field.Name, got, want)
 		}
 	}
 }
@@ -1756,7 +1756,9 @@ http://www.unicode.org/cldr/charts/30/supplemental/territory_information.html
 http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
 https://cloud.google.com/apis/design/design_patterns#integer_types
 https://cloud.google.com/apis/design/design_patterns#integer_types.
-Hyperlink: <a href="https://hyperlink.com">Content</a>`
+Hyperlink: <a href="https://hyperlink.com">Content</a>
+URL at end of line: https://example10.com
+Truncated link: [text](https://example11.com`
 	want := []string{
 		"/// blah blah <https://cloud.google.com> foo bar",
 		"/// [link](https://example1.com)",
@@ -1773,6 +1775,8 @@ Hyperlink: <a href="https://hyperlink.com">Content</a>`
 		"/// <https://cloud.google.com/apis/design/design_patterns#integer_types>",
 		"/// <https://cloud.google.com/apis/design/design_patterns#integer_types>.",
 		"/// Hyperlink: <a href=\"https://hyperlink.com\">Content</a>",
+		"/// URL at end of line: <https://example10.com>",
+		"/// Truncated link: [text](https://example11.com",
 	}
 
 	wkt := &packagez{
@@ -1910,8 +1914,8 @@ func TestEnumValueVariantName(t *testing.T) {
 	model := api.NewTestAPI([]*api.Message{}, []*api.Enum{testEnum, networkingEnum, validationEnum}, []*api.Service{})
 	model.PackageName = "test"
 	var got []string
-	for _, test := range testEnum.Values {
-		got = append(got, enumValueVariantName(test))
+	for _, value := range testEnum.Values {
+		got = append(got, enumValueVariantName(value))
 	}
 	want := []string{"Unspecified", "EnumName1", "A", "Partial", "Green"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -1919,8 +1923,8 @@ func TestEnumValueVariantName(t *testing.T) {
 	}
 
 	got = []string{}
-	for _, test := range networkingEnum.Values {
-		got = append(got, enumValueVariantName(test))
+	for _, value := range networkingEnum.Values {
+		got = append(got, enumValueVariantName(value))
 	}
 	want = []string{"Unspecified", "InheritFromSubnetwork"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -1928,8 +1932,8 @@ func TestEnumValueVariantName(t *testing.T) {
 	}
 
 	got = []string{}
-	for _, test := range validationEnum.Values {
-		got = append(got, enumValueVariantName(test))
+	for _, value := range validationEnum.Values {
+		got = append(got, enumValueVariantName(value))
 	}
 	want = []string{"Unknown", "Verify"}
 	if diff := cmp.Diff(want, got); diff != "" {
@@ -2025,52 +2029,5 @@ func TestParseOptionsGenerateSetterSamples(t *testing.T) {
 	}
 	if !got.generateSetterSamples {
 		t.Errorf("generateSetterSamples should be true")
-	}
-}
-
-func TestIsLinkDestination(t *testing.T) {
-	for _, test := range []struct {
-		name       string
-		line       string
-		matchStart int
-		matchEnd   int
-		want       bool
-	}{
-		{
-			name:       "valid link",
-			line:       "See [documentation](https://example.com) for details",
-			matchStart: 20,
-			matchEnd:   39,
-			want:       true,
-		},
-		{
-			name:       "not a link destination",
-			line:       "Visit https://example.com for details",
-			matchStart: 6,
-			matchEnd:   25,
-			want:       false,
-		},
-		{
-			name:       "matchEnd at end of line",
-			line:       "See [documentation](https://example.com)",
-			matchStart: 19,
-			matchEnd:   40,
-			want:       false,
-		},
-		{
-			name:       "matchEnd beyond line length",
-			line:       "See [documentation](https://example.com)",
-			matchStart: 19,
-			matchEnd:   100,
-			want:       false,
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			got := isLinkDestination(test.line, test.matchStart, test.matchEnd)
-			if got != test.want {
-				t.Errorf("isLinkDestination(%q, %d, %d) = %v, want %v",
-					test.line, test.matchStart, test.matchEnd, got, test.want)
-			}
-		})
 	}
 }

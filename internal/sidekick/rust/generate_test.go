@@ -125,8 +125,8 @@ func TestRustFromOpenAPI(t *testing.T) {
 	if err := Generate(model, outDir, cfg); err != nil {
 		t.Fatal(err)
 	}
-	for _, test := range expectedInCrate {
-		filename := path.Join(outDir, test)
+	for _, expected := range expectedInCrate {
+		filename := path.Join(outDir, expected)
 		stat, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			t.Errorf("missing %s: %s", filename, err)
@@ -159,8 +159,8 @@ func TestRustFromProtobuf(t *testing.T) {
 	if err := Generate(model, outDir, cfg); err != nil {
 		t.Fatal(err)
 	}
-	for _, test := range expectedInCrate {
-		filename := path.Join(outDir, test)
+	for _, expected := range expectedInCrate {
+		filename := path.Join(outDir, expected)
 		stat, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			t.Errorf("missing %s: %s", filename, err)
@@ -174,7 +174,7 @@ func TestRustFromProtobuf(t *testing.T) {
 
 func TestRustClient(t *testing.T) {
 	requireProtoc(t)
-	for _, test := range []string{"http-client", "grpc-client"} {
+	for _, override := range []string{"http-client", "grpc-client"} {
 		outDir := t.TempDir()
 
 		cfg := &config.Config{
@@ -188,7 +188,7 @@ func TestRustClient(t *testing.T) {
 			},
 			Codec: map[string]string{
 				"copyright-year":    "2025",
-				"template-override": path.Join("templates", test),
+				"template-override": path.Join("templates", override),
 			},
 		}
 		model, err := parser.CreateModel(cfg)
@@ -198,8 +198,8 @@ func TestRustClient(t *testing.T) {
 		if err := Generate(model, outDir, cfg); err != nil {
 			t.Fatal(err)
 		}
-		for _, test := range expectedInClient {
-			filename := path.Join(outDir, test)
+		for _, expected := range expectedInClient {
+			filename := path.Join(outDir, expected)
 			stat, err := os.Stat(filename)
 			if os.IsNotExist(err) {
 				t.Errorf("missing %s: %s", filename, err)
@@ -208,10 +208,10 @@ func TestRustClient(t *testing.T) {
 				t.Errorf("generated files should not be executable %s: %o", filename, stat.Mode())
 			}
 		}
-		for _, test := range unexpectedInClient {
-			filename := path.Join(outDir, test)
+		for _, unexpected := range unexpectedInClient {
+			filename := path.Join(outDir, unexpected)
 			if stat, err := os.Stat(filename); err == nil {
-				t.Errorf("did not expect file %s, got=%v", test, stat)
+				t.Errorf("did not expect file %s, got=%v", unexpected, stat)
 			}
 		}
 		importsModelModules(t, path.Join(outDir, "model.rs"))
@@ -243,8 +243,8 @@ func TestRustNosvc(t *testing.T) {
 	if err := Generate(model, outDir, cfg); err != nil {
 		t.Fatal(err)
 	}
-	for _, test := range expectedInNosvc {
-		filename := path.Join(outDir, test)
+	for _, expected := range expectedInNosvc {
+		filename := path.Join(outDir, expected)
 		stat, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			t.Errorf("missing %s: %s", filename, err)
@@ -282,8 +282,8 @@ func TestRustModuleRpc(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, test := range expectedInModule {
-		filename := path.Join(outDir, "rpc", test)
+	for _, expected := range expectedInModule {
+		filename := path.Join(outDir, "rpc", expected)
 		stat, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			t.Errorf("missing %s: %s", filename, err)
@@ -322,8 +322,8 @@ func TestRustBootstrapWkt(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	for _, test := range expectedInModule {
-		filename := path.Join(outDir, "wkt", test)
+	for _, expected := range expectedInModule {
+		filename := path.Join(outDir, "wkt", expected)
 		stat, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			t.Errorf("missing %s: %s", filename, err)
@@ -341,9 +341,9 @@ func importsModelModules(t *testing.T, filename string) {
 		t.Fatal(err)
 	}
 	lines := strings.Split(strings.ReplaceAll(string(contents), "\r\n", "\n"), "\n")
-	for _, test := range []string{"mod debug;", "mod serialize;", "mod deserialize;"} {
-		if !slices.Contains(lines, test) {
-			t.Errorf("expected file %s to have a line matching %q, got:\n%s", filename, test, contents)
+	for _, want := range []string{"mod debug;", "mod serialize;", "mod deserialize;"} {
+		if !slices.Contains(lines, want) {
+			t.Errorf("expected file %s to have a line matching %q, got:\n%s", filename, want, contents)
 		}
 	}
 }

@@ -68,8 +68,8 @@ func TestFromProtobuf(t *testing.T) {
 	if err := Generate(model, outDir, cfg); err != nil {
 		t.Fatal(err)
 	}
-	for _, test := range []string{"pubspec.yaml", "lib/secretmanager.dart", "README.md"} {
-		filename := path.Join(outDir, test)
+	for _, expected := range []string{"pubspec.yaml", "lib/secretmanager.dart", "README.md"} {
+		filename := path.Join(outDir, expected)
 		stat, err := os.Stat(filename)
 		if os.IsNotExist(err) {
 			t.Errorf("missing %s: %s", filename, err)
