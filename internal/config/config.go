@@ -349,6 +349,15 @@ type BazelGoMetadata struct {
 
 	// Diregapic indicates whether this is a DIREGAPIC (Discovery REST GAPIC).
 	Diregapic bool `yaml:"diregapic,omitempty"`
+
+	// ServiceYAML is the client config file in the API version directory.
+	ServiceYAML string `yaml:"service_yaml,omitempty"`
+
+	// HasGoGRPC indicates whether a go_grpc_library rule is used.
+	HasGoGRPC bool `yaml:"has_go_grpc,omitempty"`
+
+	// HasLegacyGRPC indicates whether the go_proto_library rule uses the legacy gRPC plugin.
+	HasLegacyGRPC bool `yaml:"has_legacy_grpc,omitempty"`
 }
 
 // BazelPythonMetadata contains Python-specific metadata from BUILD.bazel.

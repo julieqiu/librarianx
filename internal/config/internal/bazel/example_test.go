@@ -19,7 +19,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/googleapis/librarian/internal/bazel"
+	"github.com/googleapis/librarian/internal/config/internal/bazel"
 )
 
 // Example_parseGo demonstrates parsing Go API configuration from BUILD.bazel.

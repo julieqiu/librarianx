@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/bazel"
+	"github.com/googleapis/librarian/internal/config/internal/bazel"
 )
 
 // EnrichWithBazelMetadata enriches a configuration with metadata extracted from BUILD.bazel files.
@@ -117,9 +117,12 @@ func EnrichWithBazelMetadata(cfg *Config, googleapisRoot string) error {
 		case "go":
 			if apiConfig.Go != nil && apiConfig.Go.ImportPath != "" {
 				metadata.Go = &BazelGoMetadata{
-					ImportPath: apiConfig.Go.ImportPath,
-					Metadata:   apiConfig.Go.Metadata,
-					Diregapic:  apiConfig.Go.Diregapic,
+					ImportPath:    apiConfig.Go.ImportPath,
+					Metadata:      apiConfig.Go.Metadata,
+					Diregapic:     apiConfig.Go.Diregapic,
+					ServiceYAML:   apiConfig.ServiceYAML,
+					HasGoGRPC:     apiConfig.Go.HasGoGRPC,
+					HasLegacyGRPC: apiConfig.Go.HasLegacyGRPC,
 				}
 			}
 		case "python":
@@ -269,6 +272,35 @@ func (l *LibraryConfig) HasCustomConfig() bool {
 // NormalizeAPIPath normalizes an API path by removing leading/trailing slashes.
 func NormalizeAPIPath(path string) string {
 	return strings.Trim(path, "/")
+}
+
+// ParseBazelForGo parses a BUILD.bazel file in the given directory and returns
+// configuration for Go generation. This is a wrapper around the internal bazel
+// parser to allow access from other packages.
+func ParseBazelForGo(apiServiceDir string) (BazelConfig, error) {
+	cfg, err := bazel.Parse(apiServiceDir)
+	if err != nil {
+		return nil, err
+	}
+	return cfg, nil
+}
+
+// BazelConfig provides configuration extracted from BUILD.bazel files.
+// This interface allows other packages to use bazel configuration without
+// directly importing the internal bazel package.
+type BazelConfig interface {
+	GAPICImportPath() string
+	ServiceYAML() string
+	GRPCServiceConfig() string
+	Transport() string
+	ReleaseLevel() string
+	HasMetadata() bool
+	HasDiregapic() bool
+	HasRESTNumericEnums() bool
+	HasGoGRPC() bool
+	HasGAPIC() bool
+	HasLegacyGRPC() bool
+	DisableGAPIC()
 }
 
 // EnrichWithServiceConfigSettings enriches a configuration with language-specific settings
