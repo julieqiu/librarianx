@@ -23,7 +23,6 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/naming"
 	"gopkg.in/yaml.v3"
 )
 
@@ -366,7 +365,7 @@ func (c *Config) GetAllLibraries(googleapisRoot string) ([]LibraryEntry, error) 
 		output = c.Defaults.Output
 	}
 	for _, api := range filtered {
-		name := naming.DeriveLibraryName(api.Path, c.Language, packaging)
+		name := DeriveLibraryName(api.Path, c.Language, packaging)
 		path := deriveLibraryPath(api.Path, c.Language, output)
 
 		libraries = append(libraries, LibraryEntry{
