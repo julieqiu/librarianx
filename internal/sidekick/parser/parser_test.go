@@ -32,7 +32,6 @@ var (
 	testdataDir, _            = filepath.Abs("../testdata")
 	discoSourceFile           = path.Join(testdataDir, discoSourceFileRelative)
 	secretManagerYamlFullPath = path.Join(testdataDir, "googleapis", secretManagerYamlRelative)
-	openAPIFile               = path.Join(testdataDir, "openapi", "secretmanager_openapi_v1.json")
 	protobufFile              = path.Join("testdata", "scalar.proto")
 )
 
