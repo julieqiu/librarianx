@@ -24,6 +24,7 @@ sources:
 default:
   output: src/generated/
   generate:
+    all: true
     one_library_per: version
     release_level: stable
   release:

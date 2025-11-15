@@ -30,59 +30,20 @@ type Config struct {
 	Language string `yaml:"language"`
 
 	// Sources contains references to external source repositories.
-	Sources Sources `yaml:"sources,omitempty"`
+	Sources *ConfigSources `yaml:"sources,omitempty"`
 
-	// Defaults contains default generation settings.
-	Defaults ConfigDefault `yaml:"default"`
-
-	// Release contains release configuration.
-	Release *ConfigRelease `yaml:"release,omitempty"`
+	// Default contains default generation settings.
+	Default *Default `yaml:"default"`
 
 	// Libraries contains the list of library configurations.
 	// Each entry can be either:
 	// - A string API path (short syntax): "google/cloud/secretmanager/v1"
 	// - A map with API path as key and overrides as value (extended syntax)
-	Libraries []LibraryEntry `yaml:"libraries,omitempty"`
+	Libraries []*Library `yaml:"libraries,omitempty"`
 }
 
-// LibraryEntry represents a single library entry in the configuration.
-// It can be either a simple string (like "*") or a map with library name and config.
-type LibraryEntry struct {
-	// Simple contains the library name when using string syntax (e.g., "*")
-	Simple string
-
-	// Map contains the library name and configuration when using map syntax
-	Map map[string]Library
-}
-
-// UnmarshalYAML implements custom unmarshaling for LibraryEntry.
-func (e *LibraryEntry) UnmarshalYAML(node *yaml.Node) error {
-	// Try to unmarshal as a string first
-	var s string
-	if err := node.Decode(&s); err == nil {
-		e.Simple = s
-		return nil
-	}
-
-	// If that fails, try to unmarshal as a map
-	var m map[string]Library
-	if err := node.Decode(&m); err != nil {
-		return err
-	}
-	e.Map = m
-	return nil
-}
-
-// MarshalYAML implements custom marshaling for LibraryEntry.
-func (e LibraryEntry) MarshalYAML() (interface{}, error) {
-	if e.Simple != "" {
-		return e.Simple, nil
-	}
-	return e.Map, nil
-}
-
-// Sources contains references to external source repositories.
-type Sources struct {
+// ConfigSources contains references to external source repositories.
+type ConfigSources struct {
 	// Googleapis is the googleapis source repository.
 	Googleapis *Source `yaml:"googleapis,omitempty"`
 
@@ -114,19 +75,19 @@ type Source struct {
 	Subdir string `yaml:"subdir,omitempty"`
 }
 
-// ConfigDefault contains default generation settings.
-type ConfigDefault struct {
+// Default contains default generation settings.
+type Default struct {
 	// Output is the directory where generated code is written (relative to repository root).
 	Output string `yaml:"output,omitempty"`
 
-	Generate *ConfigGenerate `yaml:"generate,omitempty"`
+	Generate *DefaultGenerate `yaml:"generate,omitempty"`
 
-	Release *ConfigRelease `yaml:"release,omitempty"`
+	Release *DefaultRelease `yaml:"release,omitempty"`
 
 	Rust *RustDefault `yaml:"rust,omitempty"`
 }
 
-type ConfigGenerate struct {
+type DefaultGenerate struct {
 	// Generated all generates all client libraries with default configurations
 	// for the language, unless otherwise specified.
 	All bool `yaml:"all,omitempty"`
@@ -150,8 +111,8 @@ type ConfigGenerate struct {
 	ExcludeAPIs []string `yaml:"exclude_apis,omitempty"`
 }
 
-// ConfigRelease contains release configuration.
-type ConfigRelease struct {
+// DefaultRelease contains release configuration.
+type DefaultRelease struct {
 	// TagFormat is the template for git tags (e.g., '{name}/v{version}').
 	// Supported placeholders: {name}, {version}
 	TagFormat string `yaml:"tag_format,omitempty"`
@@ -256,36 +217,5 @@ func (c *Config) Write(path string) error {
 		return fmt.Errorf("failed to marshal config: %w", err)
 	}
 
-	return nil
-}
-
-// Set sets a configuration key to the specified value.
-func (c *Config) Set(key, value string) error {
-	switch key {
-	case "release.tag_format":
-		if c.Release == nil {
-			c.Release = &ConfigRelease{}
-		}
-		c.Release.TagFormat = value
-	case "generate.output":
-		c.Defaults.Output = value
-	default:
-		return fmt.Errorf("unknown key: %s", key)
-	}
-	return nil
-}
-
-// Unset removes a configuration key.
-func (c *Config) Unset(key string) error {
-	switch key {
-	case "release.tag_format":
-		if c.Release != nil {
-			c.Release.TagFormat = ""
-		}
-	case "generate.output":
-		c.Defaults.Output = ""
-	default:
-		return fmt.Errorf("unknown key: %s", key)
-	}
 	return nil
 }
