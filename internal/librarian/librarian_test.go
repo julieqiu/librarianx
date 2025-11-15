@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/rust"
+	"github.com/googleapis/librarian/internal/language/rust"
 )
 
 func TestRun_Version(t *testing.T) {

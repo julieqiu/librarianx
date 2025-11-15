@@ -24,8 +24,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/golang/execv"
-	"github.com/googleapis/librarian/internal/golang/request"
+	"github.com/googleapis/librarian/internal/language/golang/execv"
+	"github.com/googleapis/librarian/internal/language/golang/request"
 )
 
 // testEnv encapsulates a temporary test environment.

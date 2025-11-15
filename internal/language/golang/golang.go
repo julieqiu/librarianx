@@ -23,8 +23,8 @@ import (
 	"path/filepath"
 
 	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/golang/generate"
-	"github.com/googleapis/librarian/internal/golang/release"
+	"github.com/googleapis/librarian/internal/language/golang/generate"
+	"github.com/googleapis/librarian/internal/language/golang/release"
 )
 
 // Generate generates Go client libraries from API definitions.

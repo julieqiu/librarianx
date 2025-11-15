@@ -19,8 +19,8 @@ import (
 	"testing"
 
 	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/golang"
-	"github.com/googleapis/librarian/internal/golang/release"
+	"github.com/googleapis/librarian/internal/language/golang"
+	"github.com/googleapis/librarian/internal/language/golang/release"
 )
 
 // TestAPIExists verifies that the top-level API functions exist and can be called.

@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/googleapis/librarian/internal/golang/request"
+	"github.com/googleapis/librarian/internal/language/golang/request"
 )
 
 // ConfigProvider is an interface that describes the configuration needed

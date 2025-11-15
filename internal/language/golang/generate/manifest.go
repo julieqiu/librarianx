@@ -23,8 +23,8 @@ import (
 	"strings"
 
 	"github.com/googleapis/librarian/internal/bazel"
-	"github.com/googleapis/librarian/internal/golang/config"
-	"github.com/googleapis/librarian/internal/golang/request"
+	"github.com/googleapis/librarian/internal/language/golang/config"
+	"github.com/googleapis/librarian/internal/language/golang/request"
 	"gopkg.in/yaml.v3"
 )
 

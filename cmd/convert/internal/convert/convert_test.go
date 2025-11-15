@@ -22,9 +22,10 @@ import (
 	"github.com/googleapis/librarian/internal/config"
 )
 
+// Use the existing testdata from generate/golang.
+const inputDir = "/Users/julieqiu/code/julieqiu/librarianx/internal/language/golang/testdata/generate"
+
 func TestConvert(t *testing.T) {
-	// Use the existing testdata from generate/golang
-	inputDir := filepath.Join("..", "golang", "testdata", "generate")
 
 	// Create a temporary output directory
 	tmpDir := t.TempDir()

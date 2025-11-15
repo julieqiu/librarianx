@@ -26,9 +26,9 @@ import (
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/fetch"
-	"github.com/googleapis/librarian/internal/golang"
-	"github.com/googleapis/librarian/internal/python"
-	"github.com/googleapis/librarian/internal/rust"
+	"github.com/googleapis/librarian/internal/language/golang"
+	"github.com/googleapis/librarian/internal/language/python"
+	"github.com/googleapis/librarian/internal/language/rust"
 	"github.com/urfave/cli/v3"
 )
 

@@ -15,15 +15,15 @@
 package convert
 
 import (
-	"path/filepath"
 	"testing"
 
 	"github.com/googleapis/librarian/internal/config"
 )
 
+// Read the generated data/go/librarian.yaml.
+const yamlPath = "/Users/julieqiu/code/julieqiu/librarianx/data/go/librarian.yaml"
+
 func TestValidateGeneratedGoLibrarianYAML(t *testing.T) {
-	// Read the generated data/go/librarian.yaml
-	yamlPath := filepath.Join("..", "..", "data", "go", "librarian.yaml")
 
 	cfg, err := config.Read(yamlPath)
 	if err != nil {

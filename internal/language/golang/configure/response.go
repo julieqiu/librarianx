@@ -18,7 +18,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/googleapis/librarian/internal/golang/request"
+	"github.com/googleapis/librarian/internal/language/golang/request"
 )
 
 // saveResponse marshals a Library struct, and writes it to configure-response.json file.

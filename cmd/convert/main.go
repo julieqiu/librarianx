@@ -20,7 +20,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/googleapis/librarian/internal/convert"
+	"github.com/googleapis/librarian/cmd/convert/internal/convert"
 )
 
 func main() {

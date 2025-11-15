@@ -22,8 +22,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/googleapis/librarian/internal/bazel"
-	"github.com/googleapis/librarian/internal/golang/config"
-	"github.com/googleapis/librarian/internal/golang/request"
+	"github.com/googleapis/librarian/internal/language/golang/config"
+	"github.com/googleapis/librarian/internal/language/golang/request"
 )
 
 func TestApiShortname(t *testing.T) {

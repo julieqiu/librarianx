@@ -24,9 +24,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/googleapis/librarian/internal/golang/config"
-	"github.com/googleapis/librarian/internal/golang/configure"
-	"github.com/googleapis/librarian/internal/golang/request"
+	"github.com/googleapis/librarian/internal/language/golang/config"
+	"github.com/googleapis/librarian/internal/language/golang/configure"
+	"github.com/googleapis/librarian/internal/language/golang/request"
 )
 
 func TestPostProcess(t *testing.T) {
