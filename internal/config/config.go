@@ -45,15 +45,15 @@ type Config struct {
 	// Key is API path (e.g., "google/api/apikeys/v2"), value is library name.
 	NameOverrides map[string]string `yaml:"name_overrides,omitempty"`
 
+	// Libraries contains configuration overrides for libraries that need special handling.
+	// Only include libraries that differ from defaults.
+	// Versions are looked up from the Versions map below.
+	Libraries []*Library `yaml:"libraries,omitempty"`
+
 	// Versions contains version numbers for all libraries.
 	// This is the source of truth for release versions.
 	// Key is library name, value is version string.
 	Versions map[string]string `yaml:"versions,omitempty"`
-
-	// Libraries contains configuration overrides for libraries that need special handling.
-	// Only include libraries that differ from defaults.
-	// Versions are looked up from the Versions map above.
-	Libraries []*Library `yaml:"libraries,omitempty"`
 }
 
 // Sources contains references to external source repositories.
