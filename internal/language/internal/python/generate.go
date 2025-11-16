@@ -26,27 +26,6 @@ import (
 	"github.com/googleapis/librarian/internal/config"
 )
 
-// defaultKeepPaths returns the default list of files/directories to preserve during regeneration.
-// The library name will be substituted for {name} in the paths.
-func defaultKeepPaths(libraryName string) []string {
-	paths := []string{
-		"packages/{name}/CHANGELOG.md",
-		"docs/CHANGELOG.md",
-		"docs/README.rst",
-		"samples/README.txt",
-		"scripts/client-post-processing/",
-		"samples/snippets/README.rst",
-		"tests/system/",
-		"tests/unit/gapic/type/test_type.py",
-	}
-
-	result := make([]string, len(paths))
-	for i, p := range paths {
-		result[i] = strings.ReplaceAll(p, "{name}", libraryName)
-	}
-	return result
-}
-
 // Generate generates a Python client library.
 // Files and directories specified in library.Keep will be preserved during regeneration.
 // If library.Keep is not specified, a default list of paths is used.
@@ -55,13 +34,11 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	outdir := library.Path
 	if outdir == "" {
 		// Use default output pattern if no explicit path
-		if defaults != nil && defaults.Output != "" {
+		if defaults != nil {
 			outdir = strings.ReplaceAll(defaults.Output, "{name}", library.Name)
-		} else {
-			outdir = filepath.Join("packages", library.Name)
 		}
 	}
-	outdir = filepath.Join(defaultOutput, outdir)
+	fmt.Println(outdir)
 
 	// Get keep paths - use library.Keep if specified, otherwise use defaults
 	keepPaths := library.Keep
@@ -310,4 +287,25 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 	}
 
 	return nil
+}
+
+// defaultKeepPaths returns the default list of files/directories to preserve during regeneration.
+// The library name will be substituted for {name} in the paths.
+func defaultKeepPaths(libraryName string) []string {
+	paths := []string{
+		"packages/{name}/CHANGELOG.md",
+		"docs/CHANGELOG.md",
+		"docs/README.rst",
+		"samples/README.txt",
+		"scripts/client-post-processing/",
+		"samples/snippets/README.rst",
+		"tests/system/",
+		"tests/unit/gapic/type/test_type.py",
+	}
+
+	result := make([]string, len(paths))
+	for i, p := range paths {
+		result[i] = strings.ReplaceAll(p, "{name}", libraryName)
+	}
+	return result
 }

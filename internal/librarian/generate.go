@@ -197,9 +197,12 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		library.API = apiPath
 	}
 
-	// Ensure name override is set on the library
+	// Ensure name is set on the library
 	if nameOverride != "" {
 		library.Name = nameOverride
+	} else if library.Name == "" {
+		// Derive name from API path using config method
+		library.Name = cfg.GetLibraryName(apiPath)
 	}
 
 	// Apply version from versions map if not already set in library

@@ -18,6 +18,7 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
+	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -251,6 +252,33 @@ func (c *Config) GetNameOverride(apiPath string) string {
 		return ""
 	}
 	return c.NameOverrides[apiPath]
+}
+
+// GetLibraryName returns the library name for the given API path.
+// It checks name_overrides first, then derives the name based on naming conventions.
+func (c *Config) GetLibraryName(apiPath string) string {
+	// Check for name override
+	if override := c.GetNameOverride(apiPath); override != "" {
+		return override
+	}
+
+	// Derive name based on language convention
+	if c.Language == "python" {
+		// Python: replace / with -
+		return strings.ReplaceAll(apiPath, "/", "-")
+	}
+
+	// Go and other languages: use the service name (last non-version component)
+	parts := strings.Split(apiPath, "/")
+	for i := len(parts) - 1; i >= 0; i-- {
+		part := parts[i]
+		// Skip version components (v1, v1beta1, v2alpha, etc.)
+		if len(part) > 0 && part[0] == 'v' && len(part) > 1 && (part[1] >= '0' && part[1] <= '9') {
+			continue
+		}
+		return part
+	}
+	return parts[len(parts)-1]
 }
 
 // ReadDocumentationOverrides reads the embedded documentation overrides.
