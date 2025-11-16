@@ -17,6 +17,7 @@ package python
 import (
 	"context"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -25,7 +26,30 @@ import (
 	"github.com/googleapis/librarian/internal/config"
 )
 
+// defaultKeepPaths returns the default list of files/directories to preserve during regeneration.
+// The library name will be substituted for {name} in the paths.
+func defaultKeepPaths(libraryName string) []string {
+	paths := []string{
+		"packages/{name}/CHANGELOG.md",
+		"docs/CHANGELOG.md",
+		"docs/README.rst",
+		"samples/README.txt",
+		"scripts/client-post-processing/",
+		"samples/snippets/README.rst",
+		"tests/system/",
+		"tests/unit/gapic/type/test_type.py",
+	}
+
+	result := make([]string, len(paths))
+	for i, p := range paths {
+		result[i] = strings.ReplaceAll(p, "{name}", libraryName)
+	}
+	return result
+}
+
 // Generate generates a Python client library.
+// Files and directories specified in library.Keep will be preserved during regeneration.
+// If library.Keep is not specified, a default list of paths is used.
 func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	// Determine output directory
 	outdir := library.Path
@@ -38,6 +62,19 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 		}
 	}
 	outdir = filepath.Join(defaultOutput, outdir)
+
+	// Get keep paths - use library.Keep if specified, otherwise use defaults
+	keepPaths := library.Keep
+	if len(keepPaths) == 0 {
+		keepPaths = defaultKeepPaths(library.Name)
+	}
+
+	// Backup files in keep list before generation
+	backupDir, err := backupKeepFiles(outdir, keepPaths)
+	if err != nil {
+		return fmt.Errorf("failed to backup keep files: %w", err)
+	}
+	defer os.RemoveAll(backupDir) // Clean up backup after we're done
 
 	// Create output directory
 	if err := os.MkdirAll(outdir, 0755); err != nil {
@@ -70,6 +107,150 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	for _, apiPath := range apiPaths {
 		if err := generateAPI(ctx, apiPath, library, googleapisDir, serviceConfigPath, outdir, transport, restNumericEnums); err != nil {
 			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
+		}
+	}
+
+	// Restore backed up files
+	if err := restoreKeepFiles(backupDir, outdir, keepPaths); err != nil {
+		return fmt.Errorf("failed to restore keep files: %w", err)
+	}
+
+	return nil
+}
+
+// backupKeepFiles backs up files/directories in the keep list to a temporary directory.
+// Returns the backup directory path.
+func backupKeepFiles(outdir string, keepPaths []string) (string, error) {
+	// Create temporary backup directory
+	backupDir, err := os.MkdirTemp("", "librarian-keep-*")
+	if err != nil {
+		return "", fmt.Errorf("failed to create backup directory: %w", err)
+	}
+
+	// Backup each keep path
+	for _, keepPath := range keepPaths {
+		srcPath := filepath.Join(outdir, keepPath)
+
+		// Skip if path doesn't exist
+		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
+			continue
+		}
+
+		// Create backup path
+		dstPath := filepath.Join(backupDir, keepPath)
+
+		// Create parent directory for backup
+		if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
+			return backupDir, fmt.Errorf("failed to create backup parent directory: %w", err)
+		}
+
+		// Copy file or directory
+		if err := copyPath(srcPath, dstPath); err != nil {
+			return backupDir, fmt.Errorf("failed to backup %s: %w", keepPath, err)
+		}
+	}
+
+	return backupDir, nil
+}
+
+// restoreKeepFiles restores backed up files from the backup directory to the output directory.
+func restoreKeepFiles(backupDir, outdir string, keepPaths []string) error {
+	for _, keepPath := range keepPaths {
+		srcPath := filepath.Join(backupDir, keepPath)
+
+		// Skip if backup doesn't exist
+		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
+			continue
+		}
+
+		dstPath := filepath.Join(outdir, keepPath)
+
+		// Remove generated version if it exists
+		if err := os.RemoveAll(dstPath); err != nil {
+			return fmt.Errorf("failed to remove generated %s: %w", keepPath, err)
+		}
+
+		// Create parent directory
+		if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
+			return fmt.Errorf("failed to create parent directory: %w", err)
+		}
+
+		// Restore from backup
+		if err := copyPath(srcPath, dstPath); err != nil {
+			return fmt.Errorf("failed to restore %s: %w", keepPath, err)
+		}
+	}
+
+	return nil
+}
+
+// copyPath copies a file or directory from src to dst.
+func copyPath(src, dst string) error {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if srcInfo.IsDir() {
+		return copyDir(src, dst)
+	}
+	return copyFile(src, dst)
+}
+
+// copyFile copies a single file from src to dst.
+func copyFile(src, dst string) error {
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer srcFile.Close()
+
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer dstFile.Close()
+
+	if _, err := io.Copy(dstFile, srcFile); err != nil {
+		return err
+	}
+
+	// Copy file mode
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	return os.Chmod(dst, srcInfo.Mode())
+}
+
+// copyDir recursively copies a directory from src to dst.
+func copyDir(src, dst string) error {
+	srcInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+
+	if err := os.MkdirAll(dst, srcInfo.Mode()); err != nil {
+		return err
+	}
+
+	entries, err := os.ReadDir(src)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		srcPath := filepath.Join(src, entry.Name())
+		dstPath := filepath.Join(dst, entry.Name())
+
+		if entry.IsDir() {
+			if err := copyDir(srcPath, dstPath); err != nil {
+				return err
+			}
+		} else {
+			if err := copyFile(srcPath, dstPath); err != nil {
+				return err
+			}
 		}
 	}
 
