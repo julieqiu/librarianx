@@ -60,7 +60,7 @@ func updateManifest(config *config.Release, lastTag, manifest string) ([]string,
 	if !info.Package.Publish {
 		return nil, nil
 	}
-	newVersion, err := bumpPackageVersion(info.Package.Version)
+	newVersion, err := BumpPackageVersion(info.Package.Version)
 	if err != nil {
 		return nil, err
 	}
@@ -81,7 +81,9 @@ func updateManifest(config *config.Release, lastTag, manifest string) ([]string,
 	return []string{info.Package.Name}, nil
 }
 
-func bumpPackageVersion(version string) (string, error) {
+// BumpPackageVersion increments the minor version of a semantic version string.
+// Examples: 1.0.0 -> 1.1.0, 1.5.3 -> 1.6.0, 1.5.3-alpha.1 -> 1.6.0-alpha.1
+func BumpPackageVersion(version string) (string, error) {
 	components := strings.SplitN(version, ".", 3)
 	if len(components) != 3 {
 		return version, nil
