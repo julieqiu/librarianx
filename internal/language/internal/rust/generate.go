@@ -173,9 +173,8 @@ func formatPackageDependency(dep *config.RustPackageDependency) string {
 	if dep.Feature != "" {
 		parts = append(parts, "feature="+dep.Feature)
 	}
-	if dep.Workspace {
-		parts = append(parts, "workspace=true")
-	}
+	// Note: Workspace field is not passed to sidekick as it doesn't support it.
+	// Sidekick templates handle workspace dependencies automatically.
 
 	return strings.Join(parts, ",")
 }

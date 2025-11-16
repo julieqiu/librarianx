@@ -127,8 +127,6 @@ type RustDocumentationOverride struct {
 	// Match is the text to match in the documentation.
 	Match string `yaml:"match"`
 
-	// Workspace indicates if the dependency version is managed by the workspace.
-	Workspace bool `yaml:"workspace,omitempty"`
 	// Replace is the replacement text.
 	Replace string `yaml:"replace"`
 }
