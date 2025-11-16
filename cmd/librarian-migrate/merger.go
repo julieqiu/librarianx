@@ -17,6 +17,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 )
@@ -46,7 +47,9 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 
 		// Track tag format for default identification
 		if stateLib.TagFormat != "" {
-			tagFormats = append(tagFormats, stateLib.TagFormat)
+			// Replace {id} with {name} for new format
+			tagFormat := strings.Replace(stateLib.TagFormat, "{id}", "{name}", -1)
+			tagFormats = append(tagFormats, tagFormat)
 		}
 
 		// Merge config overrides if present
