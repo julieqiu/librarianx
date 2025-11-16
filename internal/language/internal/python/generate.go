@@ -21,6 +21,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
@@ -99,6 +100,11 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths); err != nil {
 			return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
 		}
+	}
+
+	// Fix generated files that have incorrect package names
+	if err := fixGeneratedPackageNames(outdir, library.Name); err != nil {
+		return fmt.Errorf("failed to fix package names in generated files: %w", err)
 	}
 
 	// Restore backed up files
@@ -349,4 +355,89 @@ func defaultKeepPaths(libraryName string) []string {
 		result[i] = strings.ReplaceAll(p, "{name}", libraryName)
 	}
 	return result
+}
+
+// fixGeneratedPackageNames fixes package names in generated files that protoc generates incorrectly.
+// This handles two issues:
+// 1. py.typed files that reference the wrong package name
+// 2. docs/conf.py that has the wrong project name and Python 2 'u' prefix
+func fixGeneratedPackageNames(outdir, correctPackageName string) error {
+	// Derive the incorrect package name that protoc generates from API path
+	// protoc converts paths like google/cloud/secretmanager to google-cloud-secretmanager
+	// But we want to use the correct name like google-cloud-secret-manager
+
+	// Walk through the directory to find py.typed and conf.py files
+	return filepath.Walk(outdir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip directories
+		if info.IsDir() {
+			return nil
+		}
+
+		// Fix py.typed files
+		if info.Name() == "py.typed" {
+			if err := fixPyTypedFile(path, correctPackageName); err != nil {
+				return fmt.Errorf("failed to fix %s: %w", path, err)
+			}
+		}
+
+		// Fix docs/conf.py files
+		if info.Name() == "conf.py" && strings.Contains(path, "/docs/") {
+			if err := fixDocsConfPy(path, correctPackageName); err != nil {
+				return fmt.Errorf("failed to fix %s: %w", path, err)
+			}
+		}
+
+		return nil
+	})
+}
+
+// fixPyTypedFile fixes the package name comment in a py.typed file.
+func fixPyTypedFile(path, correctPackageName string) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	// Replace any occurrence of "google-cloud-<service>" with the correct package name
+	// Pattern: "# The google-cloud-<something> package uses inline types."
+	re := regexp.MustCompile(`# The (google-[a-z0-9-]+) package uses inline types\.`)
+	newContent := re.ReplaceAllString(string(content), fmt.Sprintf("# The %s package uses inline types.", correctPackageName))
+
+	if newContent != string(content) {
+		return os.WriteFile(path, []byte(newContent), 0644)
+	}
+	return nil
+}
+
+// fixDocsConfPy fixes the project name and removes Python 2 'u' prefix in docs/conf.py.
+func fixDocsConfPy(path, correctPackageName string) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	originalContent := string(content)
+	newContent := originalContent
+
+	// Fix project name and remove 'u' prefix
+	// Pattern: project = u"google-cloud-<something>"
+	re1 := regexp.MustCompile(`project = u"(google-[a-z0-9-]+)"`)
+	newContent = re1.ReplaceAllString(newContent, fmt.Sprintf(`project = "%s"`, correctPackageName))
+
+	// Also fix cases without 'u' prefix but wrong name
+	re2 := regexp.MustCompile(`project = "(google-[a-z0-9-]+)"`)
+	newContent = re2.ReplaceAllString(newContent, fmt.Sprintf(`project = "%s"`, correctPackageName))
+
+	// Fix copyright and author to remove 'u' prefix
+	newContent = strings.ReplaceAll(newContent, `copyright = u"`, `copyright = "`)
+	newContent = strings.ReplaceAll(newContent, `author = u"`, `author = "`)
+
+	if newContent != originalContent {
+		return os.WriteFile(path, []byte(newContent), 0644)
+	}
+	return nil
 }
