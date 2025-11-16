@@ -44,21 +44,15 @@ type Config struct {
 
 // Sources contains references to external source repositories.
 // Each entry maps a source name to its configuration.
-type Sources map[string]*Source
+type Sources struct {
+	// Googleapis is the googleapis repository configuration.
+	Googleapis *Source `yaml:"googleapis,omitempty"`
+}
 
 // Source represents a single source repository configuration.
 type Source struct {
-	// URL is the download URL for the source archive.
-	URL string `yaml:"url,omitempty"`
-
-	// SHA256 is the expected SHA256 hash of the downloaded archive.
-	SHA256 string `yaml:"sha256,omitempty"`
-
-	// ExtractedName is the directory name after extraction (if different from archive name).
-	ExtractedName string `yaml:"extracted_name,omitempty"`
-
-	// Subdir is a subdirectory within the extracted archive to use as the source root.
-	Subdir string `yaml:"subdir,omitempty"`
+	// Commit is the git commit hash or tag to use.
+	Commit string `yaml:"commit"`
 }
 
 // Default contains default generation settings.
@@ -66,15 +60,19 @@ type Default struct {
 	// Output is the directory where generated code is written (relative to repository root).
 	Output string `yaml:"output,omitempty"`
 
+	// Generate contains default generation configuration.
 	Generate *DefaultGenerate `yaml:"generate,omitempty"`
 
+	// Release contains default release configuration.
 	Release *DefaultRelease `yaml:"release,omitempty"`
 
+	// Rust contains Rust-specific default configuration.
 	Rust *RustDefault `yaml:"rust,omitempty"`
 }
 
+// DefaultGenerate contains default generation configuration.
 type DefaultGenerate struct {
-	// Generated all generates all client libraries with default configurations
+	// All generates all client libraries with default configurations
 	// for the language, unless otherwise specified.
 	All bool `yaml:"all,omitempty"`
 
@@ -112,7 +110,8 @@ type DefaultRelease struct {
 
 // Library represents a single library configuration entry.
 type Library struct {
-	Name string
+	// Name is the library name (e.g., "secretmanager", "storage").
+	Name string `yaml:"name,omitempty"`
 
 	// API specifies which googleapis API to generate from (for generated libraries).
 	// Can be a string (protobuf API path) or an APIObject (for discovery APIs).
@@ -149,18 +148,26 @@ type Library struct {
 	// Release contains per-library release configuration.
 	Release *LibraryRelease `yaml:"release,omitempty"`
 
-	// Overrides for derived fields
-	LaunchStage  string   `yaml:"launch_stage,omitempty"`
+	// LaunchStage overrides the derived launch stage.
+	LaunchStage string `yaml:"launch_stage,omitempty"`
+
+	// Destinations overrides the derived destinations.
 	Destinations []string `yaml:"destinations,omitempty"`
 
 	// GRPCServiceConfig is the gRPC service config JSON file path.
 	GRPCServiceConfig string `yaml:"grpc_service_config,omitempty"`
 
-	// Language-specific library configurations
-	Rust   *RustCrate     `yaml:"rust,omitempty"`
+	// Rust contains Rust-specific library configuration.
+	Rust *RustCrate `yaml:"rust,omitempty"`
+
+	// Python contains Python-specific library configuration.
 	Python *PythonPackage `yaml:"python,omitempty"`
-	Go     *GoModule      `yaml:"go,omitempty"`
-	Dart   *DartPackage   `yaml:"dart,omitempty"`
+
+	// Go contains Go-specific library configuration.
+	Go *GoModule `yaml:"go,omitempty"`
+
+	// Dart contains Dart-specific library configuration.
+	Dart *DartPackage `yaml:"dart,omitempty"`
 }
 
 // LibraryGenerate contains per-library generate configuration.
