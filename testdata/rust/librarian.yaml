@@ -306,6 +306,11 @@ libraries:
     version: 1.2.1
   - name: google-cloud-developerconnect-v1
     version: 1.2.1
+    rust:
+      documentation_overrides:
+        - id: .google.cloud.developerconnect.v1.ArtifactConfig.google_artifact_registry
+          match: regsitry
+          replace: registry
   - name: google-cloud-devicestreaming-v1
     version: 1.1.0
   - name: google-cloud-dialogflow-cx-v3
@@ -454,6 +459,11 @@ libraries:
     version: 1.2.1
   - name: google-cloud-networkservices-v1
     version: 1.2.1
+    rust:
+      documentation_overrides:
+        - id: .google.cloud.networkservices.v1.WasmPlugin.LogConfig.min_log_level
+          match: Specificies
+          replace: Specifies
   - name: google-cloud-notebooks-v2
     version: 1.2.1
   - name: google-cloud-optimization-v1
@@ -521,6 +531,11 @@ libraries:
     version: 1.1.1
   - name: google-cloud-retail-v2
     version: 2.1.1
+    rust:
+      documentation_overrides:
+        - id: .google.cloud.retail.v2.SearchRequest.user_attributes
+          match: Duplcate
+          replace: Duplicate
   - name: google-cloud-run-v2
     version: 1.2.1
   - name: google-cloud-scheduler-v1
