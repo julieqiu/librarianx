@@ -25,8 +25,8 @@ import (
 )
 
 // Generate generates a Rust client library.
-func Generate(ctx context.Context, library *config.Library, googleapisDir, outdir string) error {
-	sidekickConfig := toSidekickConfig(library, googleapisDir)
+func Generate(ctx context.Context, library *config.Library, googleapisDir, outdir, serviceConfigPath string) error {
+	sidekickConfig := toSidekickConfig(library, googleapisDir, serviceConfigPath)
 	model, err := parser.CreateModel(sidekickConfig)
 	if err != nil {
 		return err
@@ -34,36 +34,33 @@ func Generate(ctx context.Context, library *config.Library, googleapisDir, outdi
 	return sidekickrust.Generate(model, outdir, sidekickConfig)
 }
 
-func toSidekickConfig(library *config.Library, source, serviceConfig, googleapisDir string) *sidekickconfig.Config {
+func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) *sidekickconfig.Config {
 	sidekickCfg := &sidekickconfig.Config{
 		General: sidekickconfig.GeneralConfig{
 			Language:            "rust",
 			SpecificationFormat: "protobuf",
 			ServiceConfig:       serviceConfig,
-			SpecificationSource: source,
+			SpecificationSource: library.API,
 		},
 		Source: map[string]string{
 			"googleapis-root": googleapisDir,
 		},
 		Codec: map[string]string{
-			"name-overrides":              rust.NameOverrides,
-			"module-path":                 rust.ModulePath,
-			"not-for-publication":         boolToString(rust.NotForPublication),
-			"disabled-rustdoc-warnings":   strings.Join(rust.DisabledRustdocWarnings, ","),
-			"disabled-clippy-warnings":    strings.Join(rust.DisabledClippyWarnings, ","),
-			"template-override":           rust.TemplateOverride,
-			"include-grpc-only-methods":   boolToString(rust.IncludeGrpcOnlyMethods),
-			"per-service-features":        boolToString(rust.PerServiceFeatures),
-			"default-features":            strings.Join(rust.DefaultFeatures, ","),
-			"detailed-tracing-attributes": boolToString(rust.DetailedTracingAttributes),
-			"has-veneer":                  boolToString(rust.HasVeneer),
-			"extra-modules":               strings.Join(rust.ExtraModules, ","),
-			"routing-required":            boolToString(rust.RoutingRequired),
-			"generate-setter-samples":     boolToString(rust.GenerateSetterSamples),
+			"name-overrides":              library.Rust.NameOverrides,
+			"module-path":                 library.Rust.ModulePath,
+			"not-for-publication":         boolToString(library.Rust.NotForPublication),
+			"disabled-rustdoc-warnings":   strings.Join(library.Rust.DisabledRustdocWarnings, ","),
+			"disabled-clippy-warnings":    strings.Join(library.Rust.DisabledClippyWarnings, ","),
+			"template-override":           library.Rust.TemplateOverride,
+			"include-grpc-only-methods":   boolToString(library.Rust.IncludeGrpcOnlyMethods),
+			"per-service-features":        boolToString(library.Rust.PerServiceFeatures),
+			"default-features":            strings.Join(library.Rust.DefaultFeatures, ","),
+			"detailed-tracing-attributes": boolToString(library.Rust.DetailedTracingAttributes),
+			"has-veneer":                  boolToString(library.Rust.HasVeneer),
+			"extra-modules":               strings.Join(library.Rust.ExtraModules, ","),
+			"routing-required":            boolToString(library.Rust.RoutingRequired),
+			"generate-setter-samples":     boolToString(library.Rust.GenerateSetterSamples),
 		},
-	}
-	if library.Rust != nil {
-		mapRustCodecOptions(sidekickCfg.Codec, library.Rust)
 	}
 	return sidekickCfg
 }
