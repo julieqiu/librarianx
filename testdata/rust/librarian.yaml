@@ -173,6 +173,8 @@ libraries:
     version: 1.1.0
   - name: google-cloud-aiplatform-v1
     version: 1.3.1
+    generate:
+      disabled: true
     rust:
       disabled_rustdoc_warnings:
         - redundant_explicit_links
@@ -245,6 +247,8 @@ libraries:
     version: 1.1.0
   - name: google-cloud-bigquery-v2
     version: 1.0.0
+    publish:
+      disabled: true
   - name: google-cloud-billing-v1
     version: 1.1.0
   - name: google-cloud-binaryauthorization-v1
@@ -264,16 +268,16 @@ libraries:
   - name: google-cloud-common
     version: 1.1.0
   - name: google-cloud-compute-v1
+    generate:
+      disabled: true
     rust:
       package_dependencies:
         - name: lro
           package: google-cloud-longrunning
           source: google.longrunning
-          workspace: true
         - name: rpc
           package: google-cloud-rpc
           source: google.rpc
-          workspace: true
   - name: google-cloud-confidentialcomputing-v1
     version: 1.1.0
   - name: google-cloud-config-v1
@@ -308,8 +312,28 @@ libraries:
     version: 1.3.1
   - name: google-cloud-dialogflow-v2
     version: 1.3.1
+    rust:
+      per_service_features: true
+      documentation_overrides:
+        - id: .google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.baseline_model_version
+          match: |
+            Valid versions are:
+              Article Suggestion baseline model:
+                - 0.9
+                - 1.0 (default)
+              Summarization baseline model:
+                - 1.0
+          replace: |
+            Valid versions are:
+            - Article Suggestion baseline model:
+              - 0.9
+              - 1.0 (default)
+            - Summarization baseline model:
+              - 1.0
   - name: google-cloud-discoveryengine-v1
     version: 2.2.1
+    rust:
+      per_service_features: true
   - name: google-cloud-documentai-v1
     version: 1.3.1
   - name: google-cloud-domains-v1
@@ -386,7 +410,6 @@ libraries:
         - name: kms
           package: google-cloud-kms-v1
           source: google.cloud.kms.v1
-          workspace: true
   - name: google-cloud-kms-v1
     version: 1.1.1
   - name: google-cloud-language-v2
@@ -454,13 +477,17 @@ libraries:
         - name: oslogin_common
           package: google-cloud-oslogin-common
           source: google.cloud.oslogin.common
-          workspace: true
   - name: google-cloud-parallelstore-v1
     version: 1.2.1
   - name: google-cloud-parametermanager-v1
     version: 1.1.0
   - name: google-cloud-policysimulator-v1
     version: 1.2.1
+    rust:
+      package_dependencies:
+        - name: orgpolicy_v2
+          package: google-cloud-orgpolicy-v2
+          source: google.cloud.orgpolicy.v2
   - name: google-cloud-policytroubleshooter-iam-v3
     version: 1.1.0
     rust:
@@ -468,7 +495,6 @@ libraries:
         - name: iam_v2
           package: google-cloud-iam-v2
           source: google.iam.v2
-          workspace: true
   - name: google-cloud-policytroubleshooter-v1
     version: 1.1.0
   - name: google-cloud-privilegedaccessmanager-v1
