@@ -46,3 +46,79 @@ func TestGenerateLibraryForAPI_Disabled(t *testing.T) {
 		t.Errorf("generateLibraryForAPI with disabled library should return nil, got error: %v", err)
 	}
 }
+
+func TestGenerateLibraryForAPI_NameOverride(t *testing.T) {
+	cfg := &config.Config{
+		Default: &config.Default{
+			Output: "output/",
+			Generate: &config.DefaultGenerate{
+				All: true,
+			},
+		},
+		NameOverrides: []*config.NameOverride{
+			{
+				API:  "google/api/apikeys/v2",
+				Name: "google-cloud-apikeys-v2",
+			},
+		},
+		Libraries: []*config.Library{
+			{
+				Name:    "google-cloud-apikeys-v2",
+				Version: "1.1.1",
+				Generate: &config.LibraryGenerate{
+					Disabled: true,
+				},
+			},
+		},
+	}
+
+	// Should find library by name override and skip because it's disabled
+	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/api/apikeys/v2", "/fake/service.yaml")
+	if err != nil {
+		t.Errorf("generateLibraryForAPI should handle name override, got error: %v", err)
+	}
+}
+
+func TestGenerateLibraryForAPI_DerivedName(t *testing.T) {
+	cfg := &config.Config{
+		Default: &config.Default{
+			Output: "output/",
+			Generate: &config.DefaultGenerate{
+				All: true,
+			},
+		},
+		Libraries: []*config.Library{
+			{
+				Name:    "google-api-cloudquotas-v1",
+				Version: "1.1.0",
+				Generate: &config.LibraryGenerate{
+					Disabled: true,
+				},
+			},
+		},
+	}
+
+	// Should find library by derived name (google/api/cloudquotas/v1 -> google-api-cloudquotas-v1)
+	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/api/cloudquotas/v1", "/fake/service.yaml")
+	if err != nil {
+		t.Errorf("generateLibraryForAPI should match by derived name, got error: %v", err)
+	}
+}
+
+func TestDeriveLibraryName(t *testing.T) {
+	for _, test := range []struct {
+		apiPath string
+		want    string
+	}{
+		{"google/api/cloudquotas/v1", "google-api-cloudquotas-v1"},
+		{"google/cloud/asset/v1", "google-cloud-asset-v1"},
+		{"google/api/apikeys/v2", "google-api-apikeys-v2"},
+	} {
+		t.Run(test.apiPath, func(t *testing.T) {
+			got := deriveLibraryName(test.apiPath)
+			if got != test.want {
+				t.Errorf("deriveLibraryName(%q) = %q, want %q", test.apiPath, got, test.want)
+			}
+		})
+	}
+}
