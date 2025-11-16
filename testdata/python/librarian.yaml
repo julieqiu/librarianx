@@ -85,9 +85,30 @@ name_overrides:
 libraries:
   - name: google-ads-admanager
     transport: rest
+    rest_numeric_enums: true
+  - name: google-ads-marketingplatform-admin
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=marketingplatform_admin
+        - python-gapic-namespace=google.ads
+        - warehouse-package-name=google-ads-marketingplatform-admin
   - name: google-apps-card
     keep:
       - tests/unit/gapic/card_v1/test_card.py
+  - name: google-apps-chat
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.apps.card.v1
+        - python-gapic-namespace=google.apps
+        - warehouse-package-name=google-apps-chat
+  - name: google-apps-events-subscriptions
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=events_subscriptions
+        - python-gapic-namespace=google.apps
   - name: google-apps-script-type
     apis:
       - google/apps/script/type
@@ -106,27 +127,69 @@ libraries:
       - tests/unit/gapic/slides/test_slides.py
       - tests/unit/gapic/type/test_type.py
     transport: grpc
+  - name: google-cloud-access-approval
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-access-approval
   - name: google-cloud-access-context-manager
     apis:
       - google/identity/accesscontextmanager/type
       - google/identity/accesscontextmanager/v1
+    rest_numeric_enums: true
   - name: google-cloud-alloydb-connectors
     keep:
       - tests/unit/gapic/connectors_v1/test_connectors.py
   - name: google-cloud-api-gateway
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-api-gateway
+  - name: google-cloud-api-keys
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=api_keys
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-api-keys
   - name: google-cloud-apigee-connect
     transport: grpc
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-apigee-connect
+  - name: google-cloud-apigee-registry
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=apigee_registry
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-apigee-registry
+  - name: google-cloud-appengine-admin
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=appengine_admin
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-appengine-admin
   - name: google-cloud-appengine-logging
     keep:
       - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=appengine_logging
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-appengine-logging
+  - name: google-cloud-artifact-registry
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=artifactregistry
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-artifact-registry
   - name: google-cloud-assured-workloads
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-assured-workloads
@@ -137,16 +200,107 @@ libraries:
       - samples/README
       - tests/unit/test_gcs_client_v1beta1.py
       - tests/unit/test_tables_client_v1beta1.py
+    rest_numeric_enums: true
+  - name: google-cloud-bare-metal-solution
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=bare_metal_solution
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-bare-metal-solution
+  - name: google-cloud-beyondcorp-appconnections
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=beyondcorp_appconnections
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-beyondcorp-appconnections
+  - name: google-cloud-beyondcorp-appconnectors
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=beyondcorp_appconnectors
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-beyondcorp-appconnectors
+  - name: google-cloud-beyondcorp-appgateways
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=beyondcorp_appgateways
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-beyondcorp-appgateways
+  - name: google-cloud-beyondcorp-clientconnectorservices
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=beyondcorp_clientconnectorservices
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-beyondcorp-clientconnectorservices
+  - name: google-cloud-beyondcorp-clientgateways
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=beyondcorp_clientgateways
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-beyondcorp-clientgateways
   - name: google-cloud-bigquery-analyticshub
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_analyticshub
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-bigquery-biglake
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_biglake
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-bigquery-connection
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_connection
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-data-exchange
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_data_exchange
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-bigquery-data-exchange
+  - name: google-cloud-bigquery-datapolicies
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_datapolicies
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-bigquery-datatransfer
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_datatransfer
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-logging
     keep:
       - tests/unit/gapic/bigquery_logging_v1/test_bigquery_logging_v1.py
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_logging
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-bigquery-logging
   - name: google-cloud-bigquery-migration
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_migration
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-bigquery-reservation
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_reservation
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-storage
     keep:
       - docs/.*/library.rst
@@ -170,44 +324,155 @@ libraries:
       - testing/.gitignore
       - tests/unit/.*.py
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=bigquery_storage
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-binary-authorization
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-binary-authorization
+  - name: google-cloud-build
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud.devtools
+        - warehouse-package-name=google-cloud-build
+  - name: google-cloud-certificate-manager
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=certificate_manager
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-certificate-manager
   - name: google-cloud-channel
     transport: grpc
+    rest_numeric_enums: true
+  - name: google-cloud-commerce-consumer-procurement
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=commerce_consumer_procurement
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-common
     keep:
       - tests/unit/gapic/common/test_common.py
     transport: grpc
+  - name: google-cloud-compute-v1beta
+    python:
+      opt_args:
+        - transport=rest
+        - warehouse-package-name=google-cloud-compute-v1beta
+  - name: google-cloud-contact-center-insights
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=contact_center_insights
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-contact-center-insights
+  - name: google-cloud-container
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-container
   - name: google-cloud-containeranalysis
     keep:
       - tests/unit/test_get_grafeas_client.py
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud.devtools
+        - warehouse-package-name=google-cloud-containeranalysis
   - name: google-cloud-contentwarehouse
+    rest_numeric_enums: true
     python:
       opt_args:
         - proto-plus-deps=google.cloud.documentai.v1
+  - name: google-cloud-data-fusion
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=data_fusion
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-data-fusion
+  - name: google-cloud-data-qna
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-data-qna
   - name: google-cloud-datacatalog
     transport: grpc
+  - name: google-cloud-datacatalog-lineage
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=datacatalog_lineage
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-dataflow-client
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=dataflow
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-dataflow-client
   - name: google-cloud-datalabeling
     transport: grpc
+    rest_numeric_enums: true
   - name: google-cloud-dataproc-metastore
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-dataproc-metastore
+  - name: google-cloud-dialogflow-cx
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=dialogflowcx
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-dialogflow-cx
   - name: google-cloud-dlp
+    rest_numeric_enums: true
     python:
       opt_args:
         - python-gapic-namespace=google.cloud
   - name: google-cloud-dms
     transport: grpc
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-dms
   - name: google-cloud-documentai
+    rest_numeric_enums: true
     python:
       opt_args:
         - autogen-snippets
+  - name: google-cloud-essential-contacts
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=essential_contacts
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-essential-contacts
+  - name: google-cloud-eventarc-publishing
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=eventarc_publishing
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-eventarc-publishing
   - name: google-cloud-filestore
+    rest_numeric_enums: true
     python:
       opt_args:
         - proto-plus-deps=google.cloud.common
+  - name: google-cloud-gke-backup
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=gke_backup
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-gke-backup
   - name: google-cloud-gke-connect-gateway
     transport: rest
     python:
@@ -219,9 +484,29 @@ libraries:
       - docs/gkehub_v1/multiclusteringress_v1
       - google/cloud/gkehub_v1/configmanagement_v1
       - google/cloud/gkehub_v1/multiclusteringress_v1
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-gke-hub
+  - name: google-cloud-gke-multicloud
+    python:
+      opt_args:
+        - python-gapic-name=gke_multicloud
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-gke-multicloud
+  - name: google-cloud-gsuiteaddons
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - |-
+          proto-plus-deps=\
+          google.apps.script.type.calendar+\
+          google.apps.script.type.docs+\
+          google.apps.script.type.drive+\
+          google.apps.script.type.gmail+\
+          google.apps.script.type.sheets+\
+          google.apps.script.type.slides+\
+          google.apps.script.type
   - name: google-cloud-iam
     apis:
       - google/iam/admin/v1
@@ -231,23 +516,60 @@ libraries:
       - google/iam/v2beta
       - google/iam/v3
       - google/iam/v3beta
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=iam
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-iam
   - name: google-cloud-iam-logging
     keep:
       - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=iam_logging
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-iam-logging
+  - name: google-cloud-kms-inventory
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.cloud.kms.v1
+        - python-gapic-name=kms_inventory
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-life-sciences
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-life-sciences
+  - name: google-cloud-maintenance-api
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=maintenance_api
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-managed-identities
     transport: grpc
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-managed-identities
+  - name: google-cloud-managedkafka-schemaregistry
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=managedkafka_schemaregistry
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-media-translation
     transport: grpc
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-media-translation
   - name: google-cloud-memorystore
     transport: rest
+    rest_numeric_enums: true
   - name: google-cloud-monitoring
     keep:
       - docs/query.rst
@@ -256,6 +578,7 @@ libraries:
       - tests/unit/test__dataframe.py
       - tests/unit/test_query.py
     transport: grpc
+    rest_numeric_enums: true
     python:
       opt_args:
         - python-gapic-namespace=google.cloud
@@ -263,14 +586,49 @@ libraries:
     keep:
       - packages/google-cloud-monitoring-dashboards/google/monitoring
       - tests/unit/gapic/dashboard_v1
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=monitoring_dashboard
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-monitoring-dashboards
   - name: google-cloud-monitoring-metrics-scopes
     transport: grpc
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=monitoring_metrics_scope
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-monitoring-metrics-scopes
   - name: google-cloud-network-connectivity
     transport: grpc
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-network-connectivity
+  - name: google-cloud-network-management
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=network_management
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-network-management
+  - name: google-cloud-network-security
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=network_security
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-network-security
+  - name: google-cloud-network-services
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=network_services
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-network-services
   - name: google-cloud-orchestration-airflow
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-orchestration-airflow
@@ -280,6 +638,7 @@ libraries:
       - packages/google-cloud-org-policy/pytest.ini
       - tests/unit/test_packaging.py
   - name: google-cloud-os-config
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-os-config
@@ -287,69 +646,189 @@ libraries:
     keep:
       - docs/oslogin_v1/common/types.rst
       - google/cloud/oslogin_v1/common
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.cloud.oslogin.common
+        - warehouse-package-name=google-cloud-os-login
+  - name: google-cloud-phishing-protection
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-phishing-protection
   - name: google-cloud-policy-troubleshooter
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-policy-troubleshooter
+  - name: google-cloud-policysimulator
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.cloud.orgpolicy.v2
+  - name: google-cloud-policytroubleshooter-iam
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=policytroubleshooter_iam
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-private-ca
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-private-ca
+  - name: google-cloud-private-catalog
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - autogen-snippets
+        - warehouse-package-name=google-cloud-private-catalog
+  - name: google-cloud-quotas
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-quotas
   - name: google-cloud-recaptcha-enterprise
     transport: grpc
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-recaptcha-enterprise
   - name: google-cloud-recommendations-ai
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-recommendations-ai
+  - name: google-cloud-redis-cluster
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=redis_cluster
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-resource-manager
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-resource-manager
+  - name: google-cloud-saasplatform-saasservicemgmt
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=saasplatform_saasservicemgmt
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-secret-manager
     apis:
       - google/cloud/secretmanager/v1
       - google/cloud/secretmanager/v1beta2
       - google/cloud/secrets/v1beta1
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-secret-manager
+  - name: google-cloud-service-control
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=servicecontrol
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-service-control
   - name: google-cloud-service-directory
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-service-directory
+  - name: google-cloud-service-management
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=servicemanagement
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-service-management
+  - name: google-cloud-service-usage
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=service_usage
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-service-usage
   - name: google-cloud-source-context
     keep:
       - tests/unit/gapic/source_context_v1/test_source_context_v1.py
     transport: grpc
+    python:
+      opt_args:
+        - python-gapic-name=source_context
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-source-context
   - name: google-cloud-speech
     keep:
       - google/cloud/speech_v1/helpers.py
       - tests/unit/test_helpers.py
+    rest_numeric_enums: true
+  - name: google-cloud-storage-control
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=storage_control
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-storage-control
+  - name: google-cloud-storage-transfer
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=storage_transfer
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-storage-transfer
   - name: google-cloud-tasks
     keep:
       - snippets/README.md
+    rest_numeric_enums: true
   - name: google-cloud-telcoautomation
     keep:
       - snippets/README.md
+    rest_numeric_enums: true
   - name: google-cloud-tpu
     transport: grpc
+  - name: google-cloud-trace
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=trace
+        - python-gapic-namespace=google.cloud
   - name: google-cloud-translate
     keep:
       - docs/client.rst
       - docs/v2.rst
       - google/cloud/translate_v2
       - tests/unit/v2
+    rest_numeric_enums: true
     python:
       opt_args:
         - python-gapic-name=translate
+  - name: google-cloud-video-live-stream
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=live_stream
+        - python-gapic-namespace=google.cloud.video
+        - warehouse-package-name=google-cloud-video-live-stream
   - name: google-cloud-videointelligence
     transport: grpc
+    rest_numeric_enums: true
   - name: google-cloud-vision
     keep:
       - google/cloud/vision_helpers
       - tests/unit/test_decorators.py
       - tests/unit/test_helpers.py
+    rest_numeric_enums: true
   - name: google-cloud-vm-migration
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-vm-migration
   - name: google-cloud-vpc-access
+    rest_numeric_enums: true
     python:
       opt_args:
         - warehouse-package-name=google-cloud-vpc-access
@@ -365,18 +844,138 @@ libraries:
       - tests/unit/gapic/type/test_type.py
     transport: grpc
   - name: google-maps-addressvalidation
+    rest_numeric_enums: true
     python:
       opt_args:
         - proto-plus-deps=google.geo.type
   - name: google-maps-fleetengine
     transport: grpc
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.geo.type
+        - python-gapic-namespace=google.maps
+  - name: google-maps-fleetengine-delivery
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.geo.type
+        - python-gapic-name=fleetengine_delivery
+        - python-gapic-namespace=google.maps
+  - name: google-maps-places
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - autogen-snippets=False
+        - proto-plus-deps=google.geo.type
   - name: google-maps-routeoptimization
     keep:
       - samples/README.rst
+    rest_numeric_enums: true
+  - name: google-maps-routing
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.geo.type
   - name: google-shopping-css
+    rest_numeric_enums: true
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
+  - name: google-shopping-merchant-accounts
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_accounts
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-conversions
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=merchant_conversions
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-datasources
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_datasources
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-inventories
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_inventories
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-issueresolution
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_issueresolution
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-lfp
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_lfp
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-notifications
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=merchant_notifications
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-ordertracking
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_ordertracking
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-products
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_products
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-productstudio
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=merchant_productstudio
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-promotions
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_promotions
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-quota
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-name=merchant_quota
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-reports
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_reports
+        - python-gapic-namespace=google.shopping
+  - name: google-shopping-merchant-reviews
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+        - python-gapic-name=merchant_reviews
+        - python-gapic-namespace=google.shopping
   - name: google-shopping-type
     keep:
       - tests/unit/gapic/type/test_type.py
@@ -393,11 +992,17 @@ libraries:
       - grafeas/grafeas.py
       - grafeas/grafeas/__init__.py
       - grafeas/grafeas/grafeas_v1/types.py
+    rest_numeric_enums: true
+    python:
+      opt_args:
+        - python-gapic-namespace=grafeas
+        - warehouse-package-name=grafeas
 versions:
   google-ads-admanager: 0.6.0
   google-ads-marketingplatform-admin: 0.2.0
   google-apps-card: 0.3.0
   google-apps-chat: 0.4.0
+  google-apps-events-subscriptions: 0.3.0
   google-apps-script-type: 0.4.0
   google-cloud-access-approval: 1.17.0
   google-cloud-alloydb-connectors: 0.2.0
@@ -411,15 +1016,26 @@ versions:
   google-cloud-assured-workloads: 2.1.0
   google-cloud-automl: 2.17.0
   google-cloud-bare-metal-solution: 1.11.0
+  google-cloud-beyondcorp-appconnections: 0.5.0
+  google-cloud-beyondcorp-appconnectors: 0.5.0
+  google-cloud-beyondcorp-appgateways: 0.5.0
+  google-cloud-beyondcorp-clientconnectorservices: 0.5.0
+  google-cloud-beyondcorp-clientgateways: 0.5.0
   google-cloud-bigquery-analyticshub: 0.5.0
+  google-cloud-bigquery-biglake: 0.5.0
+  google-cloud-bigquery-connection: 1.19.0
   google-cloud-bigquery-data-exchange: 0.6.0
+  google-cloud-bigquery-datapolicies: 0.7.0
+  google-cloud-bigquery-datatransfer: 3.20.0
   google-cloud-bigquery-logging: 1.7.0
   google-cloud-bigquery-migration: 0.12.0
+  google-cloud-bigquery-reservation: 1.21.0
   google-cloud-bigquery-storage: 2.34.0
   google-cloud-binary-authorization: 1.14.0
   google-cloud-build: 3.33.0
   google-cloud-certificate-manager: 1.11.0
   google-cloud-channel: 1.24.0
+  google-cloud-commerce-consumer-procurement: 0.3.0
   google-cloud-common: 1.7.0
   google-cloud-contact-center-insights: 1.24.0
   google-cloud-container: 2.61.0
@@ -428,22 +1044,29 @@ versions:
   google-cloud-data-fusion: 1.14.0
   google-cloud-data-qna: 0.11.0
   google-cloud-datacatalog: 3.28.0
+  google-cloud-datacatalog-lineage: 0.4.0
   google-cloud-dataflow-client: 0.10.0
   google-cloud-datalabeling: 1.14.0
   google-cloud-dataproc-metastore: 1.20.0
+  google-cloud-dialogflow-cx: 2.0.0
   google-cloud-dlp: 3.33.0
   google-cloud-dms: 1.13.0
   google-cloud-documentai: 3.7.0
   google-cloud-essential-contacts: 1.11.0
+  google-cloud-eventarc-publishing: 0.8.0
   google-cloud-filestore: 1.14.0
   google-cloud-gke-backup: 0.6.0
   google-cloud-gke-connect-gateway: 0.11.0
   google-cloud-gke-hub: 1.19.0
   google-cloud-gke-multicloud: 0.6.22
+  google-cloud-gsuiteaddons: 0.3.18
   google-cloud-iam: 2.20.0
   google-cloud-iam-logging: 1.5.0
+  google-cloud-kms-inventory: 0.3.0
   google-cloud-life-sciences: 0.10.0
+  google-cloud-maintenance-api: 0.2.0
   google-cloud-managed-identities: 1.13.0
+  google-cloud-managedkafka-schemaregistry: 0.2.0
   google-cloud-media-translation: 0.12.0
   google-cloud-memorystore: 0.2.0
   google-cloud-monitoring: 2.28.0
@@ -459,12 +1082,17 @@ versions:
   google-cloud-os-login: 2.18.0
   google-cloud-phishing-protection: 1.15.0
   google-cloud-policy-troubleshooter: 1.14.0
+  google-cloud-policysimulator: 0.2.0
+  google-cloud-policytroubleshooter-iam: 0.2.0
   google-cloud-private-ca: 1.16.0
   google-cloud-private-catalog: 0.10.0
   google-cloud-quotas: 0.2.0
   google-cloud-recaptcha-enterprise: 1.29.0
   google-cloud-recommendations-ai: 0.11.0
+  google-cloud-redis-cluster: 0.2.0
   google-cloud-resource-manager: 1.15.0
+  google-cloud-saasplatform-saasservicemgmt: 0.2.0
+  google-cloud-secret-manager: 2.25.0
   google-cloud-service-control: 1.17.0
   google-cloud-service-directory: 1.15.0
   google-cloud-service-management: 1.14.0
@@ -487,7 +1115,24 @@ versions:
   google-geo-type: 0.4.0
   google-maps-addressvalidation: 0.4.0
   google-maps-fleetengine: 0.3.0
+  google-maps-fleetengine-delivery: 0.3.0
+  google-maps-places: 0.5.0
   google-maps-routeoptimization: 0.2.0
+  google-maps-routing: 0.7.0
   google-shopping-css: 0.2.0
+  google-shopping-merchant-accounts: 1.1.0
+  google-shopping-merchant-conversions: 1.1.0
+  google-shopping-merchant-datasources: 1.1.0
+  google-shopping-merchant-inventories: 1.1.0
+  google-shopping-merchant-issueresolution: 1.1.0
+  google-shopping-merchant-lfp: 1.1.0
+  google-shopping-merchant-notifications: 1.1.0
+  google-shopping-merchant-ordertracking: 1.1.0
+  google-shopping-merchant-products: 1.2.0
+  google-shopping-merchant-productstudio: 0.2.0
+  google-shopping-merchant-promotions: 1.1.0
+  google-shopping-merchant-quota: 1.1.0
+  google-shopping-merchant-reports: 1.1.0
+  google-shopping-merchant-reviews: 0.3.0
   google-shopping-type: 1.1.0
   grafeas: 1.16.0
