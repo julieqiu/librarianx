@@ -107,14 +107,17 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	}
 
 	// Generate each API with its own service config
-	for _, apiPath := range apiPaths {
+	for i, apiPath := range apiPaths {
 		// Discover the correct service config for this specific API
 		apiServiceConfig, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
 		if err != nil {
 			return fmt.Errorf("failed to find service config for %s: %w", apiPath, err)
 		}
 
-		if err := generateAPI(ctx, apiPath, library, googleapisDir, apiServiceConfig, outdir, transport, restNumericEnums); err != nil {
+		// Only generate unversioned package for the first (default) API
+		isDefaultAPI := i == 0
+
+		if err := generateAPI(ctx, apiPath, library, googleapisDir, apiServiceConfig, outdir, transport, restNumericEnums, isDefaultAPI); err != nil {
 			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
 		}
 	}
@@ -305,7 +308,7 @@ func copyDir(src, dst string) error {
 }
 
 // generateAPI generates code for a single API.
-func generateAPI(ctx context.Context, apiPath string, library *config.Library, googleapisDir, serviceConfigPath, outdir, transport string, restNumericEnums bool) error {
+func generateAPI(ctx context.Context, apiPath string, library *config.Library, googleapisDir, serviceConfigPath, outdir, transport string, restNumericEnums, isDefaultAPI bool) error {
 	// Check if this is a proto-only library
 	isProtoOnly := library.Python != nil && library.Python.IsProtoOnly
 
@@ -335,6 +338,11 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 			opts = append(opts, "rest-numeric-enums")
 		}
 
+		// Disable unversioned package for non-default APIs
+		if !isDefaultAPI {
+			opts = append(opts, "unversioned-package-disabled")
+		}
+
 		// Add Python-specific options
 		if library.Python != nil && len(library.Python.OptArgs) > 0 {
 			opts = append(opts, library.Python.OptArgs...)
@@ -345,10 +353,21 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 			opts = append(opts, fmt.Sprintf("gapic-version=%s", library.Version))
 		}
 
-		// Add gRPC service config (retry/timeout settings) from library config if set
+		// Add gRPC service config (retry/timeout settings)
+		// Try library config first, then auto-discover
+		grpcConfigPath := ""
 		if library.GRPCServiceConfig != "" {
 			// GRPCServiceConfig is relative to the API directory
-			grpcConfigPath := filepath.Join(googleapisDir, apiPath, library.GRPCServiceConfig)
+			grpcConfigPath = filepath.Join(googleapisDir, apiPath, library.GRPCServiceConfig)
+		} else {
+			// Auto-discover: look for *_grpc_service_config.json in the API directory
+			apiDir := filepath.Join(googleapisDir, apiPath)
+			matches, err := filepath.Glob(filepath.Join(apiDir, "*_grpc_service_config.json"))
+			if err == nil && len(matches) > 0 {
+				grpcConfigPath = matches[0]
+			}
+		}
+		if grpcConfigPath != "" {
 			opts = append(opts, fmt.Sprintf("retry-config=%s", grpcConfigPath))
 		}
 
