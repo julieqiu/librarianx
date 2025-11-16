@@ -11,7 +11,7 @@ default:
     transport: grpc+rest
     rest_numeric_enums: true
   release:
-    tag_format: '{id}-v{version}'
+    tag_format: '{name}-v{version}'
 libraries:
   - name: google-ads-admanager
     api: google/ads/admanager/v1
