@@ -60,6 +60,19 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 		},
 		Codec: buildCodec(library),
 	}
+
+	// Add documentation overrides if any
+	if library.Rust != nil && len(library.Rust.DocumentationOverrides) > 0 {
+		sidekickCfg.CommentOverrides = make([]sidekickconfig.DocumentationOverride, len(library.Rust.DocumentationOverrides))
+		for i, override := range library.Rust.DocumentationOverrides {
+			sidekickCfg.CommentOverrides[i] = sidekickconfig.DocumentationOverride{
+				ID:      override.ID,
+				Match:   override.Match,
+				Replace: override.Replace,
+			}
+		}
+	}
+
 	return sidekickCfg
 }
 
@@ -133,9 +146,6 @@ func buildCodec(library *config.Library) map[string]string {
 	}
 	if rust.GenerateSetterSamples {
 		codec["generate-setter-samples"] = "true"
-	}
-	if rust.DocumentationOverrides != "" {
-		codec["documentation-overrides"] = rust.DocumentationOverrides
 	}
 
 	for _, dep := range rust.PackageDependencies {

@@ -94,8 +94,8 @@ type RustCrate struct {
 	// DetailedTracingAttributes indicates whether to include detailed tracing attributes.
 	DetailedTracingAttributes bool `yaml:"detailed_tracing_attributes,omitempty"`
 
-	// DocumentationOverrides is a TOML string for documentation overrides.
-	DocumentationOverrides string `yaml:"documentation_overrides,omitempty"`
+	// DocumentationOverrides contains overrides for element documentation.
+	DocumentationOverrides []RustDocumentationOverride `yaml:"documentation_overrides,omitempty"`
 }
 
 // RustPackageDependency represents a package dependency configuration.
@@ -117,9 +117,20 @@ type RustPackageDependency struct {
 
 	// Feature is the feature name for the dependency.
 	Feature string `yaml:"feature,omitempty"`
+}
+
+// RustDocumentationOverride represents a documentation override for a specific element.
+type RustDocumentationOverride struct {
+	// ID is the fully qualified element ID (e.g., .google.cloud.dialogflow.v2.Message.field).
+	ID string `yaml:"id"`
+
+	// Match is the text to match in the documentation.
+	Match string `yaml:"match"`
 
 	// Workspace indicates if the dependency version is managed by the workspace.
 	Workspace bool `yaml:"workspace,omitempty"`
+	// Replace is the replacement text.
+	Replace string `yaml:"replace"`
 }
 
 // PythonPackage contains Python-specific library configuration.
