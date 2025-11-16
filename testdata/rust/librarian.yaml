@@ -1,9 +1,3 @@
-# versions: Complete list of all library versions (source of truth for releases)
-# Keep alphabetically sorted.
-#
-# libraries: Configuration overrides for libraries that need special handling
-# Only include libraries that differ from defaults.
-# Versions are looked up from the versions: section above.
 version: v1
 language: rust
 sources:
@@ -223,9 +217,9 @@ versions:
   google-cloud-functions-v2: 1.2.1
   google-cloud-gkebackup-v1: 1.2.1
   google-cloud-gkeconnect-gateway-v1: 1.1.0
+  google-cloud-gkehub-v1: 1.2.1
   google-cloud-gkehub-v1-configmanagement: 1.1.0
   google-cloud-gkehub-v1-multiclusteringress: 1.1.0
-  google-cloud-gkehub-v1: 1.2.1
   google-cloud-gkemulticloud-v1: 1.2.1
   google-cloud-gkerecommender-v1: 1.1.0
   google-cloud-gsuiteaddons-v1: 1.1.0
@@ -333,8 +327,8 @@ versions:
   google-monitoring-metricsscope-v1: 1.1.1
   google-monitoring-v3: 1.1.0
   google-privacy-dlp-v2: 1.2.0
-  google-rpc-context: 1.1.0
   google-rpc: 1.1.0
+  google-rpc-context: 1.1.0
   google-spanner-admin-database-v1: 1.2.1
   google-spanner-admin-instance-v1: 1.2.1
   google-storagetransfer-v1: 1.2.1
@@ -453,7 +447,7 @@ libraries:
           package: google-cloud-iam-v2
           source: google.iam.v2
   - name: google-cloud-secretmanager-v1
-    copyright_year: '2024'
+    copyright_year: "2024"
     rust:
       generate_setter_samples: true
   - name: google-cloud-sql-v1
