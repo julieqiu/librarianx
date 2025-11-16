@@ -260,6 +260,103 @@ libraries:
       pagination_overrides:
         - id: .google.cloud.sql.v1.SqlInstancesService.List
           item_field: items
+  - name: google-cloud-storage-gapic
+    api: google/storage/v2
+    output: src/storage/src/generated/gapic
+    rust:
+      template_override: templates/grpc-client
+      package_name_override: google-cloud-storage
+      name_overrides: .google.storage.v2.Storage=StorageControl
+      included_ids:
+        - .google.storage.v2.Storage.DeleteBucket
+        - .google.storage.v2.Storage.GetBucket
+        - .google.storage.v2.Storage.CreateBucket
+        - .google.storage.v2.Storage.ListBuckets
+        - .google.storage.v2.Storage.LockBucketRetentionPolicy
+        - .google.storage.v2.Storage.UpdateBucket
+        - .google.storage.v2.Storage.ComposeObject
+        - .google.storage.v2.Storage.DeleteObject
+        - .google.storage.v2.Storage.RestoreObject
+        - .google.storage.v2.Storage.GetObject
+        - .google.storage.v2.Storage.UpdateObject
+        - .google.storage.v2.Storage.ListObjects
+        - .google.storage.v2.Storage.RewriteObject
+        - .google.storage.v2.Storage.MoveObject
+        - .google.storage.v2.ReadObjectRequest
+        - .google.storage.v2.WriteObjectSpec
+      include_grpc_only_methods: true
+      has_veneer: true
+      routing_required: true
+  - name: google-cloud-storage-gapic-control
+    api: google/storage/control/v2
+    output: src/storage/src/generated/gapic_control
+    rust:
+      template_override: templates/grpc-client
+      package_name_override: google-cloud-storage
+      name_overrides: .google.storage.control.v2.IntelligenceConfig.Filter.cloud_storage_buckets=CloudStorageBucketsOneOf,.google.storage.control.v2.IntelligenceConfig.Filter.cloud_storage_locations=CloudStorageLocationsOneOf
+      include_grpc_only_methods: true
+      has_veneer: true
+      routing_required: true
+  - name: google-cloud-storage-protos-storage
+    api: google/storage/v2
+    output: src/storage/src/generated/protos/storage
+    rust:
+      language: rust+prost
+      template_override: templates/prost
+  - name: google-cloud-storage-protos-control
+    api: google/storage/control/v2
+    output: src/storage/src/generated/protos/control
+    rust:
+      language: rust+prost
+      template_override: templates/prost
+  - name: google-cloud-storage-convert-storage
+    api: google/storage/v2
+    output: src/storage/src/generated/convert/storage
+    rust:
+      template_override: templates/convert-prost
+      module_path: crate::generated::gapic::model
+      included_ids:
+        - .google.storage.v2.Storage.DeleteBucket
+        - .google.storage.v2.Storage.GetBucket
+        - .google.storage.v2.Storage.CreateBucket
+        - .google.storage.v2.Storage.ListBuckets
+        - .google.storage.v2.Storage.LockBucketRetentionPolicy
+        - .google.storage.v2.Storage.GetIamPolicy
+        - .google.storage.v2.Storage.SetIamPolicy
+        - .google.storage.v2.Storage.TestIamPermissions
+        - .google.storage.v2.Storage.UpdateBucket
+        - .google.storage.v2.Storage.ComposeObject
+        - .google.storage.v2.Storage.DeleteObject
+        - .google.storage.v2.Storage.RestoreObject
+        - .google.storage.v2.Storage.GetObject
+        - .google.storage.v2.Storage.UpdateObject
+        - .google.storage.v2.Storage.ListObjects
+        - .google.storage.v2.Storage.RewriteObject
+        - .google.storage.v2.Storage.MoveObject
+  - name: google-cloud-storage-convert-control
+    api: google/storage/control/v2
+    output: src/storage/src/generated/convert/control
+    rust:
+      template_override: templates/convert-prost
+      module_path: crate::generated::gapic_control::model
+  - name: google-cloud-storage-convert-iam
+    api: google/iam/v1
+    output: src/storage/src/generated/convert/iam
+    rust:
+      template_override: templates/convert-prost
+      module_path: crate::generated::gapic::model
+  - name: google-cloud-storage-convert-longrunning
+    api: google/longrunning
+    output: src/storage/src/generated/convert/longrunning
+    rust:
+      template_override: templates/convert-prost
+      module_path: crate::generated::gapic::model
+  - name: google-cloud-storage-convert-type
+    api: google/type
+    output: src/storage/src/generated/convert/type
+    rust:
+      template_override: templates/convert-prost
+      module_path: crate::generated::gapic::model
   - name: google-cloud-storageinsights-v1
     rust:
       name_overrides: .google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_buckets=CloudStorageBucketsOneOf,.google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_locations=CloudStorageLocationsOneOf
