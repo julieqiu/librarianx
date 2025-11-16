@@ -1,3 +1,9 @@
+# versions: Complete list of all library versions (source of truth for releases)
+# Keep alphabetically sorted.
+#
+# libraries: Configuration overrides for libraries that need special handling
+# Only include libraries that differ from defaults.
+# Versions are looked up from the versions: section above.
 version: v1
 language: rust
 sources:
@@ -136,43 +142,206 @@ name_overrides:
     name: google-cloud-privacy-dlp-v2
   - api: google/storagetransfer/v1
     name: google-cloud-storagetransfer-v1
+versions:
+  google-api: 1.1.0
+  google-api-cloudquotas-v1: 1.1.0
+  google-api-servicecontrol-v1: 1.1.0
+  google-api-servicecontrol-v2: 1.1.0
+  google-api-servicemanagement-v1: 1.2.1
+  google-api-serviceusage-v1: 1.2.1
+  google-appengine-v1: 1.2.1
+  google-apps-script-type: 1.1.0
+  google-apps-script-type-calendar: 1.1.0
+  google-apps-script-type-docs: 1.1.0
+  google-apps-script-type-drive: 1.1.0
+  google-apps-script-type-gmail: 1.1.0
+  google-apps-script-type-sheets: 1.1.0
+  google-apps-script-type-slides: 1.1.0
+  google-bigtable-admin-v2: 1.2.1
+  google-cloud-accessapproval-v1: 1.1.0
+  google-cloud-advisorynotifications-v1: 1.1.0
+  google-cloud-aiplatform-v1: 1.3.1
+  google-cloud-alloydb-connectors-v1: 1.1.0
+  google-cloud-alloydb-v1: 1.2.1
+  google-cloud-apigateway-v1: 1.2.1
+  google-cloud-apigeeconnect-v1: 1.1.0
+  google-cloud-apihub-v1: 1.2.1
+  google-cloud-apikeys-v2: 1.1.1
+  google-cloud-apphub-v1: 1.2.1
+  google-cloud-asset-v1: 1.1.1
+  google-cloud-assuredworkloads-v1: 1.2.1
+  google-cloud-backupdr-v1: 1.2.1
+  google-cloud-baremetalsolution-v2: 1.1.1
+  google-cloud-beyondcorp-appconnections-v1: 1.2.1
+  google-cloud-beyondcorp-appconnectors-v1: 1.2.1
+  google-cloud-beyondcorp-appgateways-v1: 1.2.1
+  google-cloud-beyondcorp-clientconnectorservices-v1: 1.2.1
+  google-cloud-beyondcorp-clientgateways-v1: 1.2.1
+  google-cloud-bigquery-analyticshub-v1: 1.2.1
+  google-cloud-bigquery-connection-v1: 1.1.0
+  google-cloud-bigquery-datapolicies-v1: 1.1.0
+  google-cloud-bigquery-datapolicies-v2: 1.1.0
+  google-cloud-bigquery-datatransfer-v1: 1.1.0
+  google-cloud-bigquery-migration-v2: 1.1.0
+  google-cloud-bigquery-reservation-v1: 1.1.0
+  google-cloud-bigquery-v2: 1.0.0
+  google-cloud-billing-v1: 1.1.0
+  google-cloud-binaryauthorization-v1: 1.1.0
+  google-cloud-certificatemanager-v1: 1.2.1
+  google-cloud-chronicle-v1: 1.2.1
+  google-cloud-cloudcontrolspartner-v1: 1.1.0
+  google-cloud-clouddms-v1: 1.2.1
+  google-cloud-cloudsecuritycompliance-v1: 2.1.1
+  google-cloud-commerce-consumer-procurement-v1: 1.1.1
+  google-cloud-common: 1.1.0
+  google-cloud-confidentialcomputing-v1: 1.1.0
+  google-cloud-config-v1: 1.2.1
+  google-cloud-configdelivery-v1: 1.2.1
+  google-cloud-connectors-v1: 1.2.1
+  google-cloud-contactcenterinsights-v1: 1.2.1
+  google-cloud-datacatalog-lineage-v1: 1.2.1
+  google-cloud-datacatalog-v1: 1.2.1
+  google-cloud-dataform-v1: 1.1.0
+  google-cloud-datafusion-v1: 1.2.1
+  google-cloud-dataplex-v1: 1.3.1
+  google-cloud-dataproc-v1: 1.2.1
+  google-cloud-datastream-v1: 1.2.1
+  google-cloud-deploy-v1: 1.2.1
+  google-cloud-developerconnect-v1: 1.2.1
+  google-cloud-devicestreaming-v1: 1.1.0
+  google-cloud-dialogflow-cx-v3: 1.3.1
+  google-cloud-dialogflow-v2: 1.3.1
+  google-cloud-discoveryengine-v1: 2.2.1
+  google-cloud-documentai-v1: 1.3.1
+  google-cloud-domains-v1: 1.2.1
+  google-cloud-edgecontainer-v1: 1.2.1
+  google-cloud-edgenetwork-v1: 1.2.1
+  google-cloud-essentialcontacts-v1: 1.1.0
+  google-cloud-eventarc-v1: 1.2.1
+  google-cloud-filestore-v1: 1.2.1
+  google-cloud-financialservices-v1: 1.2.1
+  google-cloud-functions-v2: 1.2.1
+  google-cloud-gkebackup-v1: 1.2.1
+  google-cloud-gkeconnect-gateway-v1: 1.1.0
+  google-cloud-gkehub-v1-configmanagement: 1.1.0
+  google-cloud-gkehub-v1-multiclusteringress: 1.1.0
+  google-cloud-gkehub-v1: 1.2.1
+  google-cloud-gkemulticloud-v1: 1.2.1
+  google-cloud-gkerecommender-v1: 1.1.0
+  google-cloud-gsuiteaddons-v1: 1.1.0
+  google-cloud-iap-v1: 1.1.0
+  google-cloud-ids-v1: 1.2.1
+  google-cloud-kms-inventory-v1: 1.1.0
+  google-cloud-kms-v1: 1.1.1
+  google-cloud-language-v2: 1.1.0
+  google-cloud-licensemanager-v1: 1.2.1
+  google-cloud-location: 1.1.0
+  google-cloud-locationfinder-v1: 1.0.0
+  google-cloud-lustre-v1: 1.2.1
+  google-cloud-managedidentities-v1: 1.2.1
+  google-cloud-managedkafka-schemaregistry-v1: 1.2.1
+  google-cloud-managedkafka-v1: 1.2.1
+  google-cloud-memcache-v1: 1.2.1
+  google-cloud-memorystore-v1: 1.2.1
+  google-cloud-metastore-v1: 1.2.1
+  google-cloud-migrationcenter-v1: 1.2.1
+  google-cloud-modelarmor-v1: 1.1.0
+  google-cloud-netapp-v1: 1.2.1
+  google-cloud-networkconnectivity-v1: 1.2.1
+  google-cloud-networkmanagement-v1: 1.2.1
+  google-cloud-networksecurity-v1: 1.2.1
+  google-cloud-networkservices-v1: 1.2.1
+  google-cloud-notebooks-v2: 1.2.1
+  google-cloud-optimization-v1: 1.1.1
+  google-cloud-oracledatabase-v1: 1.3.1
+  google-cloud-orchestration-airflow-service-v1: 1.2.1
+  google-cloud-orgpolicy-v1: 1.1.0
+  google-cloud-orgpolicy-v2: 1.1.0
+  google-cloud-osconfig-v1: 1.1.1
+  google-cloud-oslogin-common: 1.1.0
+  google-cloud-oslogin-v1: 1.1.0
+  google-cloud-parallelstore-v1: 1.2.1
+  google-cloud-parametermanager-v1: 1.1.0
+  google-cloud-policysimulator-v1: 1.2.1
+  google-cloud-policytroubleshooter-iam-v3: 1.1.0
+  google-cloud-policytroubleshooter-v1: 1.1.0
+  google-cloud-privilegedaccessmanager-v1: 1.2.1
+  google-cloud-rapidmigrationassessment-v1: 1.2.1
+  google-cloud-recaptchaenterprise-v1: 1.1.0
+  google-cloud-recommender-logging-v1: 1.1.0
+  google-cloud-recommender-v1: 1.1.0
+  google-cloud-redis-cluster-v1: 1.2.1
+  google-cloud-redis-v1: 1.2.1
+  google-cloud-resourcemanager-v3: 1.1.1
+  google-cloud-retail-v2: 2.1.1
+  google-cloud-run-v2: 1.2.1
+  google-cloud-scheduler-v1: 1.1.0
+  google-cloud-secretmanager-v1: 1.1.1
+  google-cloud-securesourcemanager-v1: 1.2.1
+  google-cloud-security-privateca-v1: 1.2.1
+  google-cloud-security-publicca-v1: 1.1.0
+  google-cloud-securitycenter-v2: 1.2.1
+  google-cloud-securityposture-v1: 1.2.1
+  google-cloud-servicedirectory-v1: 1.1.0
+  google-cloud-servicehealth-v1: 1.1.0
+  google-cloud-shell-v1: 1.1.1
+  google-cloud-speech-v2: 1.2.1
+  google-cloud-sql-v1: 1.2.0
+  google-cloud-storagebatchoperations-v1: 1.2.1
+  google-cloud-storageinsights-v1: 1.2.1
+  google-cloud-support-v2: 1.1.0
+  google-cloud-talent-v4: 1.1.1
+  google-cloud-tasks-v2: 1.1.0
+  google-cloud-telcoautomation-v1: 1.2.1
+  google-cloud-texttospeech-v1: 1.3.1
+  google-cloud-timeseriesinsights-v1: 1.1.0
+  google-cloud-tpu-v2: 1.2.1
+  google-cloud-translate-v3: 1.2.1
+  google-cloud-video-livestream-v1: 1.2.1
+  google-cloud-video-stitcher-v1: 1.2.1
+  google-cloud-video-transcoder-v1: 1.1.0
+  google-cloud-videointelligence-v1: 1.2.1
+  google-cloud-vision-v1: 1.1.1
+  google-cloud-vmmigration-v1: 1.2.1
+  google-cloud-vmwareengine-v1: 1.2.1
+  google-cloud-vpcaccess-v1: 1.2.1
+  google-cloud-webrisk-v1: 1.2.1
+  google-cloud-websecurityscanner-v1: 1.1.0
+  google-cloud-workflows-executions-v1: 1.1.0
+  google-cloud-workflows-v1: 1.2.1
+  google-cloud-workstations-v1: 1.2.1
+  google-container-v1: 1.2.0
+  google-datastore-admin-v1: 1.2.1
+  google-devtools-artifactregistry-v1: 1.1.1
+  google-devtools-cloudbuild-v1: 1.1.1
+  google-devtools-cloudbuild-v2: 1.1.1
+  google-devtools-cloudprofiler-v2: 1.1.0
+  google-devtools-cloudtrace-v2: 1.1.0
+  google-devtools-containeranalysis-v1: 1.1.0
+  google-firestore-admin-v1: 1.2.1
+  google-iam-admin-v1: 1.1.0
+  google-iam-credentials-v1: 1.1.0
+  google-iam-v1: 1.1.0
+  google-iam-v2: 1.1.1
+  google-iam-v3: 1.1.1
+  google-identity-accesscontextmanager-type: 1.1.0
+  google-identity-accesscontextmanager-v1: 1.1.1
+  google-logging-type: 1.1.0
+  google-logging-v2: 1.2.1
+  google-longrunning: 1.2.0
+  google-monitoring-dashboard-v1: 1.1.0
+  google-monitoring-metricsscope-v1: 1.1.1
+  google-monitoring-v3: 1.1.0
+  google-privacy-dlp-v2: 1.2.0
+  google-rpc-context: 1.1.0
+  google-rpc: 1.1.0
+  google-spanner-admin-database-v1: 1.2.1
+  google-spanner-admin-instance-v1: 1.2.1
+  google-storagetransfer-v1: 1.2.1
+  google-type: 1.1.0
+  grafeas-v1: 1.1.0
 libraries:
-  - name: google-api
-    version: 1.1.0
-  - name: google-api-cloudquotas-v1
-    version: 1.1.0
-  - name: google-api-servicecontrol-v1
-    version: 1.1.0
-  - name: google-api-servicecontrol-v2
-    version: 1.1.0
-  - name: google-api-servicemanagement-v1
-    version: 1.2.1
-  - name: google-api-serviceusage-v1
-    version: 1.2.1
-  - name: google-appengine-v1
-    version: 1.2.1
-  - name: google-apps-script-type
-    version: 1.1.0
-  - name: google-apps-script-type-calendar
-    version: 1.1.0
-  - name: google-apps-script-type-docs
-    version: 1.1.0
-  - name: google-apps-script-type-drive
-    version: 1.1.0
-  - name: google-apps-script-type-gmail
-    version: 1.1.0
-  - name: google-apps-script-type-sheets
-    version: 1.1.0
-  - name: google-apps-script-type-slides
-    version: 1.1.0
-  - name: google-bigtable-admin-v2
-    version: 1.2.1
-  - name: google-cloud-accessapproval-v1
-    version: 1.1.0
-  - name: google-cloud-advisorynotifications-v1
-    version: 1.1.0
   - name: google-cloud-aiplatform-v1
-    version: 1.3.1
     generate:
       disabled: true
     rust:
@@ -181,22 +350,7 @@ libraries:
         - redundant_explicit_links
         - broken_intra_doc_links
         - invalid_html_tags
-  - name: google-cloud-alloydb-connectors-v1
-    version: 1.1.0
-  - name: google-cloud-alloydb-v1
-    version: 1.2.1
-  - name: google-cloud-apigateway-v1
-    version: 1.2.1
-  - name: google-cloud-apigeeconnect-v1
-    version: 1.1.0
-  - name: google-cloud-apihub-v1
-    version: 1.2.1
-  - name: google-cloud-apikeys-v2
-    version: 1.1.1
-  - name: google-cloud-apphub-v1
-    version: 1.2.1
   - name: google-cloud-asset-v1
-    version: 1.1.1
     rust:
       package_dependencies:
         - name: orgpolicy_v1
@@ -211,62 +365,9 @@ libraries:
         - name: osconfig_v1
           package: google-cloud-osconfig-v1
           source: google.cloud.osconfig.v1
-  - name: google-cloud-asset-v1p1beta1
-  - name: google-cloud-asset-v1p2beta1
-  - name: google-cloud-asset-v1p5beta1
-  - name: google-cloud-asset-v1p7beta1
-  - name: google-cloud-assuredworkloads-v1
-    version: 1.2.1
-  - name: google-cloud-backupdr-v1
-    version: 1.2.1
-  - name: google-cloud-baremetalsolution-v2
-    version: 1.1.1
-  - name: google-cloud-beyondcorp-appconnections-v1
-    version: 1.2.1
-  - name: google-cloud-beyondcorp-appconnectors-v1
-    version: 1.2.1
-  - name: google-cloud-beyondcorp-appgateways-v1
-    version: 1.2.1
-  - name: google-cloud-beyondcorp-clientconnectorservices-v1
-    version: 1.2.1
-  - name: google-cloud-beyondcorp-clientgateways-v1
-    version: 1.2.1
-  - name: google-cloud-bigquery-analyticshub-v1
-    version: 1.2.1
-  - name: google-cloud-bigquery-connection-v1
-    version: 1.1.0
-  - name: google-cloud-bigquery-datapolicies-v1
-    version: 1.1.0
-  - name: google-cloud-bigquery-datapolicies-v2
-    version: 1.1.0
-  - name: google-cloud-bigquery-datatransfer-v1
-    version: 1.1.0
-  - name: google-cloud-bigquery-migration-v2
-    version: 1.1.0
-  - name: google-cloud-bigquery-reservation-v1
-    version: 1.1.0
   - name: google-cloud-bigquery-v2
-    version: 1.0.0
     publish:
       disabled: true
-  - name: google-cloud-billing-v1
-    version: 1.1.0
-  - name: google-cloud-binaryauthorization-v1
-    version: 1.1.0
-  - name: google-cloud-certificatemanager-v1
-    version: 1.2.1
-  - name: google-cloud-chronicle-v1
-    version: 1.2.1
-  - name: google-cloud-cloudcontrolspartner-v1
-    version: 1.1.0
-  - name: google-cloud-clouddms-v1
-    version: 1.2.1
-  - name: google-cloud-cloudsecuritycompliance-v1
-    version: 2.1.1
-  - name: google-cloud-commerce-consumer-procurement-v1
-    version: 1.1.1
-  - name: google-cloud-common
-    version: 1.1.0
   - name: google-cloud-compute-v1
     generate:
       disabled: true
@@ -278,76 +379,16 @@ libraries:
         - name: rpc
           package: google-cloud-rpc
           source: google.rpc
-  - name: google-cloud-confidentialcomputing-v1
-    version: 1.1.0
-  - name: google-cloud-config-v1
-    version: 1.2.1
-  - name: google-cloud-configdelivery-v1
-    version: 1.2.1
-  - name: google-cloud-connectors-v1
-    version: 1.2.1
-  - name: google-cloud-contactcenterinsights-v1
-    version: 1.2.1
-  - name: google-cloud-datacatalog-lineage-v1
-    version: 1.2.1
-  - name: google-cloud-datacatalog-v1
-    version: 1.2.1
-  - name: google-cloud-dataform-v1
-    version: 1.1.0
-  - name: google-cloud-datafusion-v1
-    version: 1.2.1
-  - name: google-cloud-dataplex-v1
-    version: 1.3.1
-  - name: google-cloud-dataproc-v1
-    version: 1.2.1
-  - name: google-cloud-datastream-v1
-    version: 1.2.1
-  - name: google-cloud-deploy-v1
-    version: 1.2.1
-  - name: google-cloud-developerconnect-v1
-    version: 1.2.1
-  - name: google-cloud-devicestreaming-v1
-    version: 1.1.0
   - name: google-cloud-dialogflow-cx-v3
-    version: 1.3.1
     rust:
       per_service_features: true
   - name: google-cloud-dialogflow-v2
-    version: 1.3.1
     rust:
       per_service_features: true
   - name: google-cloud-discoveryengine-v1
-    version: 2.2.1
     rust:
       per_service_features: true
-  - name: google-cloud-documentai-v1
-    version: 1.3.1
-  - name: google-cloud-domains-v1
-    version: 1.2.1
-  - name: google-cloud-edgecontainer-v1
-    version: 1.2.1
-  - name: google-cloud-edgenetwork-v1
-    version: 1.2.1
-  - name: google-cloud-essentialcontacts-v1
-    version: 1.1.0
-  - name: google-cloud-eventarc-v1
-    version: 1.2.1
-  - name: google-cloud-filestore-v1
-    version: 1.2.1
-  - name: google-cloud-financialservices-v1
-    version: 1.2.1
-  - name: google-cloud-functions-v2
-    version: 1.2.1
-  - name: google-cloud-gkebackup-v1
-    version: 1.2.1
-  - name: google-cloud-gkeconnect-gateway-v1
-    version: 1.1.0
-  - name: google-cloud-gkehub-v1-configmanagement
-    version: 1.1.0
-  - name: google-cloud-gkehub-v1-multiclusteringress
-    version: 1.1.0
   - name: google-cloud-gkehub-v1
-    version: 1.2.1
     rust:
       package_dependencies:
         - name: gkehub_configmanagement_v1
@@ -356,12 +397,7 @@ libraries:
         - name: gkehub_multiclusteringress_v1
           package: google-cloud-gkehub-multiclusteringress-v1
           source: google.cloud.gkehub.multiclusteringress.v1
-  - name: google-cloud-gkemulticloud-v1
-    version: 1.2.1
-  - name: google-cloud-gkerecommender-v1
-    version: 1.1.0
   - name: google-cloud-gsuiteaddons-v1
-    version: 1.1.0
     rust:
       package_dependencies:
         - name: apps_script_type
@@ -385,206 +421,50 @@ libraries:
         - name: apps_script_slides
           package: google-cloud-apps-script-type-slides
           source: google.apps.script.type.slides
-  - name: google-cloud-iap-v1
-    version: 1.1.0
-  - name: google-cloud-ids-v1
-    version: 1.2.1
   - name: google-cloud-kms-inventory-v1
-    version: 1.1.0
     rust:
       package_dependencies:
         - name: kms
           package: google-cloud-kms-v1
           source: google.cloud.kms.v1
-  - name: google-cloud-kms-v1
-    version: 1.1.1
-  - name: google-cloud-language-v2
-    version: 1.1.0
-  - name: google-cloud-licensemanager-v1
-    version: 1.2.1
-  - name: google-cloud-location
-    version: 1.1.0
-  - name: google-cloud-locationfinder-v1
-    version: 1.0.0
-  - name: google-cloud-lustre-v1
-    version: 1.2.1
-  - name: google-cloud-managedidentities-v1
-    version: 1.2.1
-  - name: google-cloud-managedkafka-schemaregistry-v1
-    version: 1.2.1
-  - name: google-cloud-managedkafka-v1
-    version: 1.2.1
-  - name: google-cloud-memcache-v1
-    version: 1.2.1
-  - name: google-cloud-memorystore-v1
-    version: 1.2.1
-  - name: google-cloud-metastore-v1
-    version: 1.2.1
-  - name: google-cloud-migrationcenter-v1
-    version: 1.2.1
-  - name: google-cloud-modelarmor-v1
-    version: 1.1.0
-  - name: google-cloud-netapp-v1
-    version: 1.2.1
-  - name: google-cloud-networkconnectivity-v1
-    version: 1.2.1
-  - name: google-cloud-networkmanagement-v1
-    version: 1.2.1
-  - name: google-cloud-networksecurity-v1
-    version: 1.2.1
-  - name: google-cloud-networkservices-v1
-    version: 1.2.1
-  - name: google-cloud-notebooks-v2
-    version: 1.2.1
-  - name: google-cloud-optimization-v1
-    version: 1.1.1
-  - name: google-cloud-oracledatabase-v1
-    version: 1.3.1
-  - name: google-cloud-orchestration-airflow-service-v1
-    version: 1.2.1
-  - name: google-cloud-orgpolicy-v1
-    version: 1.1.0
-  - name: google-cloud-orgpolicy-v2
-    version: 1.1.0
   - name: google-cloud-osconfig-v1
-    version: 1.1.1
     rust:
       disabled_rustdoc_warnings:
         - redundant_explicit_links
         - broken_intra_doc_links
         - bare_urls
         - invalid_html_tags
-  - name: google-cloud-oslogin-common
-    version: 1.1.0
   - name: google-cloud-oslogin-v1
-    version: 1.1.0
     rust:
       package_dependencies:
         - name: oslogin_common
           package: google-cloud-oslogin-common
           source: google.cloud.oslogin.common
-  - name: google-cloud-parallelstore-v1
-    version: 1.2.1
-  - name: google-cloud-parametermanager-v1
-    version: 1.1.0
   - name: google-cloud-policysimulator-v1
-    version: 1.2.1
     rust:
       package_dependencies:
         - name: orgpolicy_v2
           package: google-cloud-orgpolicy-v2
           source: google.cloud.orgpolicy.v2
   - name: google-cloud-policytroubleshooter-iam-v3
-    version: 1.1.0
     rust:
       package_dependencies:
         - name: iam_v2
           package: google-cloud-iam-v2
           source: google.iam.v2
-  - name: google-cloud-policytroubleshooter-v1
-    version: 1.1.0
-  - name: google-cloud-privilegedaccessmanager-v1
-    version: 1.2.1
-  - name: google-cloud-rapidmigrationassessment-v1
-    version: 1.2.1
-  - name: google-cloud-recaptchaenterprise-v1
-    version: 1.1.0
-  - name: google-cloud-recommender-logging-v1
-    version: 1.1.0
-  - name: google-cloud-recommender-v1
-    version: 1.1.0
-  - name: google-cloud-redis-cluster-v1
-    version: 1.2.1
-  - name: google-cloud-redis-v1
-    version: 1.2.1
-  - name: google-cloud-resourcemanager-v3
-    version: 1.1.1
-  - name: google-cloud-retail-v2
-    version: 2.1.1
-  - name: google-cloud-run-v2
-    version: 1.2.1
-  - name: google-cloud-scheduler-v1
-    version: 1.1.0
   - name: google-cloud-secretmanager-v1
-    version: 1.1.1
-    copyright_year: "2024"
+    copyright_year: '2024'
     rust:
       generate_setter_samples: true
-  - name: google-cloud-securesourcemanager-v1
-    version: 1.2.1
-  - name: google-cloud-security-privateca-v1
-    version: 1.2.1
-  - name: google-cloud-security-publicca-v1
-    version: 1.1.0
-  - name: google-cloud-securitycenter-v1
-  - name: google-cloud-securitycenter-v1beta1
-  - name: google-cloud-securitycenter-v1p1beta1
-  - name: google-cloud-securitycenter-v2
-    version: 1.2.1
-  - name: google-cloud-securityposture-v1
-    version: 1.2.1
-  - name: google-cloud-servicedirectory-v1
-    version: 1.1.0
-  - name: google-cloud-servicehealth-v1
-    version: 1.1.0
-  - name: google-cloud-shell-v1
-    version: 1.1.1
-  - name: google-cloud-speech-v1p1beta1
-  - name: google-cloud-speech-v2
-    version: 1.2.1
   - name: google-cloud-sql-v1
-    version: 1.2.0
     rust:
       pagination_overrides:
         - id: .google.cloud.sql.v1.SqlInstancesService.List
           item_field: items
-  - name: google-cloud-storagebatchoperations-v1
-    version: 1.2.1
   - name: google-cloud-storageinsights-v1
-    version: 1.2.1
     rust:
       name_overrides: .google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_buckets=CloudStorageBucketsOneOf,.google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_locations=CloudStorageLocationsOneOf
-  - name: google-cloud-support-v2
-    version: 1.1.0
-  - name: google-cloud-talent-v4
-    version: 1.1.1
-  - name: google-cloud-tasks-v2
-    version: 1.1.0
-  - name: google-cloud-telcoautomation-v1
-    version: 1.2.1
-  - name: google-cloud-texttospeech-v1
-    version: 1.3.1
-  - name: google-cloud-timeseriesinsights-v1
-    version: 1.1.0
-  - name: google-cloud-tpu-v2
-    version: 1.2.1
-  - name: google-cloud-translate-v3
-    version: 1.2.1
-  - name: google-cloud-video-livestream-v1
-    version: 1.2.1
-  - name: google-cloud-video-stitcher-v1
-    version: 1.2.1
-  - name: google-cloud-video-transcoder-v1
-    version: 1.1.0
-  - name: google-cloud-videointelligence-v1
-    version: 1.2.1
-  - name: google-cloud-videointelligence-v1p1beta1
-  - name: google-cloud-vision-v1
-    version: 1.1.1
-  - name: google-cloud-vmmigration-v1
-    version: 1.2.1
-  - name: google-cloud-vmwareengine-v1
-    version: 1.2.1
-  - name: google-cloud-vpcaccess-v1
-    version: 1.2.1
-  - name: google-cloud-webrisk-v1
-    version: 1.2.1
-  - name: google-cloud-websecurityscanner-v1
-    version: 1.1.0
-  - name: google-cloud-workflows-executions-v1
-    version: 1.1.0
   - name: google-cloud-workflows-v1
-    version: 1.2.1
     rust:
       disabled_rustdoc_warnings:
         - redundant_explicit_links
@@ -592,70 +472,9 @@ libraries:
         - invalid_html_tags
         - bare_urls
       generate_setter_samples: true
-  - name: google-cloud-workstations-v1
-    version: 1.2.1
-  - name: google-container-v1
-    version: 1.2.0
-  - name: google-datastore-admin-v1
-    version: 1.2.1
-  - name: google-devtools-artifactregistry-v1
-    version: 1.1.1
-  - name: google-devtools-cloudbuild-v1
-    version: 1.1.1
-  - name: google-devtools-cloudbuild-v2
-    version: 1.1.1
-  - name: google-devtools-cloudprofiler-v2
-    version: 1.1.0
-  - name: google-devtools-cloudtrace-v2
-    version: 1.1.0
-  - name: google-devtools-containeranalysis-v1
-    version: 1.1.0
-  - name: google-firestore-admin-v1
-    version: 1.2.1
-  - name: google-iam-admin-v1
-    version: 1.1.0
-  - name: google-iam-credentials-v1
-    version: 1.1.0
-  - name: google-iam-v1
-    version: 1.1.0
-  - name: google-iam-v2
-    version: 1.1.1
-  - name: google-iam-v3
-    version: 1.1.1
-  - name: google-identity-accesscontextmanager-type
-    version: 1.1.0
   - name: google-identity-accesscontextmanager-v1
-    version: 1.1.1
     rust:
       package_dependencies:
         - name: accesscontextmanager_type
           package: google-identity-accesscontextmanager-type
           source: google.identity.accesscontextmanager.type
-  - name: google-logging-type
-    version: 1.1.0
-  - name: google-logging-v2
-    version: 1.2.1
-  - name: google-longrunning
-    version: 1.2.0
-  - name: google-monitoring-dashboard-v1
-    version: 1.1.0
-  - name: google-monitoring-metricsscope-v1
-    version: 1.1.1
-  - name: google-monitoring-v3
-    version: 1.1.0
-  - name: google-privacy-dlp-v2
-    version: 1.2.0
-  - name: google-rpc-context
-    version: 1.1.0
-  - name: google-rpc
-    version: 1.1.0
-  - name: google-spanner-admin-database-v1
-    version: 1.2.1
-  - name: google-spanner-admin-instance-v1
-    version: 1.2.1
-  - name: google-storagetransfer-v1
-    version: 1.2.1
-  - name: google-type
-    version: 1.1.0
-  - name: grafeas-v1
-    version: 1.1.0
