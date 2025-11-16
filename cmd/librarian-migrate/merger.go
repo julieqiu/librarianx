@@ -23,7 +23,7 @@ import (
 )
 
 // merge combines data from all sources and returns a config.Config.
-func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazelData, generatorInput *LegacyGeneratorInputData) (*config.Config, error) {
+func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazelData, generatorInput *LegacyGeneratorInputData, language string) (*config.Config, error) {
 	// Create a map of config overrides for quick lookup
 	configMap := make(map[string]*LegacyConfigLibrary)
 	for i := range legacyConfig.Libraries {
@@ -78,7 +78,7 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 	// Create config with defaults
 	cfg := &config.Config{
 		Version:   "v1",
-		Language:  "python",
+		Language:  language,
 		Libraries: libraries,
 		Default: &config.Default{
 			Output: "packages/{name}/",
@@ -87,6 +87,11 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 				RestNumericEnums: true,
 			},
 			Release: &config.DefaultRelease{},
+		},
+		Sources: &config.Sources{
+			Googleapis: &config.Source{
+				Commit: "9fcfbea0aa5b50fa22e190faceb073d74504172b",
+			},
 		},
 	}
 

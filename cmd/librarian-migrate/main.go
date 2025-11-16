@@ -19,6 +19,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 	"gopkg.in/yaml.v3"
@@ -38,7 +39,7 @@ func run() error {
 		googleapisPath string
 	)
 
-	flag.StringVar(&repoPath, "repo", "", "Path to the google-cloud-python repository (required)")
+	flag.StringVar(&repoPath, "repo", "", "Path to the repository (required)")
 	flag.StringVar(&outputPath, "output", "", "Output file path (default: stdout)")
 	flag.StringVar(&googleapisPath, "googleapis", "", "Path to googleapis repository for BUILD.bazel files")
 	flag.Parse()
@@ -46,6 +47,13 @@ func run() error {
 	if repoPath == "" {
 		return fmt.Errorf("-repo flag is required")
 	}
+
+	// Detect language from repository
+	language, err := detectLanguage(repoPath)
+	if err != nil {
+		return fmt.Errorf("failed to detect language: %w", err)
+	}
+	fmt.Fprintf(os.Stderr, "Detected language: %s\n", language)
 
 	// Read all legacy configuration sources
 	reader := &Reader{
@@ -63,7 +71,7 @@ func run() error {
 
 	// Merge all sources into config.Config
 	fmt.Fprintf(os.Stderr, "Merging configuration sources...\n")
-	cfg, err := merge(state, config, buildData, generatorInput)
+	cfg, err := merge(state, config, buildData, generatorInput, language)
 	if err != nil {
 		return fmt.Errorf("failed to merge configuration: %w", err)
 	}
@@ -138,4 +146,18 @@ func runYamlfmt(path string) error {
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
 	return cmd.Run()
+}
+
+// detectLanguage detects the programming language from the repository path.
+func detectLanguage(repoPath string) (string, error) {
+	// Extract language from repository name
+	languages := []string{"go", "python", "rust", "dart", "java", "node", "ruby", "php"}
+
+	for _, lang := range languages {
+		if strings.Contains(strings.ToLower(repoPath), lang) {
+			return lang, nil
+		}
+	}
+
+	return "", fmt.Errorf("could not detect language from repository path: %s", repoPath)
 }
