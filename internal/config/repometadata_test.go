@@ -56,7 +56,7 @@ publishing:
 		ReleaseLevel: "stable",
 	}
 
-	if err := GenerateRepoMetadata(library, "python", "googleapis/google-cloud-python", serviceYAMLPath, outDir, "google/cloud/secretmanager/v1"); err != nil {
+	if err := GenerateRepoMetadata(library, "python", "googleapis/google-cloud-python", serviceYAMLPath, outDir, []string{"google/cloud/secretmanager/v1"}); err != nil {
 		t.Fatal(err)
 	}
 
@@ -90,6 +90,61 @@ publishing:
 
 	if diff := cmp.Diff(want, got); diff != "" {
 		t.Errorf("mismatch (-want +got):\n%s", diff)
+	}
+}
+
+func TestSelectDefaultVersion(t *testing.T) {
+	for _, test := range []struct {
+		name     string
+		apiPaths []string
+		want     string
+	}{
+		{
+			"prefer v1 over v1beta2",
+			[]string{"google/cloud/secretmanager/v1beta2", "google/cloud/secretmanager/v1"},
+			"v1",
+		},
+		{
+			"prefer v1 over v1beta1",
+			[]string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v1beta1"},
+			"v1",
+		},
+		{
+			"prefer v2 over v1",
+			[]string{"google/cloud/secretmanager/v1", "google/cloud/secretmanager/v2"},
+			"v2",
+		},
+		{
+			"select highest beta when no stable",
+			[]string{"google/cloud/secretmanager/v1beta1", "google/cloud/secretmanager/v1beta2"},
+			"v1beta2",
+		},
+		{
+			"single version",
+			[]string{"google/cloud/secretmanager/v1"},
+			"v1",
+		},
+		{
+			"multiple APIs with different versions",
+			[]string{
+				"google/cloud/secretmanager/v1",
+				"google/cloud/secretmanager/v1beta2",
+				"google/cloud/secrets/v1beta1",
+			},
+			"v1",
+		},
+		{
+			"empty",
+			[]string{},
+			"",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := SelectDefaultVersion(test.apiPaths)
+			if got != test.want {
+				t.Errorf("got %q, want %q", got, test.want)
+			}
+		})
 	}
 }
 

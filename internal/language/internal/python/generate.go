@@ -96,7 +96,7 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 
 	// Generate .repo-metadata.json if we have a service config
 	if serviceConfigPath != "" && repo != "" {
-		if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths[0]); err != nil {
+		if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths); err != nil {
 			return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
 		}
 	}
