@@ -28,7 +28,18 @@ import (
 )
 
 // Generate generates a Rust client library.
-func Generate(ctx context.Context, library *config.Library, googleapisDir, serviceConfigPath, defaultOutput string) error {
+func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+	if defaults.Rust != nil {
+		if library.Rust == nil {
+			library.Rust = &config.RustCrate{}
+		}
+		if len(library.Rust.DisabledRustdocWarnings) == 0 {
+			library.Rust.DisabledRustdocWarnings = defaults.Rust.DisabledRustdocWarnings
+		}
+		// Merge default package dependencies with library-specific ones
+		library.Rust.PackageDependencies = mergePackageDependencies(defaults.Rust.PackageDependencies, library.Rust.PackageDependencies)
+	}
+
 	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
 	sidekickConfig := toSidekickConfig(library, googleapisDir, serviceConfigPath)
 	model, err := parser.CreateModel(sidekickConfig)
@@ -183,4 +194,47 @@ func formatPackageDependency(dep *config.RustPackageDependency) string {
 	// Sidekick templates handle workspace dependencies automatically.
 
 	return strings.Join(parts, ",")
+}
+
+func convertPackageDependencies(deps []*config.RustPackageDependency) []config.RustPackageDependency {
+	result := make([]config.RustPackageDependency, len(deps))
+	for i, dep := range deps {
+		if dep != nil {
+			result[i] = *dep
+		}
+	}
+	return result
+}
+
+// mergePackageDependencies merges default package dependencies with library-specific ones.
+// Library-specific dependencies override defaults with the same name.
+func mergePackageDependencies(defaults []*config.RustPackageDependency, librarySpecific []config.RustPackageDependency) []config.RustPackageDependency {
+	// Create a map of library-specific dependencies by name for quick lookup
+	libMap := make(map[string]config.RustPackageDependency)
+	for _, dep := range librarySpecific {
+		libMap[dep.Name] = dep
+	}
+
+	// Start with all default dependencies
+	result := convertPackageDependencies(defaults)
+
+	// Override with library-specific dependencies and track which names we've seen
+	seenNames := make(map[string]bool)
+	for i, dep := range result {
+		if override, ok := libMap[dep.Name]; ok {
+			result[i] = override
+			seenNames[override.Name] = true
+		} else {
+			seenNames[dep.Name] = true
+		}
+	}
+
+	// Add any library-specific dependencies that weren't in defaults
+	for _, dep := range librarySpecific {
+		if !seenNames[dep.Name] {
+			result = append(result, dep)
+		}
+	}
+
+	return result
 }

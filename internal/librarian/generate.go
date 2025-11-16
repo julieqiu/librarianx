@@ -158,7 +158,12 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		return nil
 	}
 
-	return language.Generate(ctx, library, googleapisDir, serviceConfigPath, cfg.Default.Output)
+	if err := language.Generate(ctx, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+		return err
+	}
+
+	fmt.Printf("  ✓ %s\n", apiPath)
+	return nil
 }
 
 // deriveLibraryName derives a library name from an API path.
@@ -180,26 +185,4 @@ func applyDefaults(library *config.Library, defaults *config.Default) {
 			library.RestNumericEnums = &b
 		}
 	}
-
-	if defaults.Rust != nil {
-		if library.Rust == nil {
-			library.Rust = &config.RustCrate{}
-		}
-		if len(library.Rust.DisabledRustdocWarnings) == 0 {
-			library.Rust.DisabledRustdocWarnings = defaults.Rust.DisabledRustdocWarnings
-		}
-		if len(library.Rust.PackageDependencies) == 0 {
-			library.Rust.PackageDependencies = convertPackageDependencies(defaults.Rust.PackageDependencies)
-		}
-	}
-}
-
-func convertPackageDependencies(deps []*config.RustPackageDependency) []config.RustPackageDependency {
-	result := make([]config.RustPackageDependency, len(deps))
-	for i, dep := range deps {
-		if dep != nil {
-			result[i] = *dep
-		}
-	}
-	return result
 }

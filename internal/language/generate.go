@@ -22,8 +22,8 @@ import (
 )
 
 // Generate generates a client library for the specified language.
-func Generate(ctx context.Context, library *config.Library, googleapisDir, serviceConfigPath, defaultOutput string) error {
-	return rust.Generate(ctx, library, googleapisDir, serviceConfigPath, defaultOutput)
+func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+	return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 }
 
 // APIToGenerate represents an API to be generated.
@@ -33,7 +33,7 @@ type APIToGenerate struct {
 }
 
 // GenerateAll generates all discovered APIs.
-func GenerateAll(ctx context.Context, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
+func GenerateAll(ctx context.Context, defaults *config.Default, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
 	for _, api := range apis {
 		// Create a minimal library config for this API
 		library := &config.Library{
@@ -41,7 +41,7 @@ func GenerateAll(ctx context.Context, googleapisDir, defaultOutput string, apis 
 			Rust: &config.RustCrate{},
 		}
 
-		if err := rust.Generate(ctx, library, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
+		if err := rust.Generate(ctx, library, defaults, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
 			return err
 		}
 	}
