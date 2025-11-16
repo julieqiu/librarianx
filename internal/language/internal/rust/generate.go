@@ -16,6 +16,7 @@ package rust
 
 import (
 	"context"
+	"os"
 	"path/filepath"
 	"strings"
 
@@ -44,9 +45,12 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	}
 
 	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
-	if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
-		return err
+	if _, err := os.Stat(outdir); os.IsNotExist(err) {
+		if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
+			return err
+		}
 	}
+
 	sidekickConfig, err := toSidekickConfig(library, googleapisDir, serviceConfigPath)
 	if err != nil {
 		return err
