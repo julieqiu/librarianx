@@ -34,6 +34,9 @@ type Config struct {
 	// Language is the primary language for this repository (go, python, rust).
 	Language string `yaml:"language"`
 
+	// Repo is the repository name (e.g., "googleapis/google-cloud-python").
+	Repo string `yaml:"repo,omitempty"`
+
 	// Sources contains references to external source repositories.
 	Sources *Sources `yaml:"sources,omitempty"`
 

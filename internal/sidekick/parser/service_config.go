@@ -28,12 +28,13 @@ import (
 
 func loadServiceConfig(cfg *config.Config) (*serviceconfig.Service, error) {
 	if name := cfg.General.ServiceConfig; name != "" {
-		return readServiceConfig(findServiceConfigPath(name, cfg.Source))
+		return ReadServiceConfig(findServiceConfigPath(name, cfg.Source))
 	}
 	return nil, nil
 }
 
-func readServiceConfig(serviceConfigPath string) (*serviceconfig.Service, error) {
+// ReadServiceConfig reads and parses a service config YAML file.
+func ReadServiceConfig(serviceConfigPath string) (*serviceconfig.Service, error) {
 	y, err := os.ReadFile(serviceConfigPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading service config [%s]: %w", serviceConfigPath, err)

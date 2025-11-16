@@ -224,7 +224,7 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		return nil
 	}
 
-	if err := language.Generate(ctx, cfg.Language, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+	if err := language.Generate(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
 		return err
 	}
 

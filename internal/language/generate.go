@@ -24,12 +24,12 @@ import (
 )
 
 // Generate generates a client library for the specified language.
-func Generate(ctx context.Context, language string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+func Generate(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	switch language {
 	case "rust":
 		return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "python":
-		return python.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+		return python.Generate(ctx, language, repo, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	default:
 		return fmt.Errorf("unsupported language: %s", language)
 	}
@@ -42,7 +42,7 @@ type APIToGenerate struct {
 }
 
 // GenerateAll generates all discovered APIs.
-func GenerateAll(ctx context.Context, language string, defaults *config.Default, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
+func GenerateAll(ctx context.Context, language, repo string, defaults *config.Default, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
 	for _, api := range apis {
 		// Create a minimal library config for this API
 		library := &config.Library{
@@ -54,7 +54,7 @@ func GenerateAll(ctx context.Context, language string, defaults *config.Default,
 			library.Rust = &config.RustCrate{}
 		}
 
-		if err := Generate(ctx, language, library, defaults, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
+		if err := Generate(ctx, language, repo, library, defaults, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
 			return err
 		}
 	}

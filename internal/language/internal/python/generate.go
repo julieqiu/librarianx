@@ -29,7 +29,7 @@ import (
 // Generate generates a Python client library.
 // Files and directories specified in library.Keep will be preserved during regeneration.
 // If library.Keep is not specified, a default list of paths is used.
-func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+func Generate(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	// Determine output directory
 	outdir := library.Path
 	if outdir == "" {
@@ -91,6 +91,13 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	for _, apiPath := range apiPaths {
 		if err := generateAPI(ctx, apiPath, library, googleapisDir, serviceConfigPath, outdir, transport, restNumericEnums); err != nil {
 			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
+		}
+	}
+
+	// Generate .repo-metadata.json if we have a service config
+	if serviceConfigPath != "" && repo != "" {
+		if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths[0]); err != nil {
+			return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
 		}
 	}
 

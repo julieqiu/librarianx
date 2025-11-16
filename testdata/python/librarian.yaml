@@ -1,5 +1,6 @@
 version: v1
 language: python
+repo: googleapis/google-cloud-python
 sources:
   googleapis:
     commit: 9fcfbea0aa5b50fa22e190faceb073d74504172b
