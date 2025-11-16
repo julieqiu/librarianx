@@ -35,11 +35,26 @@ type Config struct {
 	// Default contains default generation settings.
 	Default *Default `yaml:"default"`
 
+	// NameOverrides contains overrides for auto-derived library names.
+	// Allows customizing library names for specific APIs when the auto-derived
+	// name doesn't match existing package names or conventions.
+	NameOverrides []*NameOverride `yaml:"name_overrides,omitempty"`
+
 	// Libraries contains the list of library configurations.
 	// Each entry can be either:
 	// - A string API path (short syntax): "google/cloud/secretmanager/v1"
 	// - A map with API path as key and overrides as value (extended syntax)
 	Libraries []*Library `yaml:"libraries,omitempty"`
+}
+
+// NameOverride represents an override for an auto-derived library name.
+type NameOverride struct {
+	// API is the googleapis API path (e.g., "google/api/apikeys/v2").
+	API string `yaml:"api"`
+
+	// Name is the library name to use instead of the auto-derived name
+	// (e.g., "google-api-keys" instead of "google-api-apikeys").
+	Name string `yaml:"name"`
 }
 
 // Sources contains references to external source repositories.
@@ -216,4 +231,15 @@ func (c *Config) Write(path string) error {
 	}
 
 	return nil
+}
+
+// GetNameOverride returns the overridden name for the given API path.
+// Returns empty string if no override is configured.
+func (c *Config) GetNameOverride(apiPath string) string {
+	for _, override := range c.NameOverrides {
+		if override.API == apiPath {
+			return override.Name
+		}
+	}
+	return ""
 }

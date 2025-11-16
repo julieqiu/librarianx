@@ -78,19 +78,9 @@ func runGenerateAll(ctx context.Context) error {
 		})
 	}
 
-	// Generate all APIs using language package
-	defaultOutput := "src/generated"
-	if cfg.Default.Output != "" {
-		defaultOutput = cfg.Default.Output
-	}
-
 	// Generate with progress reporting
 	for _, api := range apisToGenerate {
-		library := &config.Library{
-			API:  api.Path,
-			Rust: &config.RustCrate{},
-		}
-		if err := language.Generate(ctx, library, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
+		if err := generateLibraryForAPI(ctx, cfg, googleapisDir, api.Path, api.ServiceConfigPath); err != nil {
 			fmt.Printf("  ✗ %s: %v\n", api.Path, err)
 			return err
 		}

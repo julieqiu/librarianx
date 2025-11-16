@@ -101,9 +101,17 @@ func runGenerate(ctx context.Context, name string) error {
 
 // generateLibraryForAPI generates a library for the given API path.
 func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDir, apiPath, serviceConfigPath string) error {
+	// Check for name override first
+	nameOverride := cfg.GetNameOverride(apiPath)
+
 	var library *config.Library
 	for _, lib := range cfg.Libraries {
-		if lib.API == apiPath {
+		// If there's a name override, look up by name
+		// Otherwise, look up by API path (existing behavior)
+		if nameOverride != "" && lib.Name == nameOverride {
+			library = lib
+			break
+		} else if nameOverride == "" && lib.API == apiPath {
 			library = lib
 			break
 		}
@@ -116,6 +124,10 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 
 		library = &config.Library{
 			API: apiPath,
+		}
+		// If there's a name override, set it on the library
+		if nameOverride != "" {
+			library.Name = nameOverride
 		}
 	}
 
