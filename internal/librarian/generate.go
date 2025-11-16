@@ -91,6 +91,11 @@ func runGenerate(ctx context.Context, name string) error {
 		return fmt.Errorf("failed to read service config overrides: %w", err)
 	}
 
+	// Check if API is excluded
+	if overrides.IsExcluded(apiPath) {
+		return fmt.Errorf("API %q is excluded from generation", apiPath)
+	}
+
 	serviceConfigPath, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
 	if err != nil {
 		return err
