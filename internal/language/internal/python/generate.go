@@ -103,7 +103,9 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	}
 
 	// Fix generated files that have incorrect package names
-	if err := fixGeneratedPackageNames(outdir, library.Name); err != nil {
+	// For beta versions (v1beta1, v1beta2), use historical package name without hyphen
+	betaPackageName := strings.ReplaceAll(library.Name, "-secret-manager", "-secretmanager")
+	if err := fixGeneratedPackageNames(outdir, library.Name, betaPackageName); err != nil {
 		return fmt.Errorf("failed to fix package names in generated files: %w", err)
 	}
 
@@ -380,9 +382,10 @@ func defaultKeepPaths(libraryName string) []string {
 // 1. py.typed files that reference the wrong package name
 // 2. docs/conf.py that has the wrong project name and Python 2 'u' prefix
 // 3. noxfile.py that has wrong package name
-// 4. Sample Python files with wrong pip install commands
+// 4. Sample Python files with wrong pip install commands (stable versions use stablePackageName, beta versions use betaPackageName)
 // 5. JSON snippet metadata files with wrong package names
-func fixGeneratedPackageNames(outdir, correctPackageName string) error {
+// For historical compatibility, beta API versions (v1beta1, v1beta2) use a different package name.
+func fixGeneratedPackageNames(outdir, stablePackageName, betaPackageName string) error {
 	// Walk through the directory to find all files that need fixing
 	return filepath.Walk(outdir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -394,11 +397,17 @@ func fixGeneratedPackageNames(outdir, correctPackageName string) error {
 			return nil
 		}
 
-		// Fix py.typed files (but skip v1beta1 and v1beta2 for historical reasons)
+		// Determine which package name to use based on API version
+		isBetaVersion := strings.Contains(path, "v1beta1") || strings.Contains(path, "v1beta2")
+		packageName := stablePackageName
+		if isBetaVersion {
+			packageName = betaPackageName
+		}
+
+		// Fix py.typed files (skip beta versions - they don't need fixing)
 		if info.Name() == "py.typed" {
-			// Skip beta versions - they use historical package names for compatibility
-			if !strings.Contains(path, "v1beta1") && !strings.Contains(path, "v1beta2") {
-				if err := fixPyTypedFile(path, correctPackageName); err != nil {
+			if !isBetaVersion {
+				if err := fixPyTypedFile(path, packageName); err != nil {
 					return fmt.Errorf("failed to fix %s: %w", path, err)
 				}
 			}
@@ -406,35 +415,29 @@ func fixGeneratedPackageNames(outdir, correctPackageName string) error {
 
 		// Fix docs/conf.py files
 		if info.Name() == "conf.py" && strings.Contains(path, "/docs/") {
-			if err := fixDocsConfPy(path, correctPackageName); err != nil {
+			if err := fixDocsConfPy(path, stablePackageName); err != nil {
 				return fmt.Errorf("failed to fix %s: %w", path, err)
 			}
 		}
 
 		// Fix noxfile.py
 		if info.Name() == "noxfile.py" {
-			if err := fixPythonFile(path, correctPackageName); err != nil {
+			if err := fixPythonFile(path, stablePackageName); err != nil {
 				return fmt.Errorf("failed to fix %s: %w", path, err)
 			}
 		}
 
-		// Fix Python sample files (but skip v1beta1 and v1beta2 for historical reasons)
+		// Fix Python sample files (use beta package name for beta versions)
 		if strings.HasSuffix(info.Name(), ".py") && strings.Contains(path, "/samples/") {
-			// Skip beta versions - they use historical package names for compatibility
-			if !strings.Contains(path, "v1beta1") && !strings.Contains(path, "v1beta2") {
-				if err := fixPythonFile(path, correctPackageName); err != nil {
-					return fmt.Errorf("failed to fix %s: %w", path, err)
-				}
+			if err := fixPythonFile(path, packageName); err != nil {
+				return fmt.Errorf("failed to fix %s: %w", path, err)
 			}
 		}
 
-		// Fix JSON snippet metadata files (but skip v1beta1 and v1beta2 for historical reasons)
+		// Fix JSON snippet metadata files (use beta package name for beta versions)
 		if strings.HasSuffix(info.Name(), ".json") && strings.Contains(path, "snippet_metadata") {
-			// Skip beta versions - they use historical package names for compatibility
-			if !strings.Contains(path, "v1beta1") && !strings.Contains(path, "v1beta2") {
-				if err := fixJSONFile(path, correctPackageName); err != nil {
-					return fmt.Errorf("failed to fix %s: %w", path, err)
-				}
+			if err := fixJSONFile(path, packageName); err != nil {
+				return fmt.Errorf("failed to fix %s: %w", path, err)
 			}
 		}
 
