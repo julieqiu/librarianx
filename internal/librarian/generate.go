@@ -105,8 +105,10 @@ func runGenerate(ctx context.Context, name string) error {
 			apiPaths = []string{library.API}
 		}
 
+		// If no API paths configured, try to derive from library name
 		if len(apiPaths) == 0 {
-			return fmt.Errorf("library %q has no APIs configured", name)
+			derivedAPIPath := strings.ReplaceAll(name, "-", "/")
+			apiPaths = []string{derivedAPIPath}
 		}
 
 		// Read service config overrides

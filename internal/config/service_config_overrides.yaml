@@ -125,7 +125,6 @@ excluded_apis:
   - google/cloud/clouddms/logging
   - google/cloud/cloudsetup
   - google/cloud/commerce/consumer/procurement/v1alpha1
-  - google/cloud/compute/v1
   - google/cloud/compute/v1beta
   - google/cloud/confidentialcomputing/v1alpha1
   - google/cloud/configdelivery/v1alpha

@@ -143,8 +143,7 @@ libraries:
   - name: google-cloud-bigquery-v2
     publish:
       disabled: true
-  - name: google-cloud-compute
-    api: cloud/compute/v1
+  - name: google-cloud-compute-v1
     discovery:
       operation_id: .google.cloud.compute.v1.Operation
       pollers:
@@ -160,7 +159,6 @@ libraries:
       specification_format: discovery
       specification_source: discoveries/compute.v1.json
       per_service_features: true
-      package_name_override: google-cloud-compute-v1
       default_features:
         - instances
         - projects
