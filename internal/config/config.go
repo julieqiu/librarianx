@@ -143,6 +143,9 @@ type Library struct {
 	// Alternative to API field for libraries that bundle multiple versions.
 	APIs []string `yaml:"apis,omitempty"`
 
+	// Discovery contains discovery-specific configuration (only used for discovery-based APIs).
+	Discovery *DiscoveryConfig `yaml:"discovery,omitempty"`
+
 	// Generate contains per-library generate configuration.
 	Generate *LibraryGenerate `yaml:"generate,omitempty"`
 

@@ -70,14 +70,23 @@ func runGenerate(ctx context.Context, name string) error {
 		return fmt.Errorf("no googleapis source configured in %s", configPath)
 	}
 
-	commit := cfg.Sources.Googleapis.Commit
-	if commit == "" {
+	googleapisCommit := cfg.Sources.Googleapis.Commit
+	if googleapisCommit == "" {
 		return fmt.Errorf("no commit specified for googleapis source in %s", configPath)
 	}
 
-	googleapisDir, err := googleapisDir(commit)
+	googleapisDir, err := googleapisDir(googleapisCommit)
 	if err != nil {
 		return err
+	}
+
+	// Get discovery directory if configured
+	var discoveryDirPath string
+	if cfg.Sources.Discovery != nil && cfg.Sources.Discovery.Commit != "" {
+		discoveryDirPath, err = discoveryDir(cfg.Sources.Discovery.Commit)
+		if err != nil {
+			return err
+		}
 	}
 
 	// First try to find the library by name in config
@@ -119,7 +128,7 @@ func runGenerate(ctx context.Context, name string) error {
 				return err
 			}
 
-			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath); err != nil {
+			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, discoveryDirPath, apiPath, serviceConfigPath); err != nil {
 				return err
 			}
 		}
@@ -153,11 +162,11 @@ func runGenerate(ctx context.Context, name string) error {
 		return err
 	}
 
-	return generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath)
+	return generateLibraryForAPI(ctx, cfg, googleapisDir, discoveryDirPath, apiPath, serviceConfigPath)
 }
 
 // generateLibraryForAPI generates a library for the given API path.
-func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDir, apiPath, serviceConfigPath string) error {
+func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDir, discoveryDirPath, apiPath, serviceConfigPath string) error {
 	// Check for name override first
 	nameOverride := cfg.GetNameOverride(apiPath)
 
@@ -224,7 +233,7 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		return nil
 	}
 
-	if err := language.Generate(ctx, cfg.Language, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+	if err := language.Generate(ctx, cfg.Language, library, cfg.Default, googleapisDir, discoveryDirPath, serviceConfigPath, cfg.Default.Output); err != nil {
 		return err
 	}
 

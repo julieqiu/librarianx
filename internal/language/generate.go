@@ -24,10 +24,10 @@ import (
 )
 
 // Generate generates a client library for the specified language.
-func Generate(ctx context.Context, language string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+func Generate(ctx context.Context, language string, library *config.Library, defaults *config.Default, googleapisDir, discoveryDir, serviceConfigPath, defaultOutput string) error {
 	switch language {
 	case "rust":
-		return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+		return rust.Generate(ctx, library, defaults, googleapisDir, discoveryDir, serviceConfigPath, defaultOutput)
 	case "python":
 		return python.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	default:
@@ -54,7 +54,7 @@ func GenerateAll(ctx context.Context, language string, defaults *config.Default,
 			library.Rust = &config.RustCrate{}
 		}
 
-		if err := Generate(ctx, language, library, defaults, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
+		if err := Generate(ctx, language, library, defaults, googleapisDir, "", api.ServiceConfigPath, defaultOutput); err != nil {
 			return err
 		}
 	}

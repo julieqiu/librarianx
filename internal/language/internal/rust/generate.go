@@ -28,7 +28,7 @@ import (
 )
 
 // Generate generates a Rust client library.
-func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, discoveryDir, serviceConfigPath, defaultOutput string) error {
 	if defaults.Rust != nil {
 		if library.Rust == nil {
 			library.Rust = &config.RustCrate{}
@@ -41,7 +41,7 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	}
 
 	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
-	sidekickConfig, err := toSidekickConfig(library, googleapisDir, serviceConfigPath)
+	sidekickConfig, err := toSidekickConfig(library, googleapisDir, discoveryDir, serviceConfigPath)
 	if err != nil {
 		return err
 	}
@@ -78,18 +78,59 @@ func derivePackageName(apiPath string) string {
 	return strings.ReplaceAll(apiPath, "/", "-")
 }
 
-func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) (*sidekickconfig.Config, error) {
+func toSidekickConfig(library *config.Library, googleapisDir, discoveryDir, serviceConfig string) (*sidekickconfig.Config, error) {
+	// Determine specification format
+	specFormat := "protobuf"
+	if library.Rust != nil && library.Rust.SpecificationFormat != "" {
+		specFormat = library.Rust.SpecificationFormat
+	}
+
+	// Translate "discovery" to "disco" for sidekick
+	sidekickSpecFormat := specFormat
+	if specFormat == "discovery" {
+		sidekickSpecFormat = "disco"
+	}
+
 	sidekickCfg := &sidekickconfig.Config{
 		General: sidekickconfig.GeneralConfig{
 			Language:            "rust",
-			SpecificationFormat: "protobuf",
+			SpecificationFormat: sidekickSpecFormat,
 			ServiceConfig:       serviceConfig,
 			SpecificationSource: library.API,
 		},
-		Source: map[string]string{
-			"googleapis-root": googleapisDir,
-		},
-		Codec: buildCodec(library),
+		Source: map[string]string{},
+		Codec:  buildCodec(library),
+	}
+
+	// Set the appropriate source directory based on specification format
+	if specFormat == "discovery" {
+		if discoveryDir != "" {
+			sidekickCfg.Source["discovery-root"] = discoveryDir
+		}
+		// Discovery APIs may need googleapis for service config
+		if googleapisDir != "" {
+			sidekickCfg.Source["googleapis-root"] = googleapisDir
+		}
+
+		// Override specification source if provided in rust config
+		if library.Rust != nil && library.Rust.SpecificationSource != "" {
+			sidekickCfg.General.SpecificationSource = library.Rust.SpecificationSource
+		}
+
+		// Add discovery LRO configuration
+		if library.Discovery != nil && (library.Discovery.OperationID != "" || len(library.Discovery.Pollers) > 0) {
+			sidekickCfg.Discovery = &sidekickconfig.Discovery{
+				OperationID: library.Discovery.OperationID,
+			}
+			for _, poller := range library.Discovery.Pollers {
+				sidekickCfg.Discovery.Pollers = append(sidekickCfg.Discovery.Pollers, &sidekickconfig.Poller{
+					Prefix:   poller.Prefix,
+					MethodID: poller.MethodID,
+				})
+			}
+		}
+	} else {
+		sidekickCfg.Source["googleapis-root"] = googleapisDir
 	}
 
 	// Add documentation overrides

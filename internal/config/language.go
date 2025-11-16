@@ -23,8 +23,34 @@ type RustDefault struct {
 	PackageDependencies []*RustPackageDependency `yaml:"package_dependencies,omitempty"`
 }
 
+// DiscoveryPoller defines how to find a suitable poller RPC for discovery-based APIs.
+type DiscoveryPoller struct {
+	// Prefix is an acceptable prefix for the URL path.
+	Prefix string `yaml:"prefix"`
+
+	// MethodID is the corresponding method ID.
+	MethodID string `yaml:"method_id"`
+}
+
+// DiscoveryConfig defines configuration for discovery-based APIs.
+type DiscoveryConfig struct {
+	// OperationID is the ID of the LRO operation type (e.g., ".google.cloud.compute.v1.Operation").
+	OperationID string `yaml:"operation_id,omitempty"`
+
+	// Pollers defines LRO polling configuration.
+	Pollers []DiscoveryPoller `yaml:"pollers,omitempty"`
+}
+
 // RustCrate contains Rust-specific library configuration.
 type RustCrate struct {
+	// SpecificationFormat specifies the API specification format ("protobuf" or "discovery").
+	// If not specified, defaults to "protobuf".
+	SpecificationFormat string `yaml:"specification_format,omitempty"`
+
+	// SpecificationSource is the path to the discovery document within discovery-artifact-manager.
+	// Only used for discovery-based APIs. Example: "discoveries/compute.v1.json"
+	SpecificationSource string `yaml:"specification_source,omitempty"`
+
 	// PerServiceFeatures enables per-service feature flags.
 	PerServiceFeatures bool `yaml:"per_service_features,omitempty"`
 

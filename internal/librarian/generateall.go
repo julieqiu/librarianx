@@ -55,6 +55,15 @@ func runGenerateAll(ctx context.Context) error {
 		return err
 	}
 
+	// Get discovery directory if configured
+	var discoveryDirPath string
+	if cfg.Sources.Discovery != nil && cfg.Sources.Discovery.Commit != "" {
+		discoveryDirPath, err = discoveryDir(cfg.Sources.Discovery.Commit)
+		if err != nil {
+			return err
+		}
+	}
+
 	// Read service config overrides
 	overrides, err := config.ReadServiceConfigOverrides()
 	if err != nil {
@@ -80,7 +89,7 @@ func runGenerateAll(ctx context.Context) error {
 
 	// Generate with progress reporting
 	for _, api := range apisToGenerate {
-		if err := generateLibraryForAPI(ctx, cfg, googleapisDir, api.Path, api.ServiceConfigPath); err != nil {
+		if err := generateLibraryForAPI(ctx, cfg, googleapisDir, discoveryDirPath, api.Path, api.ServiceConfigPath); err != nil {
 			fmt.Printf("  ✗ %s: %v\n", api.Path, err)
 			return err
 		}

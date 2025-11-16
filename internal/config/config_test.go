@@ -88,7 +88,7 @@ func TestReadWrite(t *testing.T) {
 func TestConfig_GetNameOverride(t *testing.T) {
 	cfg := &Config{
 		NameOverrides: map[string]string{
-			"google/api/apikeys/v2":             "google-api-keys",
+			"google/api/apikeys/v2":            "google-api-keys",
 			"google/cloud/bigquery/storage/v1": "google-cloud-bigquery-storage",
 		},
 	}

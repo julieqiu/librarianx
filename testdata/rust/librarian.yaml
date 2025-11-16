@@ -3,6 +3,8 @@ language: rust
 sources:
   googleapis:
     commit: 9fcfbea0aa5b50fa22e190faceb073d74504172b
+  discovery:
+    commit: b27c80574e918a7e2a36eb21864d1d2e45b8c032
 default:
   output: src/generated/
   generate:
@@ -141,17 +143,43 @@ libraries:
   - name: google-cloud-bigquery-v2
     publish:
       disabled: true
-  - name: google-cloud-compute-v1
-    generate:
-      disabled: true
+  - name: google-cloud-compute
+    api: cloud/compute/v1
+    discovery:
+      operation_id: .google.cloud.compute.v1.Operation
+      pollers:
+        - prefix: compute/v1/projects/{project}/zones/{zone}
+          method_id: .google.cloud.compute.v1.zoneOperations.get
+        - prefix: compute/v1/projects/{project}/regions/{region}
+          method_id: .google.cloud.compute.v1.regionOperations.get
+        - prefix: compute/v1/projects/{project}
+          method_id: .google.cloud.compute.v1.globalOperations.get
+        - prefix: compute/v1/
+          method_id: .google.cloud.compute.v1.globalOrganizationOperations.get
     rust:
+      specification_format: discovery
+      specification_source: discoveries/compute.v1.json
+      per_service_features: true
+      package_name_override: google-cloud-compute-v1
+      default_features:
+        - instances
+        - projects
+      extra_modules:
+        - errors
+        - operation
       package_dependencies:
         - name: lro
-          package: google-cloud-longrunning
-          source: google.longrunning
+          package: google-cloud-lro
+          force_used: true
         - name: rpc
           package: google-cloud-rpc
-          source: google.rpc
+          force_used: true
+      disabled_rustdoc_warnings:
+        - bare_urls
+        - broken_intra_doc_links
+        - redundant_explicit_links
+      disabled_clippy_warnings:
+        - doc_lazy_continuation
   - name: google-cloud-dialogflow-cx-v3
     rust:
       per_service_features: true
@@ -252,20 +280,20 @@ libraries:
           package: google-identity-accesscontextmanager-type
           source: google.identity.accesscontextmanager.type
 versions:
+  google-api: 1.1.0
   google-api-cloudquotas-v1: 1.1.0
   google-api-servicecontrol-v1: 1.1.0
   google-api-servicecontrol-v2: 1.1.0
   google-api-servicemanagement-v1: 1.2.1
   google-api-serviceusage-v1: 1.2.1
-  google-api: 1.1.0
   google-appengine-v1: 1.2.1
+  google-apps-script-type: 1.1.0
   google-apps-script-type-calendar: 1.1.0
   google-apps-script-type-docs: 1.1.0
   google-apps-script-type-drive: 1.1.0
   google-apps-script-type-gmail: 1.1.0
   google-apps-script-type-sheets: 1.1.0
   google-apps-script-type-slides: 1.1.0
-  google-apps-script-type: 1.1.0
   google-bigtable-admin-v2: 1.2.1
   google-cloud-accessapproval-v1: 1.1.0
   google-cloud-advisorynotifications-v1: 1.1.0
@@ -310,6 +338,7 @@ versions:
   google-cloud-cloudsecuritycompliance-v1: 2.1.1
   google-cloud-commerce-consumer-procurement-v1: 1.1.1
   google-cloud-common: 1.1.0
+  google-cloud-compute-v1: 0.2.1
   google-cloud-confidentialcomputing-v1: 1.1.0
   google-cloud-config-v1: 1.2.1
   google-cloud-configdelivery-v1: 1.2.1
@@ -343,9 +372,9 @@ versions:
   google-cloud-functions-v2: 1.2.1
   google-cloud-gkebackup-v1: 1.2.1
   google-cloud-gkeconnect-gateway-v1: 1.1.0
+  google-cloud-gkehub-v1: 1.2.1
   google-cloud-gkehub-v1-configmanagement: 1.1.0
   google-cloud-gkehub-v1-multiclusteringress: 1.1.0
-  google-cloud-gkehub-v1: 1.2.1
   google-cloud-gkemulticloud-v1: 1.2.1
   google-cloud-gkerecommender-v1: 1.1.0
   google-cloud-grafeas-v1: 1.1.0
@@ -464,8 +493,8 @@ versions:
   google-monitoring-metricsscope-v1: 1.1.1
   google-monitoring-v3: 1.1.0
   google-privacy-dlp-v2: 1.2.0
-  google-rpc-context: 1.1.0
   google-rpc: 1.1.0
+  google-rpc-context: 1.1.0
   google-spanner-admin-database-v1: 1.2.1
   google-spanner-admin-instance-v1: 1.2.1
   google-storagetransfer-v1: 1.2.1
