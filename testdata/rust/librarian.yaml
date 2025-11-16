@@ -93,10 +93,12 @@ name_overrides:
   - api: google/api/apikeys/v2
     name: google-cloud-apikeys-v2
 libraries:
-  - name: google-cloud-apikeys-v2
-    version: 1.1.1
+  - name: google-api
+    version: 1.1.0
   - name: google-api-cloudquotas-v1
     version: 1.1.0
+    generate:
+      disabled: true
   - name: google-api-servicecontrol-v1
     version: 1.1.0
   - name: google-api-servicecontrol-v2
@@ -105,10 +107,10 @@ libraries:
     version: 1.2.1
   - name: google-api-serviceusage-v1
     version: 1.2.1
-  - name: google-api
-    version: 1.1.0
   - name: google-appengine-v1
     version: 1.2.1
+  - name: google-apps-script-type
+    version: 1.1.0
   - name: google-apps-script-type-calendar
     version: 1.1.0
   - name: google-apps-script-type-docs
@@ -121,16 +123,18 @@ libraries:
     version: 1.1.0
   - name: google-apps-script-type-slides
     version: 1.1.0
-  - name: google-apps-script-type
-    version: 1.1.0
   - name: google-bigtable-admin-v2
     version: 1.2.1
   - name: google-cloud-accessapproval-v1
     version: 1.1.0
   - name: google-cloud-advisorynotifications-v1
     version: 1.1.0
+    generate:
+      disabled: true
   - name: google-cloud-aiplatform-v1
     version: 1.3.1
+    generate:
+      disabled: true
   - name: google-cloud-alloydb-connectors-v1
     version: 1.1.0
   - name: google-cloud-alloydb-v1
@@ -141,10 +145,14 @@ libraries:
     version: 1.1.0
   - name: google-cloud-apihub-v1
     version: 1.2.1
+  - name: google-cloud-apikeys-v2
+    version: 1.1.1
   - name: google-cloud-apphub-v1
     version: 1.2.1
   - name: google-cloud-asset-v1
     version: 1.1.1
+    generate:
+      disabled: true
     rust:
       package_dependencies:
         - name: orgpolicy_v1
