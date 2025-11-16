@@ -176,11 +176,11 @@ libraries:
     generate:
       disabled: true
     rust:
+      per_service_features: true
       disabled_rustdoc_warnings:
         - redundant_explicit_links
         - broken_intra_doc_links
         - invalid_html_tags
-      per_service_features: true
   - name: google-cloud-alloydb-connectors-v1
     version: 1.1.0
   - name: google-cloud-alloydb-v1
@@ -316,26 +316,6 @@ libraries:
     version: 1.3.1
     rust:
       per_service_features: true
-      documentation_overrides:
-        - id: .google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.baseline_model_version
-          match: |-
-            Version of current baseline model. It will be ignored if
-            [model][google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.model]
-            is set. Valid versions are:
-              Article Suggestion baseline model:
-                - 0.9
-                - 1.0 (default)
-              Summarization baseline model:
-                - 1.0
-          replace: |-
-            Version of current baseline model. It will be ignored if
-            [model][google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.model]
-            is set. Valid versions are:
-            - Article Suggestion baseline model:
-              - 0.9
-              - 1.0 (default)
-            - Summarization baseline model:
-              - 1.0
   - name: google-cloud-discoveryengine-v1
     version: 2.2.1
     rust:
@@ -454,11 +434,6 @@ libraries:
     version: 1.2.1
   - name: google-cloud-networkservices-v1
     version: 1.2.1
-    rust:
-      documentation_overrides:
-        - id: .google.cloud.networkservices.v1.WasmPlugin.LogConfig.min_log_level
-          match: Specificies
-          replace: Specifies
   - name: google-cloud-notebooks-v2
     version: 1.2.1
   - name: google-cloud-optimization-v1
@@ -526,11 +501,6 @@ libraries:
     version: 1.1.1
   - name: google-cloud-retail-v2
     version: 2.1.1
-    rust:
-      documentation_overrides:
-        - id: .google.cloud.retail.v2.SearchRequest.user_attributes
-          match: Duplcate
-          replace: Duplicate
   - name: google-cloud-run-v2
     version: 1.2.1
   - name: google-cloud-scheduler-v1
