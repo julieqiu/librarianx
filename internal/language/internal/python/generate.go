@@ -88,17 +88,17 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		restNumericEnums = *library.RestNumericEnums
 	}
 
+	// Generate .repo-metadata.json BEFORE running protoc so it can use it for README generation
+	if serviceConfigPath != "" && repo != "" {
+		if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths); err != nil {
+			return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
+		}
+	}
+
 	// Generate each API
 	for _, apiPath := range apiPaths {
 		if err := generateAPI(ctx, apiPath, library, googleapisDir, serviceConfigPath, outdir, transport, restNumericEnums); err != nil {
 			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
-		}
-	}
-
-	// Generate .repo-metadata.json if we have a service config
-	if serviceConfigPath != "" && repo != "" {
-		if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths); err != nil {
-			return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
 		}
 	}
 
