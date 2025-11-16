@@ -100,16 +100,40 @@ name_overrides:
     name: google-cloud-bigtable-admin-v2
   - api: google/cloud/translate/v3
     name: google-cloud-translation-v3
+  - api: google/container/v1
+    name: google-cloud-container-v1
+  - api: google/devtools/artifactregistry/v1
+    name: google-cloud-artifactregistry-v1
   - api: google/devtools/cloudtrace/v2
     name: google-cloud-trace-v2
   - api: google/devtools/containeranalysis/v1
     name: google-cloud-containeranalysis-v1
   - api: google/devtools/cloudbuild/v1
     name: google-cloud-build-v1
+  - api: google/devtools/cloudbuild/v2
+    name: google-cloud-build-v2
   - api: google/devtools/cloudprofiler/v2
     name: google-cloud-profiler-v2
   - api: google/datastore/admin/v1
     name: google-cloud-datastore-admin-v1
+  - api: google/firestore/admin/v1
+    name: google-cloud-firestore-admin-v1
+  - api: grafeas/v1
+    name: google-cloud-grafeas-v1
+  - api: google/iam/credentials/v1
+    name: google-cloud-iam-credentials-v1
+  - api: google/iam/v2
+    name: google-cloud-iam-v2
+  - api: google/iam/v3
+    name: google-cloud-iam-v3
+  - api: google/identity/accesscontextmanager/v1
+    name: google-cloud-identity-accesscontextmanager-v1
+  - api: google/logging/v2
+    name: google-cloud-logging-v2
+  - api: google/privacy/dlp/v2
+    name: google-cloud-privacy-dlp-v2
+  - api: google/storagetransfer/v1
+    name: google-cloud-storagetransfer-v1
 libraries:
   - name: google-api
     version: 1.1.0
@@ -291,10 +315,14 @@ libraries:
     version: 1.1.0
   - name: google-cloud-dialogflow-cx-v3
     version: 1.3.1
+    generate:
+      disabled: true
   - name: google-cloud-dialogflow-v2
     version: 1.3.1
   - name: google-cloud-discoveryengine-v1
     version: 2.2.1
+    generate:
+      disabled: true
   - name: google-cloud-documentai-v1
     version: 1.3.1
   - name: google-cloud-domains-v1
@@ -430,6 +458,12 @@ libraries:
     version: 1.1.0
   - name: google-cloud-osconfig-v1
     version: 1.1.1
+    rust:
+      disabled_rustdoc_warnings:
+        - redundant_explicit_links
+        - broken_intra_doc_links
+        - bare_urls
+        - invalid_html_tags
   - name: google-cloud-oslogin-common
     version: 1.1.0
   - name: google-cloud-oslogin-v1
@@ -568,6 +602,13 @@ libraries:
     version: 1.1.0
   - name: google-cloud-workflows-v1
     version: 1.2.1
+    rust:
+      disabled_rustdoc_warnings:
+        - redundant_explicit_links
+        - broken_intra_doc_links
+        - invalid_html_tags
+        - bare_urls
+      generate_setter_samples: true
   - name: google-cloud-workstations-v1
     version: 1.2.1
   - name: google-container-v1
@@ -602,6 +643,8 @@ libraries:
     version: 1.1.0
   - name: google-identity-accesscontextmanager-v1
     version: 1.1.1
+    generate:
+      disabled: true
   - name: google-logging-type
     version: 1.1.0
   - name: google-logging-v2
