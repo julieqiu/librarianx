@@ -376,6 +376,7 @@ func defaultKeepPaths(libraryName string) []string {
 		"packages/{name}/CHANGELOG.md",
 		"docs/CHANGELOG.md",
 		"docs/README.rst",
+		"docs/index.rst",
 		"samples/README.txt",
 		"scripts/client-post-processing/",
 		"samples/snippets/README.rst",
@@ -513,15 +514,9 @@ func fixPythonFile(path, correctPackageName string) error {
 	}
 
 	// Fix pip install commands
-	// Pattern: python3 -m pip install google-cloud-<something>
-	re := regexp.MustCompile(`(pip install |pip3 install )(google-[a-z0-9-]+)`)
-	newContent := re.ReplaceAllStringFunc(string(content), func(match string) string {
-		// Extract the pip install prefix
-		if strings.Contains(match, "pip3 install") {
-			return "pip3 install " + correctPackageName
-		}
-		return "pip install " + correctPackageName
-	})
+	// Pattern: pip install google-cloud-<something> OR python3 -m pip install google-cloud-<something>
+	re := regexp.MustCompile(`(python3 -m pip install |pip3 install |pip install )(google-[a-z0-9-]+)`)
+	newContent := re.ReplaceAllString(string(content), fmt.Sprintf("${1}%s", correctPackageName))
 
 	if newContent != string(content) {
 		return os.WriteFile(path, []byte(newContent), 0644)
