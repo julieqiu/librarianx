@@ -252,31 +252,35 @@ libraries:
           package: google-identity-accesscontextmanager-type
           source: google.identity.accesscontextmanager.type
 versions:
-  google-api: 1.1.0
   google-api-cloudquotas-v1: 1.1.0
   google-api-servicecontrol-v1: 1.1.0
   google-api-servicecontrol-v2: 1.1.0
   google-api-servicemanagement-v1: 1.2.1
   google-api-serviceusage-v1: 1.2.1
+  google-api: 1.1.0
   google-appengine-v1: 1.2.1
-  google-apps-script-type: 1.1.0
   google-apps-script-type-calendar: 1.1.0
   google-apps-script-type-docs: 1.1.0
   google-apps-script-type-drive: 1.1.0
   google-apps-script-type-gmail: 1.1.0
   google-apps-script-type-sheets: 1.1.0
   google-apps-script-type-slides: 1.1.0
+  google-apps-script-type: 1.1.0
   google-bigtable-admin-v2: 1.2.1
   google-cloud-accessapproval-v1: 1.1.0
   google-cloud-advisorynotifications-v1: 1.1.0
   google-cloud-aiplatform-v1: 1.3.1
   google-cloud-alloydb-connectors-v1: 1.1.0
   google-cloud-alloydb-v1: 1.2.1
+  google-cloud-api-cloudquotas-v1: 1.1.0
+  google-cloud-api-servicemanagement-v1: 1.2.1
+  google-cloud-api-serviceusage-v1: 1.2.1
   google-cloud-apigateway-v1: 1.2.1
   google-cloud-apigeeconnect-v1: 1.1.0
   google-cloud-apihub-v1: 1.2.1
   google-cloud-apikeys-v2: 1.1.1
   google-cloud-apphub-v1: 1.2.1
+  google-cloud-artifactregistry-v1: 1.1.1
   google-cloud-asset-v1: 1.1.1
   google-cloud-assuredworkloads-v1: 1.2.1
   google-cloud-backupdr-v1: 1.2.1
@@ -294,8 +298,11 @@ versions:
   google-cloud-bigquery-migration-v2: 1.1.0
   google-cloud-bigquery-reservation-v1: 1.1.0
   google-cloud-bigquery-v2: 1.0.0
+  google-cloud-bigtable-admin-v2: 1.2.1
   google-cloud-billing-v1: 1.1.0
   google-cloud-binaryauthorization-v1: 1.1.0
+  google-cloud-build-v1: 1.1.1
+  google-cloud-build-v2: 1.1.1
   google-cloud-certificatemanager-v1: 1.2.1
   google-cloud-chronicle-v1: 1.2.1
   google-cloud-cloudcontrolspartner-v1: 1.1.0
@@ -308,12 +315,15 @@ versions:
   google-cloud-configdelivery-v1: 1.2.1
   google-cloud-connectors-v1: 1.2.1
   google-cloud-contactcenterinsights-v1: 1.2.1
+  google-cloud-container-v1: 1.2.0
+  google-cloud-containeranalysis-v1: 1.1.0
   google-cloud-datacatalog-lineage-v1: 1.2.1
   google-cloud-datacatalog-v1: 1.2.1
   google-cloud-dataform-v1: 1.1.0
   google-cloud-datafusion-v1: 1.2.1
   google-cloud-dataplex-v1: 1.3.1
   google-cloud-dataproc-v1: 1.2.1
+  google-cloud-datastore-admin-v1: 1.2.1
   google-cloud-datastream-v1: 1.2.1
   google-cloud-deploy-v1: 1.2.1
   google-cloud-developerconnect-v1: 1.2.1
@@ -329,16 +339,22 @@ versions:
   google-cloud-eventarc-v1: 1.2.1
   google-cloud-filestore-v1: 1.2.1
   google-cloud-financialservices-v1: 1.2.1
+  google-cloud-firestore-admin-v1: 1.2.1
   google-cloud-functions-v2: 1.2.1
   google-cloud-gkebackup-v1: 1.2.1
   google-cloud-gkeconnect-gateway-v1: 1.1.0
-  google-cloud-gkehub-v1: 1.2.1
   google-cloud-gkehub-v1-configmanagement: 1.1.0
   google-cloud-gkehub-v1-multiclusteringress: 1.1.0
+  google-cloud-gkehub-v1: 1.2.1
   google-cloud-gkemulticloud-v1: 1.2.1
   google-cloud-gkerecommender-v1: 1.1.0
+  google-cloud-grafeas-v1: 1.1.0
   google-cloud-gsuiteaddons-v1: 1.1.0
+  google-cloud-iam-credentials-v1: 1.1.0
+  google-cloud-iam-v2: 1.1.1
+  google-cloud-iam-v3: 1.1.1
   google-cloud-iap-v1: 1.1.0
+  google-cloud-identity-accesscontextmanager-v1: 1.1.1
   google-cloud-ids-v1: 1.2.1
   google-cloud-kms-inventory-v1: 1.1.0
   google-cloud-kms-v1: 1.1.1
@@ -346,6 +362,7 @@ versions:
   google-cloud-licensemanager-v1: 1.2.1
   google-cloud-location: 1.1.0
   google-cloud-locationfinder-v1: 1.0.0
+  google-cloud-logging-v2: 1.2.1
   google-cloud-lustre-v1: 1.2.1
   google-cloud-managedidentities-v1: 1.2.1
   google-cloud-managedkafka-schemaregistry-v1: 1.2.1
@@ -374,7 +391,9 @@ versions:
   google-cloud-policysimulator-v1: 1.2.1
   google-cloud-policytroubleshooter-iam-v3: 1.1.0
   google-cloud-policytroubleshooter-v1: 1.1.0
+  google-cloud-privacy-dlp-v2: 1.2.0
   google-cloud-privilegedaccessmanager-v1: 1.2.1
+  google-cloud-profiler-v2: 1.1.0
   google-cloud-rapidmigrationassessment-v1: 1.2.1
   google-cloud-recaptchaenterprise-v1: 1.1.0
   google-cloud-recommender-logging-v1: 1.1.0
@@ -398,6 +417,7 @@ versions:
   google-cloud-sql-v1: 1.2.0
   google-cloud-storagebatchoperations-v1: 1.2.1
   google-cloud-storageinsights-v1: 1.2.1
+  google-cloud-storagetransfer-v1: 1.2.1
   google-cloud-support-v2: 1.1.0
   google-cloud-talent-v4: 1.1.1
   google-cloud-tasks-v2: 1.1.0
@@ -405,7 +425,9 @@ versions:
   google-cloud-texttospeech-v1: 1.3.1
   google-cloud-timeseriesinsights-v1: 1.1.0
   google-cloud-tpu-v2: 1.2.1
+  google-cloud-trace-v2: 1.1.0
   google-cloud-translate-v3: 1.2.1
+  google-cloud-translation-v3: 1.2.1
   google-cloud-video-livestream-v1: 1.2.1
   google-cloud-video-stitcher-v1: 1.2.1
   google-cloud-video-transcoder-v1: 1.1.0
@@ -442,8 +464,8 @@ versions:
   google-monitoring-metricsscope-v1: 1.1.1
   google-monitoring-v3: 1.1.0
   google-privacy-dlp-v2: 1.2.0
-  google-rpc: 1.1.0
   google-rpc-context: 1.1.0
+  google-rpc: 1.1.0
   google-spanner-admin-database-v1: 1.2.1
   google-spanner-admin-instance-v1: 1.2.1
   google-storagetransfer-v1: 1.2.1
