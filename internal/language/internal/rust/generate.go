@@ -76,7 +76,12 @@ func buildCodec(library *config.Library) map[string]string {
 		codec["release-level"] = library.ReleaseLevel
 	}
 
-	// Return empty codec if no Rust config
+	// Add package name override if specified
+	if library.Name != "" {
+		codec["package-name-override"] = library.Name
+	}
+
+	// Return codec if no Rust config
 	if library.Rust == nil {
 		return codec
 	}

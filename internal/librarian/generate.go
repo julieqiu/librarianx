@@ -125,10 +125,11 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		library = &config.Library{
 			API: apiPath,
 		}
-		// If there's a name override, set it on the library
-		if nameOverride != "" {
-			library.Name = nameOverride
-		}
+	}
+
+	// Ensure name override is set on the library
+	if nameOverride != "" {
+		library.Name = nameOverride
 	}
 
 	applyDefaults(library, cfg.Default)
