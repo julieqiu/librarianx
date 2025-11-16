@@ -29,18 +29,16 @@ defaults:
   output: packages/
   one_library_per: service
   transport: grpc+rest
+  generate: all
 
 release:
   tag_format: '{name}/v{version}'
 
 libraries:
-  - '*'  # Generate all discovered APIs
-
-  # Exception: has handwritten code
-  - google-cloud-bigquery-storage:
-      api: google/cloud/bigquery/storage/v1
-      keep:
-        - google/cloud/bigquery_storage_v1/client.py
+  # Add settings for specific libraries
+  - name: google-cloud-bigquery-storage
+    keep:
+      - google/cloud/bigquery_storage_v1/client.py
 ```
 
 **Result**: Generates ~200+ libraries, only 1 needs explicit config.
@@ -59,20 +57,21 @@ sources:
 defaults:
   output: generated/
   one_library_per: version
+  generate: explicit
 
 release:
   tag_format: '{name}/v{version}'
 
 libraries:
   # Explicitly list what to generate
-  - google_api:
-      api: google/api
-  - google_iam_v1:
-      api: google/iam/v1
-  - google_cloud_secretmanager_v1:
-      api: google/cloud/secretmanager/v1
-  - google_cloud_functions_v2:
-      api: google/cloud/functions/v2
+  - name: google_api
+    api: google/api
+  - name: google_iam_v1
+    api: google/iam/v1
+  - name: google_cloud_secretmanager_v1
+    api: google/cloud/secretmanager/v1
+  - name: google_cloud_functions_v2
+    api: google/cloud/functions/v2
 ```
 
 **Result**: Only generates the 4 explicitly listed libraries.
@@ -147,6 +146,7 @@ The precendence is this:
 **Common fields:**
 - `output` (string) - Output directory for generated code
 - `one_library_per` (string) - Bundling strategy: `service` or `version`
+- `generate` (string) - Generation mode: `all` or `explicit`
 - `transport` (string) - Default transport: `grpc`, `rest`, `grpc+rest`
 - `rest_numeric_enums` (boolean) - Use numeric enums in REST
 
@@ -154,9 +154,22 @@ The precendence is this:
 defaults:
   output: packages/
   one_library_per: service    # Bundle all versions into one library (Python/Go)
+  generate: all               # Auto-discover and generate all APIs
   transport: grpc+rest
   rest_numeric_enums: true
 ```
+
+#### `generate` Explained
+
+**`generate: all`** (default for large repos)
+- Auto-discovers all APIs from googleapis
+- Generates all discovered APIs using language-specific naming conventions
+- Libraries can still be configured in the `libraries` section for additional settings
+
+**`generate: explicit`**
+- Only generates libraries explicitly listed in the `libraries` section
+- Each library must specify its `api` field
+- Useful for smaller repos or when you want tight control over what's generated
 
 #### `one_library_per` Explained
 
@@ -192,41 +205,79 @@ release:
 
 ---
 
+### `name_overrides`
+
+**Type:** array
+**Required:** No
+
+Override the auto-derived library names for specific APIs.
+
+**Fields:**
+- `api` (string, required) - The googleapis API path
+- `name` (string, required) - The library name to use instead of the auto-derived name
+
+```yaml
+name_overrides:
+  - api: google/api/apikeys/v2
+    name: google-api-keys  # Instead of auto-derived "google-api-apikeys"
+
+  - api: google/cloud/bigquery/storage/v1
+    name: google-cloud-bigquery-storage  # Instead of "google-cloud-bigquerystorage"
+```
+
+**When to use:**
+- The auto-derived name doesn't match your existing package names
+- You want more readable or conventional names
+- You're migrating from another system and need to maintain compatibility
+
+**How it works:**
+1. Librarian discovers `google/api/apikeys/v2`
+2. Derives default name → `google-api-apikeys`
+3. Checks `name_overrides` for matching `api` entry
+4. Finds override → uses `google-api-keys` instead
+5. Looks up `google-api-keys` in `libraries` section for additional settings
+
+---
+
 ### `libraries`
 
 **Type:** array
 **Required:** No
 
-Library configurations. Each library is identified by its **name** (the package name published to registries).
+Library configurations. Each library entry specifies the library name and optional settings.
 
-**Two modes:**
-
-If the libraries array contains `'*'`, librarian auto-discovers APIs from googleapis and generates them with default settings. Otherwise, only explicitly listed libraries are generated.
-
-**1. Generate everything (wildcard mode)**
+**With `generate: all` mode:**
 ```yaml
-libraries:
-  - '*'  # Auto-discover and generate all APIs
+defaults:
+  generate: all
 
-  # Add config to specific libraries
-  - google-cloud-vision:
-      api: google/cloud/vision/v1
-      keep: [...]
+libraries:
+  # Add settings for auto-discovered libraries
+  - name: google-cloud-vision
+    keep:
+      - google/cloud/vision_v1/helpers.py
+
+  # Handwritten libraries (no api field)
+  - name: pubsub
+    path: pubsub/
 ```
 
-**2. Generate only listed libraries (explicit mode)**
+**With `generate: explicit` mode:**
 ```yaml
+defaults:
+  generate: explicit
+
 libraries:
   # Must specify api for each generated library
-  - google-cloud-secretmanager:
-      api: google/cloud/secretmanager/v1
-  - google-cloud-vision:
-      api: google/cloud/vision/v1
-  - google-cloud-translate:
-      api: google/cloud/translate/v3
-```
+  - name: google-cloud-secretmanager
+    api: google/cloud/secretmanager/v1
 
-**Key principle:** Wildcard discovers APIs and applies defaults. Explicit entries use the same defaults plus your overrides. Being explicit doesn't change behavior—it lets you add configuration.
+  - name: google-cloud-vision
+    api: google/cloud/vision/v1
+
+  - name: google-cloud-translate
+    api: google/cloud/translate/v3
+```
 
 ---
 
@@ -234,89 +285,113 @@ libraries:
 
 ### Identifying Libraries
 
-Libraries use their **name** (package name) as the YAML key. The `api` field specifies which googleapis API to generate from.
+Each library entry has a `name` field (the package name) and optionally an `api` field (the googleapis API path).
 
 **Generated libraries** (from googleapis):
 ```yaml
-- google-cloud-vision:      # Python package name
-    api: google/cloud/vision/v1    # googleapis API path
+- name: google-cloud-vision
+  api: google/cloud/vision/v1
 
-- secretmanager:            # Go module name
-    api: google/cloud/secretmanager/v1
+- name: secretmanager
+  api: google/cloud/secretmanager/v1
 
-- google-cloud-vision-v1:   # Rust crate name
-    api: google/cloud/vision/v1
+- name: google-cloud-vision-v1
+  api: google/cloud/vision/v1
 ```
 
 **Handwritten libraries** (no googleapis API):
 
-Handwritten libraries have no `api` field. They must always be listed explicitly.
+Handwritten libraries have no `api` field and must specify a `path`.
 
 ```yaml
-- pubsub:
-    path: pubsub         # Source directory
+- name: pubsub
+  path: pubsub
 
-- auth:
-    path: auth
+- name: auth
+  path: auth
 
-- compute-metadata:
-    path: compute/metadata
+- name: compute-metadata
+  path: compute/metadata
 ```
 
 ### Minimal Syntax
 
-For generated libraries that follow all defaults:
+**With `generate: all`**, libraries that follow defaults need no configuration. Only add entries for libraries that need settings:
 
 ```yaml
-libraries:
-  - google-cloud-secretmanager:
-      api: google/cloud/secretmanager/v1
+defaults:
+  generate: all
 
-  - google-cloud-vision:
-      api: google/cloud/vision/v1
+libraries:
+  # Only list libraries that need settings
+  - name: google-cloud-vision
+    keep:
+      - google/cloud/vision_v1/helpers.py
 ```
 
-Output locations are computed from `defaults.output` + API path.
+**With `generate: explicit`**, you must list every library:
 
-### With Overrides
+```yaml
+defaults:
+  generate: explicit
+
+libraries:
+  - name: google-cloud-secretmanager
+    api: google/cloud/secretmanager/v1
+
+  - name: google-cloud-vision
+    api: google/cloud/vision/v1
+```
+
+### With Additional Settings
 
 Add configuration to libraries as needed:
 
 ```yaml
 libraries:
   # Generated with handwritten additions
-  - google-cloud-vision:
-      api: google/cloud/vision/v1
-      keep:
-        - google/cloud/vision_v1/helpers.py
-        - tests/unit/test_helpers.py
+  - name: google-cloud-vision
+    keep:
+      - google/cloud/vision_v1/helpers.py
+      - tests/unit/test_helpers.py
 
   # Generated with path override
-  - google-cloud-firestore:
-      api: google/cloud/firestore/v1
-      path: src/firestore/src/generated/gapic
-      rust:
-        template_override: templates/grpc-client
+  - name: google-cloud-firestore
+    path: src/firestore/src/generated/gapic
+    rust:
+      template_override: templates/grpc-client
 
   # Handwritten
-  - pubsub:
-      path: pubsub
-      release:
-        disabled: true
+  - name: pubsub
+    path: pubsub
+    release:
+      disabled: true
 ```
 
 ---
 
 ## Library Fields
 
-Library entries use the **library name** as the YAML key. This is the package
-name published to registries (PyPI, crates.io, pub.dev, etc.).
+Each library entry is an object with the following fields:
 
 ```yaml
-- google-cloud-secretmanager:  # Python: package name
-- secretmanager:               # Go: module name
-- google-cloud-vision-v1:      # Rust: crate name
-- google_cloud_functions_v2:   # Dart: package name
+- name: google-cloud-secretmanager  # Python: package name
+- name: secretmanager               # Go: module name
+- name: google-cloud-vision-v1      # Rust: crate name
+- name: google_cloud_functions_v2   # Dart: package name
+```
+
+---
+
+### `name`
+
+**Type:** string
+**Required:** Yes
+
+The library name (package name published to registries like PyPI, crates.io, pub.dev).
+
+```yaml
+- name: google-cloud-secretmanager
 ```
 
 ---
@@ -324,7 +399,7 @@ name published to registries (PyPI, crates.io, pub.dev, etc.).
 ### `api`
 
 **Type:** string or object
-**Required:** Yes (for generated libraries)
+**Required:** Yes (for generated libraries in explicit mode), No (for auto-discovered libraries)
 
 The googleapis API path to generate from. Can be a simple string or an object for non-protobuf APIs.
 
@@ -342,21 +417,9 @@ The googleapis API path to generate from. Can be a simple string or an object fo
     source: discovery
 ```
 
----
-
-### `apis`
-
-**Type:** array of strings
-**Required:** No (use instead of `api` for multi-API libraries)
-
-For libraries that bundle multiple API versions.
-
-```yaml
-- name: google-cloud-vision
-  apis:
-    - google/cloud/vision/v1
-    - google/cloud/vision/v1p1beta1
-```
+**When required:**
+- With `generate: explicit` - Required for all generated libraries
+- With `generate: all` - Optional, only needed if you want to explicitly list a library for additional settings
 
 ---
 
@@ -410,16 +473,16 @@ keep:
 Disable generation for this library.
 
 ```yaml
-- packages/google-cloud-broken:
-    disabled: true
-    reason: "Missing required BUILD.bazel service_config"
+- name: google-cloud-broken
+  disabled: true
+  reason: "Missing required BUILD.bazel service_config"
 ```
 
 ---
 
 ## Complete Examples
 
-### Python with Wildcard
+### Python with Generate All
 
 ```yaml
 version: v1
@@ -434,30 +497,36 @@ defaults:
   output: packages/
   one_library_per: service
   transport: grpc+rest
+  generate: all
 
 release:
   tag_format: '{name}/v{version}'
 
+name_overrides:
+  - api: google/cloud/bigquery/storage/v1
+    name: google-cloud-bigquery-storage
+
 libraries:
-  - '*'
+  # Add settings for specific libraries
+  - name: google-cloud-vision
+    keep:
+      - google/cloud/vision_v1/helpers.py
 
-  # Exception: handwritten code
-  - packages/google-cloud-vision:
-      keep:
-        - google/cloud/vision_v1/helpers.py
-
-  - packages/google-cloud-bigquery-storage:
-      keep:
-        - google/cloud/bigquery_storage_v1/client.py
+  - name: google-cloud-bigquery-storage
+    keep:
+      - google/cloud/bigquery_storage_v1/client.py
 
   # Handwritten libraries
-  - pubsub/
-  - auth/
+  - name: pubsub
+    path: pubsub/
+
+  - name: auth
+    path: auth/
 ```
 
 ---
 
-### Go with Wildcard
+### Go with Generate All
 
 ```yaml
 version: v1
@@ -472,26 +541,28 @@ defaults:
   output: ./
   one_library_per: service
   transport: grpc+rest
+  generate: all
 
 release:
   tag_format: '{name}/v{version}'
 
 libraries:
-  - '*'
-
-  # Exception: handwritten IAM client
-  - batch:
-      keep:
-        - ^batch/apiv1/iam_policy_client\.go$
+  # Add settings for specific libraries
+  - name: batch
+    keep:
+      - ^batch/apiv1/iam_policy_client\.go$
 
   # Handwritten libraries
-  - pubsub/
-  - storage/
+  - name: pubsub
+    path: pubsub/
+
+  - name: storage
+    path: storage/
 ```
 
 ---
 
-### Rust with Version-Level Packaging
+### Rust with Generate All
 
 ```yaml
 version: v1
@@ -506,17 +577,16 @@ defaults:
   output: src/generated/
   one_library_per: version
   release_level: stable
+  generate: all
 
 release:
   tag_format: '{name}/v{version}'
 
 libraries:
-  - '*'
-
-  # Exception: special config
-  - src/generated/google-cloud-aiplatform-v1beta1:
-      rust:
-        per_service_features: true
+  # Add settings for specific libraries
+  - name: google-cloud-aiplatform-v1beta1
+    rust:
+      per_service_features: true
 ```
 
 ---
@@ -535,39 +605,58 @@ sources:
 defaults:
   output: generated/
   one_library_per: version
+  generate: explicit
 
 release:
   tag_format: '{name}/v{version}'
 
 libraries:
   # Common protos
-  - generated/google_api
-  - generated/google_iam_v1
+  - name: google_api
+    api: google/api
+
+  - name: google_iam_v1
+    api: google/iam/v1
 
   # Service APIs
-  - generated/google_cloud_secretmanager_v1
-  - generated/google_cloud_functions_v2
+  - name: google_cloud_secretmanager_v1
+    api: google/cloud/secretmanager/v1
+
+  - name: google_cloud_functions_v2
+    api: google/cloud/functions/v2
 ```
 
 ---
 
 ## How Discovery Works
 
-When `libraries` contains `'*'`:
+When `defaults.generate: all`:
 
 1. **Scan googleapis** - Find all directories matching version patterns (`v1`, `v1beta`, etc.)
 2. **Derive library names** - Use language-specific conventions
-3. **Compute output paths** - Apply `output` template
-4. **Match configurations** - Apply any matching library configs
-5. **Generate** - Create libraries at computed paths
+3. **Check name overrides** - Apply any `name_overrides` entries
+4. **Compute output paths** - Apply `output` template
+5. **Match library configs** - Apply any matching `libraries` entries
+6. **Generate** - Create libraries at computed paths
 
 **Example for Python:**
 ```
-Discovered: google/cloud/secretmanager/v1
-Derive name: google-cloud-secretmanager
-Compute path: packages/google-cloud-secretmanager
-Check config: Match found? Apply settings.
-Generate: Create packages/google-cloud-secretmanager/
+Discovered API: google/cloud/secretmanager/v1
+Derive name:    google-cloud-secretmanager
+Check overrides: None found
+Compute path:   packages/google-cloud-secretmanager
+Check config:   No matching library entry
+Generate:       Create packages/google-cloud-secretmanager/
+```
+
+**Example with name override:**
+```
+Discovered API: google/api/apikeys/v2
+Derive name:    google-api-apikeys
+Check overrides: Found! Use google-api-keys instead
+Compute path:   packages/google-api-keys
+Check config:   Match found! Apply keep settings
+Generate:       Create packages/google-api-keys/ with keep rules
 ```
 
 ---
@@ -612,16 +701,16 @@ Path:     generated/google_cloud_secretmanager_v1/
 
 ## Configuration Best Practices
 
-### 1. Use Wildcard for Large Repos
+### 1. Use Generate All for Large Repos
 
 ```yaml
-# Good: generate everything
-libraries:
-  - '*'
+defaults:
+  generate: all
 
-# Only list exceptions
-  - packages/google-cloud-vision:
-      keep: [...]
+# Only list libraries that need settings
+libraries:
+  - name: google-cloud-vision
+    keep: [...]
 ```
 
 ### 2. Use Immutable Source References
@@ -640,9 +729,19 @@ Only add `keep` entries when you've actually added handwritten code.
 ### 4. Document Disabled Libraries
 
 ```yaml
-- packages/google-cloud-broken:
-    disabled: true
-    reason: "BUILD.bazel missing required service_config"
+- name: google-cloud-broken
+  disabled: true
+  reason: "BUILD.bazel missing required service_config"
+```
+
+### 5. Use Name Overrides Sparingly
+
+Only use `name_overrides` when the auto-derived name doesn't match your existing packages:
+
+```yaml
+name_overrides:
+  - api: google/api/apikeys/v2
+    name: google-api-keys  # Better than auto-derived "google-api-apikeys"
 ```
 
 ---

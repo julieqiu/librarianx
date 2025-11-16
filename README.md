@@ -35,6 +35,7 @@ defaults:
   output: packages/
   one_library_per: service
   transport: grpc+rest
+  generate: all
 
 release:
   tag_format: '{name}/v{version}'
@@ -44,14 +45,7 @@ libraries: []
 
 ### 2. Generate everything
 
-Add the wildcard to generate all APIs:
-
-```bash
-$ vim librarian.yaml
-# Add under libraries:
-libraries:
-  - '*'
-```
+The `generate: all` setting auto-discovers and generates all APIs:
 
 ```bash
 $ librarian generate --all
@@ -80,12 +74,10 @@ $ vim librarian.yaml
 
 ```yaml
 libraries:
-  - '*'
-
-  - packages/google-cloud-vision:
-      keep:
-        - google/cloud/vision_v1/helpers.py
-        - tests/unit/test_helpers.py
+  - name: google-cloud-vision
+    keep:
+      - google/cloud/vision_v1/helpers.py
+      - tests/unit/test_helpers.py
 ```
 
 ### 5. Regenerate
@@ -105,40 +97,53 @@ Your handwritten code is preserved!
 
 **Generated** - Created from googleapis APIs:
 ```yaml
-- packages/google-cloud-vision
+# With generate: all, these are auto-discovered
+# Only list them if you need to add settings
 ```
 
 **Hybrid** - Generated + handwritten code:
 ```yaml
-- packages/google-cloud-vision:
-    keep:
-      - google/cloud/vision_v1/helpers.py
+- name: google-cloud-vision
+  keep:
+    - google/cloud/vision_v1/helpers.py
 ```
 
 **Handwritten** - Fully custom (no generation):
 ```yaml
-- pubsub/
-- auth/
+- name: pubsub
+  path: pubsub/
+
+- name: auth
+  path: auth/
 ```
 
 ### Two Modes
 
-**Wildcard mode** - Generate everything:
+**Generate all mode** - Auto-discover and generate everything:
 ```yaml
-libraries:
-  - '*'  # Generate all discovered APIs
+defaults:
+  generate: all
 
-  # Only list exceptions
-  - packages/google-cloud-vision:
-      keep: [...]
+libraries:
+  # Only list libraries that need settings
+  - name: google-cloud-vision
+    keep: [...]
 ```
 
 **Explicit mode** - Generate only listed:
 ```yaml
+defaults:
+  generate: explicit
+
 libraries:
-  - packages/google-cloud-secretmanager
-  - packages/google-cloud-vision
-  - packages/google-cloud-translate
+  - name: google-cloud-secretmanager
+    api: google/cloud/secretmanager/v1
+
+  - name: google-cloud-vision
+    api: google/cloud/vision/v1
+
+  - name: google-cloud-translate
+    api: google/cloud/translate/v3
 ```
 
 ### Bundling Strategies
@@ -161,18 +166,20 @@ language: go
 defaults:
   output: ./
   one_library_per: service
+  generate: all
 
 libraries:
-  - '*'
-
   # Exception: handwritten IAM client
-  - batch:
-      keep:
-        - ^batch/apiv1/iam_policy_client\.go$
+  - name: batch
+    keep:
+      - ^batch/apiv1/iam_policy_client\.go$
 
   # Handwritten libraries
-  - pubsub/
-  - storage/
+  - name: pubsub
+    path: pubsub/
+
+  - name: storage
+    path: storage/
 ```
 
 ## Configuration
@@ -195,22 +202,26 @@ one_library_per: service  # Bundle all versions (Python/Go)
 one_library_per: version  # Separate per version (Rust/Dart)
 ```
 
-**`libraries`** - What to generate:
+**`generate`** - Generation mode:
 ```yaml
-libraries:
-  - '*'  # Everything (wildcard)
-
-  # Or explicit list
-  - packages/google-cloud-secretmanager
-  - packages/google-cloud-vision
+defaults:
+  generate: all      # Auto-discover all APIs
+  generate: explicit # Only generate listed libraries
 ```
 
-**`keep`** - Protect handwritten code:
+**`libraries`** - What to configure:
 ```yaml
-- packages/google-cloud-vision:
+# With generate: all, only list libraries that need settings
+libraries:
+  - name: google-cloud-vision
     keep:
       - google/cloud/vision_v1/helpers.py
       - tests/unit/test_*.py
+
+# With generate: explicit, list all libraries
+libraries:
+  - name: google-cloud-secretmanager
+    api: google/cloud/secretmanager/v1
 ```
 
 ## Commands
@@ -243,41 +254,49 @@ defaults:
   one_library_per: service
   transport: grpc+rest
   rest_numeric_enums: true
+  generate: all
 
 release:
   tag_format: '{name}/v{version}'
 
+name_overrides:
+  - api: google/cloud/bigquery/storage/v1
+    name: google-cloud-bigquery-storage
+
 libraries:
-  - '*'  # Generate ~200 libraries
+  # Hybrid libraries (generated + handwritten)
+  - name: google-cloud-vision
+    keep:
+      - google/cloud/vision_v1/helpers.py
+      - tests/unit/test_helpers.py
 
-  # Exception: hybrid libraries
-  - packages/google-cloud-vision:
-      keep:
-        - google/cloud/vision_v1/helpers.py
-        - tests/unit/test_helpers.py
+  - name: google-cloud-bigquery-storage
+    keep:
+      - google/cloud/bigquery_storage_v1/client.py
+      - google/cloud/bigquery_storage_v1/reader.py
 
-  - packages/google-cloud-bigquery-storage:
-      keep:
-        - google/cloud/bigquery_storage_v1/client.py
-        - google/cloud/bigquery_storage_v1/reader.py
+  # Handwritten libraries
+  - name: pubsub
+    path: pubsub/
 
-  # Exception: handwritten libraries
-  - pubsub/
-  - auth/
-  - datastore/
+  - name: auth
+    path: auth/
+
+  - name: datastore
+    path: datastore/
 ```
 
-**Result:** 200+ libraries generated with only 5 explicit configurations.
+**Result:** 200+ libraries generated with only 6 explicit configurations.
 
 ## Philosophy
 
 Librarian follows these principles:
 
 1. **Minimal configuration** - Only configure what's different
-2. **Filesystem as truth** - Reference libraries by their paths
-3. **Clear naming** - Field names describe what they contain
-4. **Explicit intent** - Use `*` wildcard, not boolean flags
-5. **One list** - All libraries (generated and handwritten) together
+2. **Clear naming** - Field names describe what they contain
+3. **Explicit fields** - Use `name:` and `api:` fields, not YAML keys
+4. **Two modes** - Auto-discover everything or list explicitly
+5. **Name overrides** - Separate concerns (naming vs. configuration)
 
 ## See Also
 
