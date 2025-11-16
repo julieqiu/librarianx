@@ -17,7 +17,6 @@ package config
 import (
 	_ "embed"
 	"fmt"
-	"path/filepath"
 
 	"gopkg.in/yaml.v3"
 )
@@ -59,20 +58,20 @@ func (o *ServiceConfigOverrides) GetServiceConfig(apiPath string) string {
 	return o.ServiceConfigs[apiPath]
 }
 
-// matchGlobPattern checks if a path matches a glob pattern.
-// Supports * as wildcard for matching path segments.
-// Patterns ending with /* match all paths with that prefix.
+// matchGlobPattern checks if a path matches a directory pattern.
+// Treats all patterns as directory prefix matches.
+// Pattern "google/ads" matches "google/ads" and all subdirectories like "google/ads/v1".
 func matchGlobPattern(pattern, path string) bool {
-	// Handle trailing /* as prefix match
-	if len(pattern) > 2 && pattern[len(pattern)-2:] == "/*" {
-		prefix := pattern[:len(pattern)-2]
-		return len(path) > len(prefix) && path[:len(prefix)] == prefix && path[len(prefix)] == '/'
+	// Strip trailing / if present for backwards compatibility
+	if len(pattern) > 0 && pattern[len(pattern)-1] == '/' {
+		pattern = pattern[:len(pattern)-1]
 	}
 
-	// Use filepath.Match for other patterns
-	matched, err := filepath.Match(pattern, path)
-	if err != nil {
-		return false
+	// Exact match
+	if pattern == path {
+		return true
 	}
-	return matched
+
+	// Prefix match: path must start with pattern + "/"
+	return len(path) > len(pattern) && path[:len(pattern)] == pattern && path[len(pattern)] == '/'
 }

@@ -7,7 +7,7 @@
 #    using the standard pattern: *_<version>.yaml
 #
 # 2. API EXCLUSIONS
-#    APIs excluded from wildcard discovery by default
+#    APIs excluded from generation (both 'librarian generate <name>' and 'librarian generate --all')
 #
 # Auto-discovery algorithm:
 #   For path: google/chat/v1
@@ -52,35 +52,35 @@ service_configs:
 # ============================================================================
 # API EXCLUSIONS
 # ============================================================================
-# APIs excluded from wildcard ('*') discovery by default.
-# Most users don't need these and they clutter the repository.
-# To include one: explicitly add it to libraries in your librarian.yaml
+# APIs excluded from generation.
+# These APIs cannot be generated with 'librarian generate' or discovered by 'librarian generate --all'.
+# To generate an excluded API: remove it from this list
 #
-# Format: list of glob patterns (supports * wildcard)
+# Format: list of directory paths (all subdirectories are excluded)
 
 exclude_apis:
   # Advertising & Marketing
-  - google/ads/*                    # Google Ads (AdManager, AdMob, GoogleAds, SearchAds360)
-  - google/analytics/*              # Google Analytics
+  - google/ads                    # Google Ads (AdManager, AdMob, GoogleAds, SearchAds360)
+  - google/analytics              # Google Analytics
 
   # Consumer Apps & Services
-  - google/actions/*                # Google Actions SDK
-  - google/apps/*                   # Google Workspace apps (Meet, Chat, Drive Activity, etc.)
-  - google/assistant/*              # Google Assistant
-  - google/area120/*                # Area 120 experimental products
-  - google/chat/*                   # Google Chat
+  - google/actions                # Google Actions SDK
+  - google/apps                   # Google Workspace apps (Meet, Chat, Drive Activity, etc.)
+  - google/assistant              # Google Assistant
+  - google/area120                # Area 120 experimental products
+  - google/chat                   # Google Chat
 
   # Platform Services (typically not needed for client libraries)
-  - google/appengine/*              # App Engine APIs
-  - google/chromeos/*               # ChromeOS
+  - google/appengine              # App Engine APIs
+  - google/chromeos               # ChromeOS
 
   # AI & Machine Learning (beta/alpha versions and specialized APIs)
-  - google/ai/*                     # AI APIs (mostly beta/experimental)
+  - google/ai                     # AI APIs (mostly beta/experimental)
   - google/cloud/aiplatform/v1beta1
 
   # API Infrastructure (internal/specialized)
   - google/api/cloudquotas/v1beta
-  - google/api/expr/*
+  - google/api/expr
   - google/api/serviceusage/v1beta1
 
   # Bigtable (legacy versions)
@@ -88,49 +88,49 @@ exclude_apis:
   - google/bigtable/v2
 
   # Beta/Alpha versions and specialized Cloud services
-  - google/cloud/abuseevent/*
+  - google/cloud/abuseevent
   - google/cloud/alloydb/connectors/v1alpha
   - google/cloud/alloydb/connectors/v1beta
   - google/cloud/alloydb/v1alpha
   - google/cloud/alloydb/v1beta
-  - google/cloud/apigeeregistry/*
-  - google/cloud/assuredworkloads/regulatoryintercept/*
+  - google/cloud/apigeeregistry
+  - google/cloud/assuredworkloads/regulatoryintercept
   - google/cloud/assuredworkloads/v1beta1
-  - google/cloud/automl/*
-  - google/cloud/backupdr/logging/*
-  - google/cloud/batch/*
-  - google/cloud/biglake/*
-  - google/cloud/bigquery/biglake/*
+  - google/cloud/automl
+  - google/cloud/backupdr/logging
+  - google/cloud/batch
+  - google/cloud/biglake
+  - google/cloud/bigquery/biglake
   - google/cloud/bigquery/connection/v1beta1
-  - google/cloud/bigquery/dataexchange/*
+  - google/cloud/bigquery/dataexchange
   - google/cloud/bigquery/datapolicies/v1beta1
   - google/cloud/bigquery/datapolicies/v2beta1
-  - google/cloud/bigquery/logging/*
+  - google/cloud/bigquery/logging
   - google/cloud/bigquery/migration/v2alpha
-  - google/cloud/bigquery/storage/*
-  - google/cloud/billing/budgets/*
+  - google/cloud/bigquery/storage
+  - google/cloud/billing/budgets
   - google/cloud/binaryauthorization/v1beta1
-  - google/cloud/blockchainnodeengine/*
-  - google/cloud/capacityplanner/*
-  - google/cloud/certificatemanager/logging/*
-  - google/cloud/channel/*
+  - google/cloud/blockchainnodeengine
+  - google/cloud/capacityplanner
+  - google/cloud/certificatemanager/logging
+  - google/cloud/channel
   - google/cloud/cloudcontrolspartner/v1beta
-  - google/cloud/clouddms/logging/*
-  - google/cloud/cloudsetup/*
+  - google/cloud/clouddms/logging
+  - google/cloud/cloudsetup
   - google/cloud/commerce/consumer/procurement/v1alpha1
   - google/cloud/compute/v1beta
   - google/cloud/confidentialcomputing/v1alpha1
   - google/cloud/configdelivery/v1alpha
   - google/cloud/configdelivery/v1beta
-  - google/cloud/contentwarehouse/*
+  - google/cloud/contentwarehouse
   - google/cloud/datacatalog/v1beta1
-  - google/cloud/dataform/logging/*
+  - google/cloud/dataform/logging
   - google/cloud/dataform/v1beta1
   - google/cloud/datafusion/v1beta1
-  - google/cloud/datalabeling/*
-  - google/cloud/datapipelines/*
-  - google/cloud/dataqna/*
-  - google/cloud/datastream/logging/*
+  - google/cloud/datalabeling
+  - google/cloud/datapipelines
+  - google/cloud/dataqna
+  - google/cloud/datastream/logging
   - google/cloud/datastream/v1alpha1
   - google/cloud/dialogflow/cx/v3beta1
   - google/cloud/dialogflow/v2beta1
@@ -139,67 +139,67 @@ exclude_apis:
   - google/cloud/documentai/v1beta3
   - google/cloud/domains/v1alpha2
   - google/cloud/domains/v1beta1
-  - google/cloud/enterpriseknowledgegraph/*
-  - google/cloud/eventarc/logging/*
-  - google/cloud/eventarc/publishing/*
-  - google/cloud/filer/*
+  - google/cloud/enterpriseknowledgegraph
+  - google/cloud/eventarc/logging
+  - google/cloud/eventarc/publishing
+  - google/cloud/filer
   - google/cloud/filestore/v1beta1
   - google/cloud/functions/v1
   - google/cloud/functions/v2alpha
   - google/cloud/functions/v2beta
-  - google/cloud/gdchardwaremanagement/*
-  - google/cloud/geminidataanalytics/*
-  - google/cloud/gkebackup/logging/*
+  - google/cloud/gdchardwaremanagement
+  - google/cloud/geminidataanalytics
+  - google/cloud/gkebackup/logging
   - google/cloud/gkeconnect/gateway/v1beta1
-  - google/cloud/gkehub/policycontroller/*
-  - google/cloud/gkehub/servicemesh/*
+  - google/cloud/gkehub/policycontroller
+  - google/cloud/gkehub/servicemesh
   - google/cloud/gkehub/v1alpha
   - google/cloud/gkehub/v1beta
   - google/cloud/gkehub/v1beta1
-  - google/cloud/gsuiteaddons/logging/*
-  - google/cloud/hypercomputecluster/*
+  - google/cloud/gsuiteaddons/logging
+  - google/cloud/hypercomputecluster
   - google/cloud/iap/v1beta1
-  - google/cloud/identitytoolkit/*
-  - google/cloud/ids/logging/*
-  - google/cloud/integrations/*
-  - google/cloud/iot/*
-  - google/cloud/kms/logging/*
+  - google/cloud/identitytoolkit
+  - google/cloud/ids/logging
+  - google/cloud/integrations
+  - google/cloud/iot
+  - google/cloud/kms/logging
   - google/cloud/language/v1
   - google/cloud/language/v1beta1
   - google/cloud/language/v1beta2
-  - google/cloud/lifesciences/*
-  - google/cloud/maintenance/*
+  - google/cloud/lifesciences
+  - google/cloud/maintenance
   - google/cloud/managedidentities/v1beta1
-  - google/cloud/mediatranslation/*
+  - google/cloud/mediatranslation
   - google/cloud/memcache/v1beta2
   - google/cloud/memorystore/v1beta
-  - google/cloud/metastore/logging/*
+  - google/cloud/metastore/logging
   - google/cloud/metastore/v1alpha
   - google/cloud/metastore/v1beta
   - google/cloud/modelarmor/v1beta
-  - google/cloud/networkanalyzer/*
+  - google/cloud/networkanalyzer
   - google/cloud/networkconnectivity/v1alpha1
   - google/cloud/networkmanagement/v1beta1
   - google/cloud/networksecurity/v1alpha1
   - google/cloud/networksecurity/v1beta1
   - google/cloud/networkservices/v1beta1
-  - google/cloud/notebooks/logging/*
+  - google/cloud/notebooks/logging
   - google/cloud/notebooks/v1
   - google/cloud/notebooks/v1beta1
   - google/cloud/orchestration/airflow/service/v1beta1
-  - google/cloud/osconfig/agentendpoint/*
+  - google/cloud/osconfig/agentendpoint
   - google/cloud/osconfig/v1alpha
   - google/cloud/osconfig/v1beta
   - google/cloud/oslogin/v1alpha
   - google/cloud/oslogin/v1beta
   - google/cloud/parallelstore/v1beta
-  - google/cloud/paymentgateway/*
-  - google/cloud/phishingprotection/*
+  - google/cloud/paymentgateway
+  - google/cloud/phishingprotection
   - google/cloud/policytroubleshooter/iam/v3beta
-  - google/cloud/privatecatalog/*
-  - google/cloud/pubsublite/*
+  - google/cloud/privatecatalog
+  - google/cloud/pubsublite
   - google/cloud/recaptchaenterprise/v1beta1
-  - google/cloud/recommendationengine/*
+  - google/cloud/recommendationengine
   - google/cloud/recommender/logging/v1beta1
   - google/cloud/recommender/v1beta1
   - google/cloud/redis/cluster/v1beta1
@@ -207,26 +207,26 @@ exclude_apis:
   - google/cloud/resourcemanager/v2
   - google/cloud/retail/v2alpha
   - google/cloud/retail/v2beta
-  - google/cloud/runtimeconfig/*
-  - google/cloud/saasaccelerator/*
-  - google/cloud/saasplatform/*
+  - google/cloud/runtimeconfig
+  - google/cloud/saasaccelerator
+  - google/cloud/saasplatform
   - google/cloud/scheduler/v1beta1
-  - google/cloud/secretmanager/logging/*
+  - google/cloud/secretmanager/logging
   - google/cloud/secretmanager/v1beta2
-  - google/cloud/secrets/*
+  - google/cloud/secrets
   - google/cloud/security/privateca/v1beta1
   - google/cloud/security/publicca/v1alpha1
   - google/cloud/security/publicca/v1beta1
-  - google/cloud/securitycenter/settings/*
+  - google/cloud/securitycenter/settings
   - google/cloud/securitycenter/v1
   - google/cloud/securitycenter/v1beta1
-  - google/cloud/securitycentermanagement/*
-  - google/cloud/sensitiveaction/*
+  - google/cloud/securitycentermanagement
+  - google/cloud/sensitiveaction
   - google/cloud/servicedirectory/v1beta1
-  - google/cloud/servicehealth/logging/*
+  - google/cloud/servicehealth/logging
   - google/cloud/speech/v1
   - google/cloud/sql/v1beta4
-  - google/cloud/stream/*
+  - google/cloud/stream
   - google/cloud/support/v2beta
   - google/cloud/talent/v4beta1
   - google/cloud/tasks/v2beta2
@@ -236,56 +236,67 @@ exclude_apis:
   - google/cloud/tpu/v1
   - google/cloud/tpu/v2alpha1
   - google/cloud/translate/v3beta1
-  - google/cloud/universalledger/*
-  - google/cloud/vectorsearch/*
-  - google/cloud/video/livestream/logging/*
+  - google/cloud/universalledger
+  - google/cloud/vectorsearch
+  - google/cloud/video/livestream/logging
+  - google/cloud/videointelligence/v1
   - google/cloud/videointelligence/v1beta2
-  - google/cloud/visionai/*
+  - google/cloud/videointelligence/v1p1beta1
+  - google/cloud/videointelligence/v1p2beta1
+  - google/cloud/videointelligence/v1p3beta1
+  - google/cloud/vision/v1
+  - google/cloud/vision/v1p1beta1
+  - google/cloud/vision/v1p2beta1
+  - google/cloud/vision/v1p3beta1
+  - google/cloud/vision/v1p4beta1
+  - google/cloud/visionai/v1
+  - google/cloud/visionai/v1alpha1
   - google/cloud/webrisk/v1beta1
   - google/cloud/websecurityscanner/v1alpha
   - google/cloud/websecurityscanner/v1beta
   - google/cloud/workflows/executions/v1beta
   - google/cloud/workflows/v1beta
-  - google/cloud/workstations/logging/*
+  - google/cloud/workstations/logging
   - google/cloud/workstations/v1beta
 
   # Other Google APIs (non-cloud)
-  - google/compute/*
+  - google/compute
   - google/container/v1alpha1
   - google/container/v1beta1
-  - google/dataflow/*
+  - google/dataflow
   - google/datastore/admin/v1beta1
   - google/datastore/v1
   - google/datastore/v1beta3
   - google/devtools/artifactregistry/v1beta2
-  - google/devtools/build/*
-  - google/devtools/clouderrorreporting/*
+  - google/devtools/build
+  - google/devtools/clouderrorreporting
   - google/devtools/cloudtrace/v1
   - google/devtools/containeranalysis/v1beta1
-  - google/devtools/resultstore/*
-  - google/devtools/source/*
-  - google/devtools/sourcerepo/*
-  - google/devtools/testing/*
-  - google/example/*
-  - google/firebase/*
+  - google/devtools/remoteworkers
+  - google/devtools/resultstore
+  - google/devtools/source
+  - google/devtools/sourcerepo
+  - google/devtools/testing
+  - google/example
+  - google/firebase
   - google/firestore/admin/v1beta1
   - google/firestore/admin/v1beta2
   - google/firestore/v1beta1
-  - google/genomics/*
-  - google/home/*
+  - google/genomics
+  - google/home
   - google/iam/v1beta
   - google/iam/v2beta
   - google/iam/v3beta
-  - google/maps/*
-  - google/marketingplatform/*
-  - google/partner/*
-  - google/pubsub/*
-  - google/search/*
-  - google/security/*
-  - google/shopping/*
-  - google/spanner/adapter/*
-  - google/spanner/executor/*
+  - google/maps
+  - google/marketingplatform
+  - google/partner
+  - google/pubsub
+  - google/search
+  - google/security
+  - google/shopping
+  - google/spanner/adapter
+  - google/spanner/executor
   - google/spanner/v1
-  - google/storage/*
-  - google/streetview/*
-  - google/watcher/*
+  - google/storage
+  - google/streetview
+  - google/watcher
