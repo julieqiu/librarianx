@@ -41,7 +41,10 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	}
 
 	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
-	sidekickConfig := toSidekickConfig(library, googleapisDir, serviceConfigPath)
+	sidekickConfig, err := toSidekickConfig(library, googleapisDir, serviceConfigPath)
+	if err != nil {
+		return err
+	}
 	model, err := parser.CreateModel(sidekickConfig)
 	if err != nil {
 		return err
@@ -75,7 +78,7 @@ func derivePackageName(apiPath string) string {
 	return strings.ReplaceAll(apiPath, "/", "-")
 }
 
-func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) *sidekickconfig.Config {
+func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) (*sidekickconfig.Config, error) {
 	sidekickCfg := &sidekickconfig.Config{
 		General: sidekickconfig.GeneralConfig{
 			Language:            "rust",
@@ -89,10 +92,32 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 		Codec: buildCodec(library),
 	}
 
-	// Add documentation overrides if any
-	if library.Rust != nil && len(library.Rust.DocumentationOverrides) > 0 {
-		sidekickCfg.CommentOverrides = make([]sidekickconfig.DocumentationOverride, len(library.Rust.DocumentationOverrides))
-		for i, override := range library.Rust.DocumentationOverrides {
+	// Add documentation overrides
+	// Start with global overrides from googleapis, filtered to only include
+	// overrides that are relevant to this API
+	globalOverrides, err := config.ReadDocumentationOverrides()
+	if err != nil {
+		return nil, err
+	}
+
+	var allOverrides []config.RustDocumentationOverride
+	// Filter global overrides to only include ones for this API
+	// Convert API path (e.g., "google/cloud/developerconnect/v1") to proto package prefix (e.g., ".google.cloud.developerconnect.v1.")
+	apiPrefix := "." + strings.ReplaceAll(library.API, "/", ".") + "."
+	for _, override := range globalOverrides {
+		if strings.HasPrefix(override.ID, apiPrefix) {
+			allOverrides = append(allOverrides, override)
+		}
+	}
+
+	// Add library-specific overrides (these can override global ones)
+	if library.Rust != nil {
+		allOverrides = append(allOverrides, library.Rust.DocumentationOverrides...)
+	}
+
+	if len(allOverrides) > 0 {
+		sidekickCfg.CommentOverrides = make([]sidekickconfig.DocumentationOverride, len(allOverrides))
+		for i, override := range allOverrides {
 			sidekickCfg.CommentOverrides[i] = sidekickconfig.DocumentationOverride{
 				ID:      override.ID,
 				Match:   override.Match,
@@ -112,7 +137,7 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 		}
 	}
 
-	return sidekickCfg
+	return sidekickCfg, nil
 }
 
 func buildCodec(library *config.Library) map[string]string {

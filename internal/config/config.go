@@ -15,11 +15,15 @@
 package config
 
 import (
+	_ "embed"
 	"fmt"
 	"os"
 
 	"gopkg.in/yaml.v3"
 )
+
+//go:embed documentation_overrides.yaml
+var documentationOverridesYAML []byte
 
 // Config represents the complete librarian.yaml configuration file.
 type Config struct {
@@ -254,4 +258,13 @@ func (c *Config) GetNameOverride(apiPath string) string {
 		}
 	}
 	return ""
+}
+
+// ReadDocumentationOverrides reads the embedded documentation overrides.
+func ReadDocumentationOverrides() ([]RustDocumentationOverride, error) {
+	var overrides []RustDocumentationOverride
+	if err := yaml.Unmarshal(documentationOverridesYAML, &overrides); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal documentation overrides: %w", err)
+	}
+	return overrides, nil
 }

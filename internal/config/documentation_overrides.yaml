@@ -1,0 +1,36 @@
+# Documentation overrides for googleapis proto files
+#
+# These fixes apply to all client libraries regardless of language.
+# They should be upstreamed to googleapis when possible.
+
+- id: .google.cloud.developerconnect.v1.ArtifactConfig.google_artifact_registry
+  match: regsitry
+  replace: registry
+
+- id: .google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.baseline_model_version
+  match: |-
+    Version of current baseline model. It will be ignored if
+    [model][google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.model]
+    is set. Valid versions are:
+      Article Suggestion baseline model:
+        - 0.9
+        - 1.0 (default)
+      Summarization baseline model:
+        - 1.0
+  replace: |-
+    Version of current baseline model. It will be ignored if
+    [model][google.cloud.dialogflow.v2.HumanAgentAssistantConfig.ConversationModelConfig.model]
+    is set. Valid versions are:
+    - Article Suggestion baseline model:
+      - 0.9
+      - 1.0 (default)
+    - Summarization baseline model:
+      - 1.0
+
+- id: .google.cloud.networkservices.v1.WasmPlugin.LogConfig.min_log_level
+  match: Specificies
+  replace: Specifies
+
+- id: .google.cloud.retail.v2.SearchRequest.user_attributes
+  match: Duplcate
+  replace: Duplicate
