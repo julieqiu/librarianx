@@ -15,111 +15,142 @@
 package fetch
 
 import (
+	"archive/tar"
+	"bytes"
+	"compress/gzip"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
-func TestGetSha256(t *testing.T) {
-	const (
-		latestShaContents     = "The quick brown fox jumps over the lazy dog"
-		latestShaContentsHash = "d7a8fbb307d7809469ca9abcb0082e4f8d5651e46d3cdb762d02d0bf37c9e592"
-	)
+func TestLatestCommit(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(`{"sha": "abc123def456"}`))
+	}))
+	defer server.Close()
 
-	for _, test := range []struct {
-		name       string
-		content    string
-		statusCode int
-		wantSha256 string
-		wantErr    bool
-	}{
-		{
-			name:       "success",
-			content:    latestShaContents,
-			statusCode: http.StatusOK,
-			wantSha256: latestShaContentsHash,
-			wantErr:    false,
-		},
-		{
-			name:       "empty content",
-			content:    "",
-			statusCode: http.StatusOK,
-			wantSha256: "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-			wantErr:    false,
-		},
-		{
-			name:       "http error",
-			content:    "error",
-			statusCode: http.StatusBadRequest,
-			wantSha256: "",
-			wantErr:    true,
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				w.WriteHeader(test.statusCode)
-				w.Write([]byte(test.content))
-			}))
-			defer server.Close()
+	got, err := latestCommit(server.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
 
-			got, err := GetSha256(server.URL)
-			if (err != nil) != test.wantErr {
-				t.Errorf("GetSha256() error = %v, wantErr %v", err, test.wantErr)
-				return
-			}
-			if !test.wantErr && got != test.wantSha256 {
-				t.Errorf("GetSha256() = %q, want %q", got, test.wantSha256)
-			}
-		})
+	want := "abc123def456"
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
 	}
 }
 
-func TestGetLatestSha(t *testing.T) {
-	const latestSha = "5d5b1bf126485b0e2c972bac41b376438601e266"
+func TestDownloadAndExtractTarball(t *testing.T) {
+	tarball := createTestTarball(t, map[string]string{
+		"test-repo-abc123/README.md":       "# Test\n",
+		"test-repo-abc123/google/api/api.proto": "syntax = \"proto3\";\n",
+	})
 
-	for _, test := range []struct {
-		name       string
-		response   string
-		statusCode int
-		wantSha    string
-		wantErr    bool
-	}{
-		{
-			name:       "success",
-			response:   latestSha,
-			statusCode: http.StatusOK,
-			wantSha:    latestSha,
-			wantErr:    false,
-		},
-		{
-			name:       "http error",
-			response:   "ERROR - bad request",
-			statusCode: http.StatusBadRequest,
-			wantSha:    "",
-			wantErr:    true,
-		},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-				// Verify the Accept header is set correctly
-				got := r.Header.Get("Accept")
-				want := "application/vnd.github.VERSION.sha"
-				if got != want {
-					t.Fatalf("mismatched Accept header, got=%q, want=%q", got, want)
-				}
-				w.WriteHeader(test.statusCode)
-				w.Write([]byte(test.response))
-			}))
-			defer server.Close()
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path == "/test-repo/archive/abc123.tar.gz" {
+			w.Header().Set("Content-Type", "application/gzip")
+			w.Write(tarball)
+			return
+		}
+		http.NotFound(w, r)
+	}))
+	defer server.Close()
 
-			got, err := GetLatestSha(server.URL)
-			if (err != nil) != test.wantErr {
-				t.Errorf("GetLatestSha() error = %v, wantErr %v", err, test.wantErr)
-				return
-			}
-			if !test.wantErr && got != test.wantSha {
-				t.Errorf("GetLatestSha() = %q, want %q", got, test.wantSha)
-			}
-		})
+	originalTransport := http.DefaultTransport
+	http.DefaultTransport = &redirectTransport{
+		testServerURL: server.URL,
+		base:          originalTransport,
 	}
+	defer func() {
+		http.DefaultTransport = originalTransport
+	}()
+
+	cacheDir := t.TempDir()
+
+	got, err := DownloadAndExtractTarball("example.com/test-repo", "abc123", cacheDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !filepath.IsAbs(got) {
+		t.Errorf("expected absolute path, got %q", got)
+	}
+
+	readmeContent, err := os.ReadFile(filepath.Join(got, "README.md"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := "# Test\n"
+	if diff := cmp.Diff(want, string(readmeContent)); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
+	}
+
+	protoContent, err := os.ReadFile(filepath.Join(got, "google/api/api.proto"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want = "syntax = \"proto3\";\n"
+	if diff := cmp.Diff(want, string(protoContent)); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
+	}
+
+	got2, err := DownloadAndExtractTarball("example.com/test-repo", "abc123", cacheDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if diff := cmp.Diff(got, got2); diff != "" {
+		t.Errorf("second call should return same path, mismatch (-want +got):\n%s", diff)
+	}
+}
+
+type redirectTransport struct {
+	testServerURL string
+	base          http.RoundTripper
+}
+
+func (t *redirectTransport) RoundTrip(req *http.Request) (*http.Response, error) {
+	if req.URL.Scheme == "https" {
+		newURL := t.testServerURL + req.URL.Path
+		newReq, err := http.NewRequest(req.Method, newURL, req.Body)
+		if err != nil {
+			return nil, err
+		}
+		newReq.Header = req.Header
+		return t.base.RoundTrip(newReq)
+	}
+	return t.base.RoundTrip(req)
+}
+
+func createTestTarball(t *testing.T, files map[string]string) []byte {
+	var buf bytes.Buffer
+	gzw := gzip.NewWriter(&buf)
+	tw := tar.NewWriter(gzw)
+
+	for name, content := range files {
+		hdr := &tar.Header{
+			Name: name,
+			Mode: 0644,
+			Size: int64(len(content)),
+		}
+		if err := tw.WriteHeader(hdr); err != nil {
+			t.Fatal(err)
+		}
+		if _, err := tw.Write([]byte(content)); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := tw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if err := gzw.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	return buf.Bytes()
 }
