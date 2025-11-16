@@ -44,6 +44,12 @@ func Generate(ctx context.Context, library *config.Library, googleapisDir, servi
 		return fmt.Errorf("cargo fmt failed: %w\n%s", err, output)
 	}
 
+	// Run typos to check for spelling errors
+	typosCmd := exec.CommandContext(ctx, "typos", outdir)
+	if output, err := typosCmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("typos check failed: %w\n%s", err, output)
+	}
+
 	return nil
 }
 
