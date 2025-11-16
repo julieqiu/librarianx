@@ -96,6 +96,9 @@ type RustCrate struct {
 
 	// DocumentationOverrides contains overrides for element documentation.
 	DocumentationOverrides []RustDocumentationOverride `yaml:"documentation_overrides,omitempty"`
+
+	// PaginationOverrides contains overrides for pagination configuration.
+	PaginationOverrides []RustPaginationOverride `yaml:"pagination_overrides,omitempty"`
 }
 
 // RustPackageDependency represents a package dependency configuration.
@@ -129,6 +132,15 @@ type RustDocumentationOverride struct {
 
 	// Replace is the replacement text.
 	Replace string `yaml:"replace"`
+}
+
+// RustPaginationOverride represents a pagination override for a specific method.
+type RustPaginationOverride struct {
+	// ID is the fully qualified method ID (e.g., .google.cloud.sql.v1.Service.Method).
+	ID string `yaml:"id"`
+
+	// ItemField is the name of the field used for items.
+	ItemField string `yaml:"item_field"`
 }
 
 // PythonPackage contains Python-specific library configuration.

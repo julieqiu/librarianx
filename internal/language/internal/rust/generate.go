@@ -101,6 +101,17 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 		}
 	}
 
+	// Add pagination overrides if any
+	if library.Rust != nil && len(library.Rust.PaginationOverrides) > 0 {
+		sidekickCfg.PaginationOverrides = make([]sidekickconfig.PaginationOverride, len(library.Rust.PaginationOverrides))
+		for i, override := range library.Rust.PaginationOverrides {
+			sidekickCfg.PaginationOverrides[i] = sidekickconfig.PaginationOverride{
+				ID:        override.ID,
+				ItemField: override.ItemField,
+			}
+		}
+	}
+
 	return sidekickCfg
 }
 
