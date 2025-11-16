@@ -150,6 +150,17 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		library.Name = nameOverride
 	}
 
+	// Apply version from versions map if not already set in library
+	if library.Version == "" && cfg.Versions != nil {
+		libraryName := library.Name
+		if libraryName == "" {
+			libraryName = deriveLibraryName(library.API)
+		}
+		if version, ok := cfg.Versions[libraryName]; ok {
+			library.Version = version
+		}
+	}
+
 	applyDefaults(library, cfg.Default)
 
 	// Check if generation is disabled for this library

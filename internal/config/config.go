@@ -44,10 +44,14 @@ type Config struct {
 	// name doesn't match existing package names or conventions.
 	NameOverrides []*NameOverride `yaml:"name_overrides,omitempty"`
 
-	// Libraries contains the list of library configurations.
-	// Each entry can be either:
-	// - A string API path (short syntax): "google/cloud/secretmanager/v1"
-	// - A map with API path as key and overrides as value (extended syntax)
+	// Versions contains version numbers for all libraries.
+	// This is the source of truth for release versions.
+	// Key is library name, value is version string.
+	Versions map[string]string `yaml:"versions,omitempty"`
+
+	// Libraries contains configuration overrides for libraries that need special handling.
+	// Only include libraries that differ from defaults.
+	// Versions are looked up from the Versions map above.
 	Libraries []*Library `yaml:"libraries,omitempty"`
 }
 
