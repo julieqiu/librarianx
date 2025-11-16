@@ -50,18 +50,29 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 		return err
 	}
 
-	cmd := exec.CommandContext(ctx, "cargo", "fmt", "--manifest-path", filepath.Join(outdir, "Cargo.toml"))
+	// Get the package name from the library
+	packageName := library.Name
+	if packageName == "" {
+		packageName = derivePackageName(library.API)
+	}
+
+	// Run cargo fmt from the workspace root
+	cmd := exec.CommandContext(ctx, "cargo", "fmt", "--package", packageName)
 	if output, err := cmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("cargo fmt failed: %w\n%s", err, output)
 	}
 
-	// Run typos to check for spelling errors
+	// Run typos on the generated directory
 	typosCmd := exec.CommandContext(ctx, "typos", outdir)
 	if output, err := typosCmd.CombinedOutput(); err != nil {
 		return fmt.Errorf("typos check failed: %w\n%s", err, output)
 	}
 
 	return nil
+}
+
+func derivePackageName(apiPath string) string {
+	return strings.ReplaceAll(apiPath, "/", "-")
 }
 
 func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) *sidekickconfig.Config {
