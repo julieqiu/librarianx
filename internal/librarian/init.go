@@ -108,3 +108,19 @@ func googleapisDir(commit string) (string, error) {
 	}
 	return dir, nil
 }
+
+func discoveryDir(commit string) (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	configCache := filepath.Join(home, ".librarian", "cache")
+	if err := os.MkdirAll(configCache, 0o755); err != nil {
+		return "", err
+	}
+	dir, err := fetch.DownloadAndExtractTarball("github.com/googleapis/discovery-artifact-manager", commit, configCache)
+	if err != nil {
+		return "", err
+	}
+	return dir, nil
+}
