@@ -39,6 +39,7 @@ func Run(ctx context.Context, args []string) error {
 			initCommand(),
 			generateCommand(),
 			releaseCommand(),
+			publishCommand(),
 			versionCommand(),
 		},
 	}

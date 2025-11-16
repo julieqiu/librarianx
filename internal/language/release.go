@@ -31,3 +31,13 @@ func Release(ctx context.Context, cfg *config.Config, configPath string) error {
 		return fmt.Errorf("release not supported for language: %s", cfg.Language)
 	}
 }
+
+// Publish publishes all libraries for the given language.
+func Publish(ctx context.Context, cfg *config.Config, dryRun bool, skipSemverChecks bool) error {
+	switch cfg.Language {
+	case "rust":
+		return rust.Publish(ctx, cfg, dryRun, skipSemverChecks)
+	default:
+		return fmt.Errorf("publish not supported for language: %s", cfg.Language)
+	}
+}
