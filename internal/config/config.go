@@ -30,7 +30,7 @@ type Config struct {
 	Language string `yaml:"language"`
 
 	// Sources contains references to external source repositories.
-	Sources *ConfigSources `yaml:"sources,omitempty"`
+	Sources *Sources `yaml:"sources,omitempty"`
 
 	// Default contains default generation settings.
 	Default *Default `yaml:"default"`
@@ -42,36 +42,22 @@ type Config struct {
 	Libraries []*Library `yaml:"libraries,omitempty"`
 }
 
-// ConfigSources contains references to external source repositories.
-type ConfigSources struct {
-	// Googleapis is the googleapis source repository.
-	Googleapis *Source `yaml:"googleapis,omitempty"`
+// Sources contains references to external source repositories.
+// Each entry maps a source name to its configuration.
+type Sources map[string]*Source
 
-	// Discovery is the discovery-artifact-manager source repository.
-	Discovery *Source `yaml:"discovery,omitempty"`
-
-	// Showcase is the gapic-showcase source repository.
-	Showcase *Source `yaml:"showcase,omitempty"`
-
-	// ProtobufSrc is the protobuf source repository.
-	ProtobufSrc *Source `yaml:"protobuf_src,omitempty"`
-
-	// Conformance is the conformance test source repository.
-	Conformance *Source `yaml:"conformance,omitempty"`
-}
-
-// Source represents an external source repository.
+// Source represents a single source repository configuration.
 type Source struct {
-	// URL is the download URL for the source tarball.
-	URL string `yaml:"url"`
+	// URL is the download URL for the source archive.
+	URL string `yaml:"url,omitempty"`
 
-	// SHA256 is the hash for integrity verification.
-	SHA256 string `yaml:"sha256"`
+	// SHA256 is the expected SHA256 hash of the downloaded archive.
+	SHA256 string `yaml:"sha256,omitempty"`
 
-	// ExtractedName is the name of the extracted directory (if different from default).
+	// ExtractedName is the directory name after extraction (if different from archive name).
 	ExtractedName string `yaml:"extracted_name,omitempty"`
 
-	// Subdir is the subdirectory within the extracted archive to use.
+	// Subdir is a subdirectory within the extracted archive to use as the source root.
 	Subdir string `yaml:"subdir,omitempty"`
 }
 
@@ -126,6 +112,8 @@ type DefaultRelease struct {
 
 // Library represents a single library configuration entry.
 type Library struct {
+	Name string
+
 	// API specifies which googleapis API to generate from (for generated libraries).
 	// Can be a string (protobuf API path) or an APIObject (for discovery APIs).
 	// If both API and APIs are empty, this is a handwritten library.
