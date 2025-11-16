@@ -2,8 +2,7 @@ version: v1
 language: dart
 sources:
   googleapis:
-    url: https://github.com/googleapis/googleapis/archive/fef700942b6a3ef8bbaf253306a0a652a1858552.tar.gz
-    sha256: df47fc8368ce3e02f12e857dbb73d0631c35a5860527629cc37214e307a726f3
+    commit: fef700942b6a3ef8bbaf253306a0a652a1858552
 default:
   output: generated/
   generate:
@@ -11,27 +10,27 @@ default:
   release:
     tag_format: '{name}/v{version}'
 libraries:
-  - generated/google_cloud_ai_generativelanguage_v1beta/:
-      dart:
-        api_keys_environment_variables: GOOGLE_API_KEY,GEMINI_API_KEY
-        dev_dependencies:
-          - googleapis_auth
-          - test
-          - test_utils
-  - generated/google_cloud_aiplatform_v1beta1/:
-      dart:
-        api_keys_environment_variables: GOOGLE_API_KEY
-        dev_dependencies:
-          - googleapis_auth
-  - generated/google_cloud_longrunning/:
-      dart:
-        dev_dependencies:
-          - test
-  - generated/google_cloud_protobuf/:
-      dart:
-        dev_dependencies:
-          - test
-  - generated/google_cloud_rpc/:
-      dart:
-        dev_dependencies:
-          - test
+  - name: generated/google_cloud_ai_generativelanguage_v1beta/
+    dart:
+      api_keys_environment_variables: GOOGLE_API_KEY,GEMINI_API_KEY
+      dev_dependencies:
+        - googleapis_auth
+        - test
+        - test_utils
+  - name: generated/google_cloud_aiplatform_v1beta1/
+    dart:
+      api_keys_environment_variables: GOOGLE_API_KEY
+      dev_dependencies:
+        - googleapis_auth
+  - name: generated/google_cloud_longrunning/
+    dart:
+      dev_dependencies:
+        - test
+  - name: generated/google_cloud_protobuf/
+    dart:
+      dev_dependencies:
+        - test
+  - name: generated/google_cloud_rpc/
+    dart:
+      dev_dependencies:
+        - test

@@ -9,248 +9,248 @@ default:
   release:
     tag_format: '{name}/v{version}'
 libraries:
-  - google-apps-card:
-      api: google/apps/card/v1
-      keep:
-        - tests/unit/gapic/card_v1/test_card.py
-  - google-apps-script-type:
-      apis:
-        - google/apps/script/type
-        - google/apps/script/type/gmail
-        - google/apps/script/type/docs
-        - google/apps/script/type/drive
-        - google/apps/script/type/sheets
-        - google/apps/script/type/calendar
-        - google/apps/script/type/slides
-      keep:
-        - tests/unit/gapic/calendar/test_calendar.py
-        - tests/unit/gapic/docs/test_docs.py
-        - tests/unit/gapic/drive/test_drive.py
-        - tests/unit/gapic/gmail/test_gmail.py
-        - tests/unit/gapic/sheets/test_sheets.py
-        - tests/unit/gapic/slides/test_slides.py
-        - tests/unit/gapic/type/test_type.py
-      transport: grpc
-  - google-cloud-alloydb-connectors:
-      apis:
-        - google/cloud/alloydb/connectors/v1
-        - google/cloud/alloydb/connectors/v1alpha
-        - google/cloud/alloydb/connectors/v1beta
-      keep:
-        - tests/unit/gapic/connectors_v1/test_connectors.py
-      python: {}
-  - google-cloud-appengine-logging:
-      api: google/appengine/logging/v1
-      keep:
-        - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
-      transport: grpc
-      python:
-        opt_args:
-          - warehouse-package-name=google-cloud-appengine-logging
-          - python-gapic-namespace=google.cloud
-          - python-gapic-name=appengine_logging
-  - google-cloud-automl:
-      apis:
-        - google/cloud/automl/v1beta1
-        - google/cloud/automl/v1
-      keep:
-        - docs/automl_v1beta1/tables.rst
-        - google/cloud/automl_v1beta1/services/tables
-        - samples/README
-        - tests/unit/test_gcs_client_v1beta1.py
-        - tests/unit/test_tables_client_v1beta1.py
-  - google-cloud-bigquery-logging:
-      api: google/cloud/bigquery/logging/v1
-      keep:
-        - tests/unit/gapic/bigquery_logging_v1/test_bigquery_logging_v1.py
-      transport: grpc
-      python:
-        opt_args:
-          - warehouse-package-name=google-cloud-bigquery-logging
-          - python-gapic-namespace=google.cloud
-          - python-gapic-name=bigquery_logging
-  - google-cloud-bigquery-storage:
-      apis:
-        - google/cloud/bigquery/storage/v1beta2
-        - google/cloud/bigquery/storage/v1alpha
-        - google/cloud/bigquery/storage/v1beta
-        - google/cloud/bigquery/storage/v1
-      keep:
-        - docs/.*/library.rst
-        - docs/samples
-        - google/cloud/bigquery_storage_v1/client.py
-        - google/cloud/bigquery_storage_v1/exceptions.py
-        - google/cloud/bigquery_storage_v1/gapic_types.py
-        - google/cloud/bigquery_storage_v1/reader.py
-        - google/cloud/bigquery_storage_v1/writer.py
-        - google/cloud/bigquery_storage_v1beta2/client.py
-        - google/cloud/bigquery_storage_v1beta2/exceptions.py
-        - google/cloud/bigquery_storage_v1beta2/writer.py
-        - CONTRIBUTING
-        - samples/__init__.py
-        - samples/conftest.py
-        - samples/pyarrow
-        - samples/quickstart
-        - samples/snippets
-        - samples/to_dataframe
-        - scripts/readme-gen
-        - testing/.gitignore
-        - tests/unit/.*.py
-      transport: grpc
-      python:
-        opt_args:
-          - python-gapic-namespace=google.cloud
-          - python-gapic-name=bigquery_storage
-  - google-cloud-common:
-      api: google/cloud/common
-      keep:
-        - tests/unit/gapic/common/test_common.py
-      transport: grpc
-  - google-cloud-containeranalysis:
-      api: google/devtools/containeranalysis/v1
-      keep:
-        - tests/unit/test_get_grafeas_client.py
-      python:
-        opt_args:
-          - python-gapic-namespace=google.cloud.devtools
-          - warehouse-package-name=google-cloud-containeranalysis
-  - google-cloud-gke-hub:
-      apis:
-        - google/cloud/gkehub/v1
-        - google/cloud/gkehub/v1beta1
-      keep:
-        - docs/gkehub_v1/configmanagement_v1
-        - docs/gkehub_v1/multiclusteringress_v1
-        - google/cloud/gkehub_v1/configmanagement_v1
-        - google/cloud/gkehub_v1/multiclusteringress_v1
-      python:
-        opt_args:
-          - warehouse-package-name=google-cloud-gke-hub
-  - google-cloud-iam-logging:
-      api: google/iam/v1/logging
-      keep:
-        - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
-      transport: grpc
-      python:
-        opt_args:
-          - warehouse-package-name=google-cloud-iam-logging
-          - python-gapic-namespace=google.cloud
-          - python-gapic-name=iam_logging
-  - google-cloud-monitoring:
-      api: google/monitoring/v3
-      keep:
-        - docs/query.rst
-        - google/cloud/monitoring_v3/_dataframe.py
-        - google/cloud/monitoring_v3/query.py
-        - tests/unit/test__dataframe.py
-        - tests/unit/test_query.py
-      transport: grpc
-      python:
-        opt_args:
-          - python-gapic-namespace=google.cloud
-  - google-cloud-monitoring-dashboards:
-      api: google/monitoring/dashboard/v1
-      keep:
-        - google/monitoring
-        - tests/unit/gapic/dashboard_v1
-      python:
-        opt_args:
-          - python-gapic-name=monitoring_dashboard
-          - python-gapic-namespace=google.cloud
-          - warehouse-package-name=google-cloud-monitoring-dashboards
-  - google-cloud-org-policy:
-      apis:
-        - google/cloud/orgpolicy/v1
-        - google/cloud/orgpolicy/v2
-      keep:
-        - pytest.ini
-        - google/cloud/orgpolicy/v1/__init__.py
-        - tests/unit/test_packaging.py
-  - google-cloud-os-login:
-      api: google/cloud/oslogin/v1
-      keep:
-        - google/cloud/oslogin_v1/common
-        - docs/oslogin_v1/common/types.rst
-      python:
-        opt_args:
-          - warehouse-package-name=google-cloud-os-login
-          - proto-plus-deps=google.cloud.oslogin.common
-  - google-cloud-source-context:
-      api: google/devtools/source/v1
-      keep:
-        - tests/unit/gapic/source_context_v1/test_source_context_v1.py
-      transport: grpc
-      python:
-        opt_args:
-          - warehouse-package-name=google-cloud-source-context
-          - python-gapic-namespace=google.cloud
-          - python-gapic-name=source_context
-  - google-cloud-speech:
-      apis:
-        - google/cloud/speech/v1
-        - google/cloud/speech/v2
-        - google/cloud/speech/v1p1beta1
-      keep:
-        - google/cloud/speech_v1/helpers.py
-        - tests/unit/test_helpers.py
-  - google-cloud-tasks:
-      apis:
-        - google/cloud/tasks/v2beta2
-        - google/cloud/tasks/v2beta3
-        - google/cloud/tasks/v2
-      keep:
-        - snippets/README.md
-  - google-cloud-telcoautomation:
-      apis:
-        - google/cloud/telcoautomation/v1
-        - google/cloud/telcoautomation/v1alpha1
-      keep:
-        - snippets/README.md
-      python: {}
-  - google-cloud-translate:
-      apis:
-        - google/cloud/translate/v3beta1
-        - google/cloud/translate/v3
-      keep:
-        - docs/client.rst
-        - docs/v2.rst
-        - google/cloud/translate_v2
-        - tests/unit/v2
-      python:
-        opt_args:
-          - python-gapic-name=translate
-  - google-cloud-vision:
-      apis:
-        - google/cloud/vision/v1p3beta1
-        - google/cloud/vision/v1
-        - google/cloud/vision/v1p1beta1
-        - google/cloud/vision/v1p2beta1
-        - google/cloud/vision/v1p4beta1
-      keep:
-        - google/cloud/vision_helpers
-        - tests/unit/test_decorators.py
-        - tests/unit/test_helpers.py
-  - google-geo-type:
-      api: google/geo/type
-      keep:
-        - tests/unit/gapic/type/test_type.py
-      transport: grpc
-  - google-maps-routeoptimization:
-      api: google/maps/routeoptimization/v1
-      keep:
-        - samples/README.rst
-      python: {}
-  - google-shopping-type:
-      api: google/shopping/type
-      keep:
-        - tests/unit/gapic/type/test_type.py
-  - grafeas:
-      api: grafeas/v1
-      keep:
-        - grafeas/grafeas.py
-        - grafeas/grafeas/__init__.py
-        - grafeas/grafeas/grafeas_v1/types.py
-      python:
-        opt_args:
-          - python-gapic-namespace=grafeas
-          - warehouse-package-name=grafeas
+  - name: google-apps-card
+    api: google/apps/card/v1
+    keep:
+      - tests/unit/gapic/card_v1/test_card.py
+  - name: google-apps-script-type
+    apis:
+      - google/apps/script/type
+      - google/apps/script/type/gmail
+      - google/apps/script/type/docs
+      - google/apps/script/type/drive
+      - google/apps/script/type/sheets
+      - google/apps/script/type/calendar
+      - google/apps/script/type/slides
+    keep:
+      - tests/unit/gapic/calendar/test_calendar.py
+      - tests/unit/gapic/docs/test_docs.py
+      - tests/unit/gapic/drive/test_drive.py
+      - tests/unit/gapic/gmail/test_gmail.py
+      - tests/unit/gapic/sheets/test_sheets.py
+      - tests/unit/gapic/slides/test_slides.py
+      - tests/unit/gapic/type/test_type.py
+    transport: grpc
+  - name: google-cloud-alloydb-connectors
+    apis:
+      - google/cloud/alloydb/connectors/v1
+      - google/cloud/alloydb/connectors/v1alpha
+      - google/cloud/alloydb/connectors/v1beta
+    keep:
+      - tests/unit/gapic/connectors_v1/test_connectors.py
+    python: {}
+  - name: google-cloud-appengine-logging
+    api: google/appengine/logging/v1
+    keep:
+      - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
+    transport: grpc
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-appengine-logging
+        - python-gapic-namespace=google.cloud
+        - python-gapic-name=appengine_logging
+  - name: google-cloud-automl
+    apis:
+      - google/cloud/automl/v1beta1
+      - google/cloud/automl/v1
+    keep:
+      - docs/automl_v1beta1/tables.rst
+      - google/cloud/automl_v1beta1/services/tables
+      - samples/README
+      - tests/unit/test_gcs_client_v1beta1.py
+      - tests/unit/test_tables_client_v1beta1.py
+  - name: google-cloud-bigquery-logging
+    api: google/cloud/bigquery/logging/v1
+    keep:
+      - tests/unit/gapic/bigquery_logging_v1/test_bigquery_logging_v1.py
+    transport: grpc
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-bigquery-logging
+        - python-gapic-namespace=google.cloud
+        - python-gapic-name=bigquery_logging
+  - name: google-cloud-bigquery-storage
+    apis:
+      - google/cloud/bigquery/storage/v1beta2
+      - google/cloud/bigquery/storage/v1alpha
+      - google/cloud/bigquery/storage/v1beta
+      - google/cloud/bigquery/storage/v1
+    keep:
+      - docs/.*/library.rst
+      - docs/samples
+      - google/cloud/bigquery_storage_v1/client.py
+      - google/cloud/bigquery_storage_v1/exceptions.py
+      - google/cloud/bigquery_storage_v1/gapic_types.py
+      - google/cloud/bigquery_storage_v1/reader.py
+      - google/cloud/bigquery_storage_v1/writer.py
+      - google/cloud/bigquery_storage_v1beta2/client.py
+      - google/cloud/bigquery_storage_v1beta2/exceptions.py
+      - google/cloud/bigquery_storage_v1beta2/writer.py
+      - CONTRIBUTING
+      - samples/__init__.py
+      - samples/conftest.py
+      - samples/pyarrow
+      - samples/quickstart
+      - samples/snippets
+      - samples/to_dataframe
+      - scripts/readme-gen
+      - testing/.gitignore
+      - tests/unit/.*.py
+    transport: grpc
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud
+        - python-gapic-name=bigquery_storage
+  - name: google-cloud-common
+    api: google/cloud/common
+    keep:
+      - tests/unit/gapic/common/test_common.py
+    transport: grpc
+  - name: google-cloud-containeranalysis
+    api: google/devtools/containeranalysis/v1
+    keep:
+      - tests/unit/test_get_grafeas_client.py
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud.devtools
+        - warehouse-package-name=google-cloud-containeranalysis
+  - name: google-cloud-gke-hub
+    apis:
+      - google/cloud/gkehub/v1
+      - google/cloud/gkehub/v1beta1
+    keep:
+      - docs/gkehub_v1/configmanagement_v1
+      - docs/gkehub_v1/multiclusteringress_v1
+      - google/cloud/gkehub_v1/configmanagement_v1
+      - google/cloud/gkehub_v1/multiclusteringress_v1
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-gke-hub
+  - name: google-cloud-iam-logging
+    api: google/iam/v1/logging
+    keep:
+      - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
+    transport: grpc
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-iam-logging
+        - python-gapic-namespace=google.cloud
+        - python-gapic-name=iam_logging
+  - name: google-cloud-monitoring
+    api: google/monitoring/v3
+    keep:
+      - docs/query.rst
+      - google/cloud/monitoring_v3/_dataframe.py
+      - google/cloud/monitoring_v3/query.py
+      - tests/unit/test__dataframe.py
+      - tests/unit/test_query.py
+    transport: grpc
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-monitoring-dashboards
+    api: google/monitoring/dashboard/v1
+    keep:
+      - google/monitoring
+      - tests/unit/gapic/dashboard_v1
+    python:
+      opt_args:
+        - python-gapic-name=monitoring_dashboard
+        - python-gapic-namespace=google.cloud
+        - warehouse-package-name=google-cloud-monitoring-dashboards
+  - name: google-cloud-org-policy
+    apis:
+      - google/cloud/orgpolicy/v1
+      - google/cloud/orgpolicy/v2
+    keep:
+      - pytest.ini
+      - google/cloud/orgpolicy/v1/__init__.py
+      - tests/unit/test_packaging.py
+  - name: google-cloud-os-login
+    api: google/cloud/oslogin/v1
+    keep:
+      - google/cloud/oslogin_v1/common
+      - docs/oslogin_v1/common/types.rst
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-os-login
+        - proto-plus-deps=google.cloud.oslogin.common
+  - name: google-cloud-source-context
+    api: google/devtools/source/v1
+    keep:
+      - tests/unit/gapic/source_context_v1/test_source_context_v1.py
+    transport: grpc
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-source-context
+        - python-gapic-namespace=google.cloud
+        - python-gapic-name=source_context
+  - name: google-cloud-speech
+    apis:
+      - google/cloud/speech/v1
+      - google/cloud/speech/v2
+      - google/cloud/speech/v1p1beta1
+    keep:
+      - google/cloud/speech_v1/helpers.py
+      - tests/unit/test_helpers.py
+  - name: google-cloud-tasks
+    apis:
+      - google/cloud/tasks/v2beta2
+      - google/cloud/tasks/v2beta3
+      - google/cloud/tasks/v2
+    keep:
+      - snippets/README.md
+  - name: google-cloud-telcoautomation
+    apis:
+      - google/cloud/telcoautomation/v1
+      - google/cloud/telcoautomation/v1alpha1
+    keep:
+      - snippets/README.md
+    python: {}
+  - name: google-cloud-translate
+    apis:
+      - google/cloud/translate/v3beta1
+      - google/cloud/translate/v3
+    keep:
+      - docs/client.rst
+      - docs/v2.rst
+      - google/cloud/translate_v2
+      - tests/unit/v2
+    python:
+      opt_args:
+        - python-gapic-name=translate
+  - name: google-cloud-vision
+    apis:
+      - google/cloud/vision/v1p3beta1
+      - google/cloud/vision/v1
+      - google/cloud/vision/v1p1beta1
+      - google/cloud/vision/v1p2beta1
+      - google/cloud/vision/v1p4beta1
+    keep:
+      - google/cloud/vision_helpers
+      - tests/unit/test_decorators.py
+      - tests/unit/test_helpers.py
+  - name: google-geo-type
+    api: google/geo/type
+    keep:
+      - tests/unit/gapic/type/test_type.py
+    transport: grpc
+  - name: google-maps-routeoptimization
+    api: google/maps/routeoptimization/v1
+    keep:
+      - samples/README.rst
+    python: {}
+  - name: google-shopping-type
+    api: google/shopping/type
+    keep:
+      - tests/unit/gapic/type/test_type.py
+  - name: grafeas
+    api: grafeas/v1
+    keep:
+      - grafeas/grafeas.py
+      - grafeas/grafeas/__init__.py
+      - grafeas/grafeas/grafeas_v1/types.py
+    python:
+      opt_args:
+        - python-gapic-namespace=grafeas
+        - warehouse-package-name=grafeas
