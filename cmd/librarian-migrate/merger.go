@@ -72,10 +72,12 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 		if buildLib, ok := buildData.Libraries[stateLib.ID]; ok {
 			lib.Transport = buildLib.Transport
 			lib.GRPCServiceConfig = buildLib.GRPCServiceConfig
-			if len(buildLib.OptArgs) > 0 {
-				lib.Python = &config.PythonPackage{
-					OptArgs: buildLib.OptArgs,
+			if len(buildLib.OptArgs) > 0 || buildLib.IsProtoOnly {
+				if lib.Python == nil {
+					lib.Python = &config.PythonPackage{}
 				}
+				lib.Python.OptArgs = buildLib.OptArgs
+				lib.Python.IsProtoOnly = buildLib.IsProtoOnly
 			}
 			if buildLib.RestNumericEnums {
 				lib.RestNumericEnums = &buildLib.RestNumericEnums
