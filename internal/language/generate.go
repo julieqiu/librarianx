@@ -16,14 +16,23 @@ package language
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/googleapis/librarian/internal/config"
+	"github.com/googleapis/librarian/internal/language/internal/python"
 	"github.com/googleapis/librarian/internal/language/internal/rust"
 )
 
 // Generate generates a client library for the specified language.
-func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
-	return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+func Generate(ctx context.Context, language string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+	switch language {
+	case "rust":
+		return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+	case "python":
+		return python.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+	default:
+		return fmt.Errorf("unsupported language: %s", language)
+	}
 }
 
 // APIToGenerate represents an API to be generated.
@@ -33,15 +42,19 @@ type APIToGenerate struct {
 }
 
 // GenerateAll generates all discovered APIs.
-func GenerateAll(ctx context.Context, defaults *config.Default, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
+func GenerateAll(ctx context.Context, language string, defaults *config.Default, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
 	for _, api := range apis {
 		// Create a minimal library config for this API
 		library := &config.Library{
-			API:  api.Path,
-			Rust: &config.RustCrate{},
+			API: api.Path,
 		}
 
-		if err := rust.Generate(ctx, library, defaults, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
+		// Add language-specific config if needed
+		if language == "rust" {
+			library.Rust = &config.RustCrate{}
+		}
+
+		if err := Generate(ctx, language, library, defaults, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
 			return err
 		}
 	}

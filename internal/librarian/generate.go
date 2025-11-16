@@ -33,8 +33,13 @@ func generateCommand() *cli.Command {
 		UsageText: "librarian generate [--all] [library-name]",
 		Description: `Generate a client library from googleapis.
 
-Examples:
+For Python (service-level bundling):
+  librarian generate google-cloud-secretmanager
+
+For Rust (version-level libraries):
   librarian generate google-cloud-secretmanager-v1
+
+Generate all APIs:
   librarian generate --all`,
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
@@ -75,12 +80,59 @@ func runGenerate(ctx context.Context, name string) error {
 		return err
 	}
 
+	// First try to find the library by name in config
+	var library *config.Library
+	for _, lib := range cfg.Libraries {
+		if lib.Name == name {
+			library = lib
+			break
+		}
+	}
+
+	// If found, generate all its APIs
+	if library != nil {
+		apiPaths := library.APIs
+		if len(apiPaths) == 0 && library.API != "" {
+			apiPaths = []string{library.API}
+		}
+
+		if len(apiPaths) == 0 {
+			return fmt.Errorf("library %q has no APIs configured", name)
+		}
+
+		// Read service config overrides
+		overrides, err := config.ReadServiceConfigOverrides()
+		if err != nil {
+			return fmt.Errorf("failed to read service config overrides: %w", err)
+		}
+
+		// Generate each API
+		for _, apiPath := range apiPaths {
+			// Check if API is excluded
+			if overrides.IsExcluded(apiPath) {
+				fmt.Printf("  ⊘ %s (excluded)\n", apiPath)
+				continue
+			}
+
+			serviceConfigPath, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
+			if err != nil {
+				return err
+			}
+
+			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath); err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
+	// Fallback: treat name as API path (for Rust version-level libraries)
 	apiPath := strings.ReplaceAll(name, "-", "/")
 
 	// Validate API directory exists
 	apiDir := filepath.Join(googleapisDir, apiPath)
 	if _, err := os.Stat(apiDir); os.IsNotExist(err) {
-		return fmt.Errorf("API path %q not found in googleapis", apiPath)
+		return fmt.Errorf("library %q not found in config and API path %q not found in googleapis", name, apiPath)
 	} else if err != nil {
 		return err
 	}
@@ -169,7 +221,7 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		return nil
 	}
 
-	if err := language.Generate(ctx, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+	if err := language.Generate(ctx, cfg.Language, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
 		return err
 	}
 
