@@ -61,8 +61,15 @@ func (o *ServiceConfigOverrides) GetServiceConfig(apiPath string) string {
 
 // matchGlobPattern checks if a path matches a glob pattern.
 // Supports * as wildcard for matching path segments.
+// Patterns ending with /* match all paths with that prefix.
 func matchGlobPattern(pattern, path string) bool {
-	// Use filepath.Match for simple glob matching
+	// Handle trailing /* as prefix match
+	if len(pattern) > 2 && pattern[len(pattern)-2:] == "/*" {
+		prefix := pattern[:len(pattern)-2]
+		return len(path) > len(prefix) && path[:len(prefix)] == prefix && path[len(prefix)] == '/'
+	}
+
+	// Use filepath.Match for other patterns
 	matched, err := filepath.Match(pattern, path)
 	if err != nil {
 		return false
