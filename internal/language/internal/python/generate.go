@@ -89,15 +89,32 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	}
 
 	// Generate .repo-metadata.json BEFORE running protoc so it can use it for README generation
+	// Only generate once (not per API) to avoid the last API overwriting it
+	metadataPath := filepath.Join(outdir, ".repo-metadata.json")
 	if serviceConfigPath != "" && repo != "" {
-		if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths); err != nil {
-			return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
+		// Only generate if it doesn't exist yet (for multi-API libraries called multiple times)
+		if _, err := os.Stat(metadataPath); os.IsNotExist(err) {
+			if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths); err != nil {
+				return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
+			}
 		}
 	}
 
-	// Generate each API
+	// Discover service config overrides
+	overrides, err := config.ReadServiceConfigOverrides()
+	if err != nil {
+		return fmt.Errorf("failed to read service config overrides: %w", err)
+	}
+
+	// Generate each API with its own service config
 	for _, apiPath := range apiPaths {
-		if err := generateAPI(ctx, apiPath, library, googleapisDir, serviceConfigPath, outdir, transport, restNumericEnums); err != nil {
+		// Discover the correct service config for this specific API
+		apiServiceConfig, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
+		if err != nil {
+			return fmt.Errorf("failed to find service config for %s: %w", apiPath, err)
+		}
+
+		if err := generateAPI(ctx, apiPath, library, googleapisDir, apiServiceConfig, outdir, transport, restNumericEnums); err != nil {
 			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)
 		}
 	}
@@ -619,4 +636,58 @@ func cleanupPostProcessingFiles(outdir string) error {
 	}
 
 	return nil
+}
+
+// findServiceConfigForAPI discovers the service config YAML for a given API path.
+// It checks overrides first, then uses auto-discovery based on naming patterns.
+func findServiceConfigForAPI(googleapisDir, apiPath string, overrides *config.ServiceConfigOverrides) (string, error) {
+	// Check for override first
+	if overrides != nil {
+		if override := overrides.GetServiceConfig(apiPath); override != "" {
+			// Override path is relative to the API directory
+			parts := strings.Split(apiPath, "/")
+			// Go up to the parent directory for the override
+			parentDir := strings.Join(parts[:len(parts)-1], "/")
+			configPath := filepath.Join(googleapisDir, parentDir, override)
+
+			// Verify it exists
+			if _, err := os.Stat(configPath); err == nil {
+				return configPath, nil
+			}
+		}
+	}
+
+	// Auto-discovery: find service config using pattern
+	parts := strings.Split(apiPath, "/")
+	if len(parts) < 2 {
+		return "", fmt.Errorf("invalid API path: %q", apiPath)
+	}
+
+	version := parts[len(parts)-1]
+	dir := filepath.Join(googleapisDir, apiPath)
+
+	// Pattern: *_<version>.yaml (e.g., secretmanager_v1.yaml)
+	pattern := filepath.Join(dir, "*_"+version+".yaml")
+	matches, err := filepath.Glob(pattern)
+	if err != nil {
+		return "", err
+	}
+
+	// Filter out _gapic.yaml files
+	var configs []string
+	for _, m := range matches {
+		if !strings.HasSuffix(m, "_gapic.yaml") {
+			configs = append(configs, m)
+		}
+	}
+
+	if len(configs) == 0 {
+		return "", fmt.Errorf("no service config found for %q", apiPath)
+	}
+
+	if len(configs) > 1 {
+		return "", fmt.Errorf("multiple service configs found for %q: %v", apiPath, configs)
+	}
+
+	return configs[0], nil
 }
