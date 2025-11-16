@@ -18,9 +18,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
-	"strings"
 
+	"github.com/googleapis/librarian/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -113,107 +112,30 @@ func (r *Reader) readBuildBazel(state *LegacyState) (*BuildBazelData, error) {
 
 		// Use the first API to locate the BUILD.bazel file
 		apiPath := lib.APIs[0].Path
-		buildPath := filepath.Join(r.GoogleapisPath, apiPath, "BUILD.bazel")
 
-		buildLib, err := r.parseBuildBazel(buildPath, lib.ID)
+		// Use the new config.ReadBuildBazel function
+		bazelConfig, err := config.ReadBuildBazel(r.GoogleapisPath, apiPath)
 		if err != nil {
 			// Log warning but continue
-			fmt.Fprintf(os.Stderr, "Warning: failed to parse %s: %v\n", buildPath, err)
+			fmt.Fprintf(os.Stderr, "Warning: failed to parse BUILD.bazel for %s: %v\n", apiPath, err)
 			continue
+		}
+
+		// Convert config.BazelConfig to BuildLibrary
+		buildLib := &BuildLibrary{
+			ID:                lib.ID,
+			Transport:         bazelConfig.Transport,
+			OptArgs:           bazelConfig.OptArgs,
+			ServiceYAML:       bazelConfig.ServiceYAML,
+			GRPCServiceConfig: bazelConfig.GRPCServiceConfig,
+			RestNumericEnums:  bazelConfig.RestNumericEnums,
+			IsProtoOnly:       bazelConfig.IsProtoOnly,
 		}
 
 		data.Libraries[lib.ID] = buildLib
 	}
 
 	return data, nil
-}
-
-// parseBuildBazel parses a BUILD.bazel file and extracts py_gapic_library data.
-func (r *Reader) parseBuildBazel(path, libID string) (*BuildLibrary, error) {
-	content, err := os.ReadFile(path)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("BUILD.bazel not found")
-		}
-		return nil, err
-	}
-
-	text := string(content)
-	lib := &BuildLibrary{ID: libID}
-
-	// Extract py_gapic_library section
-	// Look for py_gapic_library( ... )
-	pyGapicStart := strings.Index(text, "py_gapic_library(")
-	if pyGapicStart == -1 {
-		return lib, nil
-	}
-
-	// Find the matching closing parenthesis
-	pyGapicSection := r.extractSection(text[pyGapicStart:])
-
-	// Extract transport
-	lib.Transport = r.extractField(pyGapicSection, "transport")
-
-	// Extract opt_args
-	lib.OptArgs = r.extractListField(pyGapicSection, "opt_args")
-
-	// Extract service_yaml
-	lib.ServiceYAML = r.extractField(pyGapicSection, "service_yaml")
-
-	return lib, nil
-}
-
-// extractSection extracts a balanced parenthetical section.
-func (r *Reader) extractSection(text string) string {
-	depth := 0
-	for i, ch := range text {
-		if ch == '(' {
-			depth++
-		} else if ch == ')' {
-			depth--
-			if depth == 0 {
-				return text[:i+1]
-			}
-		}
-	}
-	return text
-}
-
-// extractField extracts a simple field value from BUILD.bazel content.
-// Example: transport = "grpc+rest" -> returns "grpc+rest"
-func (r *Reader) extractField(content, fieldName string) string {
-	pattern := fmt.Sprintf(`%s\s*=\s*"([^"]*)"`, regexp.QuoteMeta(fieldName))
-	re := regexp.MustCompile(pattern)
-	matches := re.FindStringSubmatch(content)
-	if len(matches) > 1 {
-		return matches[1]
-	}
-	return ""
-}
-
-// extractListField extracts a list field value from BUILD.bazel content.
-// Example: opt_args = ["a", "b"] -> returns ["a", "b"]
-func (r *Reader) extractListField(content, fieldName string) []string {
-	pattern := fmt.Sprintf(`%s\s*=\s*\[(.*?)\]`, regexp.QuoteMeta(fieldName))
-	re := regexp.MustCompile(pattern)
-	matches := re.FindStringSubmatch(content)
-	if len(matches) < 2 {
-		return nil
-	}
-
-	listContent := matches[1]
-	// Extract quoted strings
-	stringPattern := `"([^"]*)"`
-	stringRe := regexp.MustCompile(stringPattern)
-	stringMatches := stringRe.FindAllStringSubmatch(listContent, -1)
-
-	var result []string
-	for _, match := range stringMatches {
-		if len(match) > 1 {
-			result = append(result, match[1])
-		}
-	}
-	return result
 }
 
 // readGeneratorInput reads files from .librarian/generator-input/.

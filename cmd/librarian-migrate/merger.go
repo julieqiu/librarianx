@@ -76,6 +76,9 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 					OptArgs: buildLib.OptArgs,
 				}
 			}
+			if buildLib.RestNumericEnums {
+				lib.RestNumericEnums = &buildLib.RestNumericEnums
+			}
 		}
 
 		libraries = append(libraries, lib)

@@ -114,6 +114,15 @@ type BuildLibrary struct {
 
 	// ServiceYAML is the service config file.
 	ServiceYAML string
+
+	// GRPCServiceConfig is the gRPC service config JSON file.
+	GRPCServiceConfig string
+
+	// RestNumericEnums indicates whether to use numeric enums in REST.
+	RestNumericEnums bool
+
+	// IsProtoOnly indicates this API has no GAPIC rule (proto-only library).
+	IsProtoOnly bool
 }
 
 // LegacyGeneratorInputData represents parsed data from .librarian/generator-input/.
