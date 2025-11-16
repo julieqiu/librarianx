@@ -30,14 +30,24 @@ func generateCommand() *cli.Command {
 	return &cli.Command{
 		Name:      "generate",
 		Usage:     "generate a client library",
-		UsageText: "librarian generate <library-name>",
+		UsageText: "librarian generate [--all] [library-name]",
 		Description: `Generate a client library from googleapis.
 
-Example:
-  librarian generate google-cloud-secretmanager-v1`,
+Examples:
+  librarian generate google-cloud-secretmanager-v1
+  librarian generate --all`,
+		Flags: []cli.Flag{
+			&cli.BoolFlag{
+				Name:  "all",
+				Usage: "generate all discovered APIs",
+			},
+		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
+			if cmd.Bool("all") {
+				return runGenerateAll(ctx)
+			}
 			if cmd.NArg() < 1 {
-				return fmt.Errorf("generate requires a library name argument")
+				return fmt.Errorf("generate requires a library name argument or --all flag")
 			}
 			name := cmd.Args().Get(0)
 			return runGenerate(ctx, name)
@@ -67,6 +77,30 @@ func runGenerate(ctx context.Context, name string) error {
 
 	apiPath := strings.ReplaceAll(name, "-", "/")
 
+	// Validate API directory exists
+	apiDir := filepath.Join(googleapisDir, apiPath)
+	if _, err := os.Stat(apiDir); os.IsNotExist(err) {
+		return fmt.Errorf("API path %q not found in googleapis", apiPath)
+	} else if err != nil {
+		return err
+	}
+
+	// Read service config overrides
+	overrides, err := config.ReadServiceConfigOverrides()
+	if err != nil {
+		return fmt.Errorf("failed to read service config overrides: %w", err)
+	}
+
+	serviceConfigPath, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
+	if err != nil {
+		return err
+	}
+
+	return generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath)
+}
+
+// generateLibraryForAPI generates a library for the given API path.
+func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDir, apiPath, serviceConfigPath string) error {
 	var library *config.Library
 	for _, lib := range cfg.Libraries {
 		if lib.API == apiPath {
@@ -77,7 +111,7 @@ func runGenerate(ctx context.Context, name string) error {
 
 	if library == nil {
 		if cfg.Default.Generate == nil || !cfg.Default.Generate.All {
-			return fmt.Errorf("library %q not found in configuration and generate.all is false", name)
+			return fmt.Errorf("library %q not found in configuration and generate.all is false", apiPath)
 		}
 
 		library = &config.Library{
@@ -87,17 +121,6 @@ func runGenerate(ctx context.Context, name string) error {
 
 	applyDefaults(library, cfg.Default)
 
-	apiDir := filepath.Join(googleapisDir, apiPath)
-	if _, err := os.Stat(apiDir); os.IsNotExist(err) {
-		return fmt.Errorf("API path %q not found in googleapis", apiPath)
-	} else if err != nil {
-		return err
-	}
-
-	serviceConfigPath, err := findServiceConfig(googleapisDir, apiPath)
-	if err != nil {
-		return err
-	}
 	return language.Generate(ctx, library, googleapisDir, serviceConfigPath, cfg.Default.Output)
 }
 
@@ -136,33 +159,4 @@ func convertPackageDependencies(deps []*config.RustPackageDependency) []config.R
 		}
 	}
 	return result
-}
-
-func findServiceConfig(googleapisDir, apiPath string) (string, error) {
-	parts := strings.Split(apiPath, "/")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("invalid API path: %q", apiPath)
-	}
-	version := parts[len(parts)-1]
-
-	dir := filepath.Join(googleapisDir, apiPath)
-	pattern := filepath.Join(dir, "*_"+version+".yaml")
-
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return "", err
-	}
-
-	var configs []string
-	for _, m := range matches {
-		if !strings.HasSuffix(m, "_gapic.yaml") {
-			configs = append(configs, m)
-		}
-	}
-
-	if len(configs) == 0 {
-		return "", fmt.Errorf("no service config found in %q", dir)
-	}
-
-	return configs[0], nil
 }

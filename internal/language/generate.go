@@ -21,6 +21,29 @@ import (
 	"github.com/googleapis/librarian/internal/language/internal/rust"
 )
 
+// Generate generates a client library for the specified language.
 func Generate(ctx context.Context, library *config.Library, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	return rust.Generate(ctx, library, googleapisDir, serviceConfigPath, defaultOutput)
+}
+
+// APIToGenerate represents an API to be generated.
+type APIToGenerate struct {
+	Path              string
+	ServiceConfigPath string
+}
+
+// GenerateAll generates all discovered APIs.
+func GenerateAll(ctx context.Context, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
+	for _, api := range apis {
+		// Create a minimal library config for this API
+		library := &config.Library{
+			API:  api.Path,
+			Rust: &config.RustCrate{},
+		}
+
+		if err := rust.Generate(ctx, library, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
+			return err
+		}
+	}
+	return nil
 }

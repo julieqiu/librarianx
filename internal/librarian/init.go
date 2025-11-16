@@ -12,7 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-// Package librarian provides functionality for managing Google Cloud client library configurations.
 package librarian
 
 import (
