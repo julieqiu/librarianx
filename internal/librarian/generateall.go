@@ -84,7 +84,6 @@ func runGenerateAll(ctx context.Context) error {
 			fmt.Printf("  ✗ %s: %v\n", api.Path, err)
 			return err
 		}
-		fmt.Printf("  ✓ %s\n", api.Path)
 	}
 	return nil
 }
