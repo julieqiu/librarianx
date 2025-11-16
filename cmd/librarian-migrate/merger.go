@@ -71,6 +71,7 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 		// Merge BUILD.bazel data if present
 		if buildLib, ok := buildData.Libraries[stateLib.ID]; ok {
 			lib.Transport = buildLib.Transport
+			lib.GRPCServiceConfig = buildLib.GRPCServiceConfig
 			if len(buildLib.OptArgs) > 0 {
 				lib.Python = &config.PythonPackage{
 					OptArgs: buildLib.OptArgs,
