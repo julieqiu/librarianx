@@ -117,6 +117,16 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		return fmt.Errorf("failed to run black formatter: %w", err)
 	}
 
+	// Copy README.rst to docs/README.rst
+	if err := copyReadmeToDocsDir(outdir); err != nil {
+		return fmt.Errorf("failed to copy README to docs: %w", err)
+	}
+
+	// Clean up files that shouldn't be in the final output
+	if err := cleanupPostProcessingFiles(outdir); err != nil {
+		return fmt.Errorf("failed to cleanup post-processing files: %w", err)
+	}
+
 	// Restore backed up files
 	if err := restoreKeepFiles(backupDir, outdir, keepPaths); err != nil {
 		return fmt.Errorf("failed to restore keep files: %w", err)
@@ -556,5 +566,62 @@ func runBlackFormatter(outdir string) error {
 	if err != nil {
 		return fmt.Errorf("black formatter failed: %w\nOutput: %s", err, string(output))
 	}
+	return nil
+}
+
+// copyReadmeToDocsDir copies README.rst to docs/README.rst.
+// This handles symlinks properly by reading content and writing a real file.
+func copyReadmeToDocsDir(outdir string) error {
+	sourcePath := filepath.Join(outdir, "README.rst")
+	docsPath := filepath.Join(outdir, "docs")
+	destPath := filepath.Join(docsPath, "README.rst")
+
+	// If source doesn't exist, nothing to copy
+	if _, err := os.Lstat(sourcePath); os.IsNotExist(err) {
+		return nil
+	}
+
+	// Read content from source (follows symlinks)
+	content, err := os.ReadFile(sourcePath)
+	if err != nil {
+		return err
+	}
+
+	// Create docs directory if it doesn't exist
+	if err := os.MkdirAll(docsPath, 0755); err != nil {
+		return err
+	}
+
+	// Remove any existing symlink at destination
+	if info, err := os.Lstat(destPath); err == nil {
+		if info.Mode()&os.ModeSymlink != 0 {
+			if err := os.Remove(destPath); err != nil {
+				return err
+			}
+		}
+	}
+
+	// Write content to destination as a real file
+	return os.WriteFile(destPath, content, 0644)
+}
+
+// cleanupPostProcessingFiles removes files that shouldn't be in the final output.
+func cleanupPostProcessingFiles(outdir string) error {
+	// Remove directories
+	os.RemoveAll(filepath.Join(outdir, ".nox"))
+	os.RemoveAll(filepath.Join(outdir, "owl-bot-staging"))
+
+	// Remove CHANGELOG.md files (they should be symlinks, any generated copies are removed)
+	os.Remove(filepath.Join(outdir, "CHANGELOG.md"))
+	os.Remove(filepath.Join(outdir, "docs", "CHANGELOG.md"))
+
+	// Remove client-post-processing YAML files
+	scriptsPath := filepath.Join(outdir, "scripts", "client-post-processing")
+	if yamlFiles, err := filepath.Glob(filepath.Join(scriptsPath, "*.yaml")); err == nil {
+		for _, f := range yamlFiles {
+			os.Remove(f)
+		}
+	}
+
 	return nil
 }
