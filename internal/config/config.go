@@ -118,6 +118,9 @@ type Library struct {
 	// If both API and APIs are empty, this is a handwritten library.
 	API string `yaml:"api,omitempty"`
 
+	// Version is the library version.
+	Version string `yaml:"version,omitempty"`
+
 	// APIs specifies multiple API versions to bundle into one library (for multi-version libraries).
 	// Alternative to API field for libraries that bundle multiple versions.
 	APIs []string `yaml:"apis,omitempty"`

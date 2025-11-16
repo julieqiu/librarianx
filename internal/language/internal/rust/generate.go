@@ -58,14 +58,25 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 		Source: map[string]string{
 			"googleapis-root": googleapisDir,
 		},
-		Codec: buildCodec(library.Rust),
+		Codec: buildCodec(library),
 	}
 	return sidekickCfg
 }
 
-func buildCodec(rust *config.RustCrate) map[string]string {
+func buildCodec(library *config.Library) map[string]string {
 	codec := make(map[string]string)
 
+	// Add version if specified
+	if library.Version != "" {
+		codec["version"] = library.Version
+	}
+
+	// Return empty codec if no Rust config
+	if library.Rust == nil {
+		return codec
+	}
+
+	rust := library.Rust
 	if rust.NameOverrides != "" {
 		codec["name-overrides"] = rust.NameOverrides
 	}
