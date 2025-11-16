@@ -107,6 +107,11 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		return fmt.Errorf("failed to fix package names in generated files: %w", err)
 	}
 
+	// Run black formatter to fix quote styles and other formatting
+	if err := runBlackFormatter(outdir); err != nil {
+		return fmt.Errorf("failed to run black formatter: %w", err)
+	}
+
 	// Restore backed up files
 	if err := restoreKeepFiles(backupDir, outdir, keepPaths); err != nil {
 		return fmt.Errorf("failed to restore keep files: %w", err)
@@ -358,15 +363,14 @@ func defaultKeepPaths(libraryName string) []string {
 }
 
 // fixGeneratedPackageNames fixes package names in generated files that protoc generates incorrectly.
-// This handles two issues:
+// This handles multiple issues:
 // 1. py.typed files that reference the wrong package name
 // 2. docs/conf.py that has the wrong project name and Python 2 'u' prefix
+// 3. noxfile.py that has wrong package name
+// 4. Sample Python files with wrong pip install commands
+// 5. JSON snippet metadata files with wrong package names
 func fixGeneratedPackageNames(outdir, correctPackageName string) error {
-	// Derive the incorrect package name that protoc generates from API path
-	// protoc converts paths like google/cloud/secretmanager to google-cloud-secretmanager
-	// But we want to use the correct name like google-cloud-secret-manager
-
-	// Walk through the directory to find py.typed and conf.py files
+	// Walk through the directory to find all files that need fixing
 	return filepath.Walk(outdir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -377,10 +381,13 @@ func fixGeneratedPackageNames(outdir, correctPackageName string) error {
 			return nil
 		}
 
-		// Fix py.typed files
+		// Fix py.typed files (but skip v1beta1 and v1beta2 for historical reasons)
 		if info.Name() == "py.typed" {
-			if err := fixPyTypedFile(path, correctPackageName); err != nil {
-				return fmt.Errorf("failed to fix %s: %w", path, err)
+			// Skip beta versions - they use historical package names for compatibility
+			if !strings.Contains(path, "v1beta1") && !strings.Contains(path, "v1beta2") {
+				if err := fixPyTypedFile(path, correctPackageName); err != nil {
+					return fmt.Errorf("failed to fix %s: %w", path, err)
+				}
 			}
 		}
 
@@ -388,6 +395,33 @@ func fixGeneratedPackageNames(outdir, correctPackageName string) error {
 		if info.Name() == "conf.py" && strings.Contains(path, "/docs/") {
 			if err := fixDocsConfPy(path, correctPackageName); err != nil {
 				return fmt.Errorf("failed to fix %s: %w", path, err)
+			}
+		}
+
+		// Fix noxfile.py
+		if info.Name() == "noxfile.py" {
+			if err := fixPythonFile(path, correctPackageName); err != nil {
+				return fmt.Errorf("failed to fix %s: %w", path, err)
+			}
+		}
+
+		// Fix Python sample files (but skip v1beta1 and v1beta2 for historical reasons)
+		if strings.HasSuffix(info.Name(), ".py") && strings.Contains(path, "/samples/") {
+			// Skip beta versions - they use historical package names for compatibility
+			if !strings.Contains(path, "v1beta1") && !strings.Contains(path, "v1beta2") {
+				if err := fixPythonFile(path, correctPackageName); err != nil {
+					return fmt.Errorf("failed to fix %s: %w", path, err)
+				}
+			}
+		}
+
+		// Fix JSON snippet metadata files (but skip v1beta1 and v1beta2 for historical reasons)
+		if strings.HasSuffix(info.Name(), ".json") && strings.Contains(path, "snippet_metadata") {
+			// Skip beta versions - they use historical package names for compatibility
+			if !strings.Contains(path, "v1beta1") && !strings.Contains(path, "v1beta2") {
+				if err := fixJSONFile(path, correctPackageName); err != nil {
+					return fmt.Errorf("failed to fix %s: %w", path, err)
+				}
 			}
 		}
 
@@ -438,6 +472,59 @@ func fixDocsConfPy(path, correctPackageName string) error {
 
 	if newContent != originalContent {
 		return os.WriteFile(path, []byte(newContent), 0644)
+	}
+	return nil
+}
+
+// fixPythonFile fixes package names in Python sample files.
+func fixPythonFile(path, correctPackageName string) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	// Fix pip install commands
+	// Pattern: python3 -m pip install google-cloud-<something>
+	re := regexp.MustCompile(`(pip install |pip3 install )(google-[a-z0-9-]+)`)
+	newContent := re.ReplaceAllStringFunc(string(content), func(match string) string {
+		// Extract the pip install prefix
+		if strings.Contains(match, "pip3 install") {
+			return "pip3 install " + correctPackageName
+		}
+		return "pip install " + correctPackageName
+	})
+
+	if newContent != string(content) {
+		return os.WriteFile(path, []byte(newContent), 0644)
+	}
+	return nil
+}
+
+// fixJSONFile fixes package names in JSON snippet metadata files.
+func fixJSONFile(path, correctPackageName string) error {
+	content, err := os.ReadFile(path)
+	if err != nil {
+		return err
+	}
+
+	// Fix package name in JSON
+	// Pattern: "name": "google-cloud-<something>"
+	re := regexp.MustCompile(`("name":\s*")(google-[a-z0-9-]+)(")`)
+	newContent := re.ReplaceAllString(string(content), fmt.Sprintf(`${1}%s${3}`, correctPackageName))
+
+	if newContent != string(content) {
+		return os.WriteFile(path, []byte(newContent), 0644)
+	}
+	return nil
+}
+
+// runBlackFormatter runs the black code formatter on Python files in the output directory.
+// Black enforces double quotes and consistent Python formatting.
+func runBlackFormatter(outdir string) error {
+	cmd := exec.Command("black", outdir)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("black formatter failed: %w\nOutput: %s", err, string(output))
 	}
 	return nil
 }

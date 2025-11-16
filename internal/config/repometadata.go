@@ -30,7 +30,7 @@ type RepoMetadata struct {
 	NamePretty           string `json:"name_pretty,omitempty"`
 	ProductDocumentation string `json:"product_documentation,omitempty"`
 	ClientDocumentation  string `json:"client_documentation,omitempty"`
-	IssueTracker         string `json:"issue_tracker,omitempty"`
+	IssueTracker         string `json:"issue_tracker"`
 	ReleaseLevel         string `json:"release_level,omitempty"`
 	Language             string `json:"language,omitempty"`
 	LibraryType          string `json:"library_type,omitempty"`
@@ -58,15 +58,15 @@ func GenerateRepoMetadata(library *Library, language, repo, serviceConfigPath, o
 
 	// Create metadata
 	metadata := &RepoMetadata{
-		APIID:                svcCfg.GetName(),
-		NamePretty:           CleanTitle(svcCfg.GetTitle()),
-		ClientDocumentation:  clientDocURL,
-		ReleaseLevel:         library.ReleaseLevel,
-		Language:             language,
-		LibraryType:          "GAPIC_AUTO",
-		Repo:                 repo,
-		DistributionName:     library.Name,
-		DefaultVersion:       defaultVersion,
+		APIID:               svcCfg.GetName(),
+		NamePretty:          CleanTitle(svcCfg.GetTitle()),
+		ClientDocumentation: clientDocURL,
+		ReleaseLevel:        library.ReleaseLevel,
+		Language:            language,
+		LibraryType:         "GAPIC_AUTO",
+		Repo:                repo,
+		DistributionName:    library.Name,
+		DefaultVersion:      defaultVersion,
 	}
 
 	// Add optional fields if available
@@ -81,7 +81,12 @@ func GenerateRepoMetadata(library *Library, language, repo, serviceConfigPath, o
 		}
 	}
 
-	if svcCfg.GetDocumentation() != nil && svcCfg.GetDocumentation().GetSummary() != "" {
+	// Set API description from override or service YAML
+	if language == "python" && library.Python != nil && library.Python.APIDescription != "" {
+		// Use override from library configuration
+		metadata.APIDescription = library.Python.APIDescription
+	} else if svcCfg.GetDocumentation() != nil && svcCfg.GetDocumentation().GetSummary() != "" {
+		// Fall back to service YAML documentation
 		metadata.APIDescription = strings.TrimSpace(svcCfg.GetDocumentation().GetSummary())
 	}
 

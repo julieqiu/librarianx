@@ -157,6 +157,10 @@ type PythonPackage struct {
 
 	// IsProtoOnly indicates this library only contains proto files (no GAPIC generation).
 	IsProtoOnly bool `yaml:"is_proto_only,omitempty"`
+
+	// APIDescription overrides the API description in .repo-metadata.json.
+	// If not set, the description is derived from the service YAML's documentation.summary field.
+	APIDescription string `yaml:"api_description,omitempty"`
 }
 
 // GoModule contains Go-specific library configuration.

@@ -55,11 +55,8 @@ func TestGenerateLibraryForAPI_NameOverride(t *testing.T) {
 				All: true,
 			},
 		},
-		NameOverrides: []*config.NameOverride{
-			{
-				API:  "google/api/apikeys/v2",
-				Name: "google-cloud-apikeys-v2",
-			},
+		NameOverrides: map[string]string{
+			"google/api/apikeys/v2": "google-cloud-apikeys-v2",
 		},
 		Libraries: []*config.Library{
 			{

@@ -93,6 +93,79 @@ publishing:
 	}
 }
 
+func TestGenerateRepoMetadata_WithAPIDescriptionOverride(t *testing.T) {
+	// Create a test service YAML
+	yamlContent := `type: google.api.Service
+config_version: 3
+name: secretmanager.googleapis.com
+title: Secret Manager API
+
+documentation:
+  summary: |-
+    Stores sensitive data such as API keys, passwords, and certificates.
+    Provides convenience while improving security.
+
+publishing:
+  documentation_uri: https://cloud.google.com/secret-manager/docs/overview
+  api_short_name: secretmanager
+`
+
+	tmpDir := t.TempDir()
+	serviceYAMLPath := filepath.Join(tmpDir, "service.yaml")
+	if err := os.WriteFile(serviceYAMLPath, []byte(yamlContent), 0644); err != nil {
+		t.Fatal(err)
+	}
+
+	outDir := filepath.Join(tmpDir, "output")
+	if err := os.MkdirAll(outDir, 0755); err != nil {
+		t.Fatal(err)
+	}
+
+	library := &Library{
+		Name:         "google-cloud-secret-manager",
+		ReleaseLevel: "stable",
+		Python: &PythonPackage{
+			APIDescription: "Stores, manages, and secures access to application secrets.",
+		},
+	}
+
+	if err := GenerateRepoMetadata(library, "python", "googleapis/google-cloud-python", serviceYAMLPath, outDir, []string{"google/cloud/secretmanager/v1"}); err != nil {
+		t.Fatal(err)
+	}
+
+	// Read back the generated metadata
+	data, err := os.ReadFile(filepath.Join(outDir, ".repo-metadata.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var got RepoMetadata
+	if err := json.Unmarshal(data, &got); err != nil {
+		t.Fatal(err)
+	}
+
+	want := RepoMetadata{
+		Name:                 "secretmanager",
+		NamePretty:           "Secret Manager",
+		ProductDocumentation: "https://cloud.google.com/secret-manager/",
+		ClientDocumentation:  "https://cloud.google.com/python/docs/reference/secretmanager/latest",
+		IssueTracker:         "",
+		ReleaseLevel:         "stable",
+		Language:             "python",
+		LibraryType:          "GAPIC_AUTO",
+		Repo:                 "googleapis/google-cloud-python",
+		DistributionName:     "google-cloud-secret-manager",
+		APIID:                "secretmanager.googleapis.com",
+		DefaultVersion:       "v1",
+		APIShortname:         "secretmanager",
+		APIDescription:       "Stores, manages, and secures access to application secrets.",
+	}
+
+	if diff := cmp.Diff(want, got); diff != "" {
+		t.Errorf("mismatch (-want +got):\n%s", diff)
+	}
+}
+
 func TestSelectDefaultVersion(t *testing.T) {
 	for _, test := range []struct {
 		name     string

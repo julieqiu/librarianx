@@ -169,11 +169,15 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		// Try matching in order of priority:
 		// 1. If there's a name override, match by override name
 		// 2. Match by explicit API field (for backward compatibility)
-		// 3. Match by derived name (for generate.all mode where api field is omitted)
+		// 3. Match in APIs array (for multi-version libraries)
+		// 4. Match by derived name (for generate.all mode where api field is omitted)
 		if nameOverride != "" && lib.Name == nameOverride {
 			library = lib
 			break
 		} else if lib.API == apiPath {
+			library = lib
+			break
+		} else if containsAPI(lib.APIs, apiPath) {
 			library = lib
 			break
 		} else if lib.Name == derivedName {
@@ -236,6 +240,16 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 // For example: "google/api/cloudquotas/v1" -> "google-api-cloudquotas-v1".
 func deriveLibraryName(apiPath string) string {
 	return strings.ReplaceAll(apiPath, "/", "-")
+}
+
+// containsAPI checks if an API path is in the APIs slice.
+func containsAPI(apis []string, apiPath string) bool {
+	for _, api := range apis {
+		if api == apiPath {
+			return true
+		}
+	}
+	return false
 }
 
 func applyDefaults(library *config.Library, defaults *config.Default) {

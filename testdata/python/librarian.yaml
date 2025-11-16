@@ -727,6 +727,7 @@ libraries:
     python:
       opt_args:
         - warehouse-package-name=google-cloud-secret-manager
+      api_description: "Stores, manages, and secures access to application secrets."
   - name: google-cloud-service-control
     rest_numeric_enums: true
     python:
