@@ -12,6 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// Package python provides functionality for generating Python client libraries.
 package python
 
 import (
