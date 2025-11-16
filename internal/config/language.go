@@ -93,6 +93,9 @@ type RustCrate struct {
 
 	// DetailedTracingAttributes indicates whether to include detailed tracing attributes.
 	DetailedTracingAttributes bool `yaml:"detailed_tracing_attributes,omitempty"`
+
+	// DocumentationOverrides is a TOML string for documentation overrides.
+	DocumentationOverrides string `yaml:"documentation_overrides,omitempty"`
 }
 
 // RustPackageDependency represents a package dependency configuration.

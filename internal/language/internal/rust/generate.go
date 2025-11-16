@@ -134,6 +134,9 @@ func buildCodec(library *config.Library) map[string]string {
 	if rust.GenerateSetterSamples {
 		codec["generate-setter-samples"] = "true"
 	}
+	if rust.DocumentationOverrides != "" {
+		codec["documentation-overrides"] = rust.DocumentationOverrides
+	}
 
 	for _, dep := range rust.PackageDependencies {
 		codec["package:"+dep.Name] = formatPackageDependency(&dep)
