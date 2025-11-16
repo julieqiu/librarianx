@@ -164,6 +164,18 @@ libraries:
         - name: accesscontextmanager_v1
           package: google-identity-accesscontextmanager-v1
           source: google.identity.accesscontextmanager.v1
+  - name: google-cloud-asset-v1p1beta1
+    generate:
+      disabled: true
+  - name: google-cloud-asset-v1p2beta1
+    generate:
+      disabled: true
+  - name: google-cloud-asset-v1p5beta1
+    generate:
+      disabled: true
+  - name: google-cloud-asset-v1p7beta1
+    generate:
+      disabled: true
   - name: google-cloud-assuredworkloads-v1
     version: 1.2.1
   - name: google-cloud-backupdr-v1
