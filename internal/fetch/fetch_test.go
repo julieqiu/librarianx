@@ -47,7 +47,7 @@ func TestLatestCommit(t *testing.T) {
 
 func TestDownloadAndExtractTarball(t *testing.T) {
 	tarball := createTestTarball(t, map[string]string{
-		"test-repo-abc123/README.md":       "# Test\n",
+		"test-repo-abc123/README.md":            "# Test\n",
 		"test-repo-abc123/google/api/api.proto": "syntax = \"proto3\";\n",
 	})
 

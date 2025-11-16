@@ -57,6 +57,7 @@ func latestCommit(url string) (string, error) {
 	return body.SHA, nil
 }
 
+// Info contains metadata about a downloaded tarball.
 type Info struct {
 	SHA256 string `json:"sha256"`
 }
@@ -67,7 +68,7 @@ type Info struct {
 //
 // <cacheDir>/cache/download/<repo>@<commit>.tar.gz
 // <cacheDir>/cache/download/<repo>@<commit>.info
-// <cacheDir>/<repo>@<commit>/<files…>
+// <cacheDir>/<repo>@<commit>/<files…>.
 func DownloadAndExtractTarball(repo, commit, cacheDir string) (string, error) {
 	repoPath := filepath.Join(strings.Split(repo, "/")...)
 	extractDir := filepath.Join(cacheDir, repoPath, fmt.Sprintf("%s@%s", filepath.Base(repo), commit))
