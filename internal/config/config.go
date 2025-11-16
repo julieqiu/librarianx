@@ -42,7 +42,8 @@ type Config struct {
 	// NameOverrides contains overrides for auto-derived library names.
 	// Allows customizing library names for specific APIs when the auto-derived
 	// name doesn't match existing package names or conventions.
-	NameOverrides []*NameOverride `yaml:"name_overrides,omitempty"`
+	// Key is API path (e.g., "google/api/apikeys/v2"), value is library name.
+	NameOverrides map[string]string `yaml:"name_overrides,omitempty"`
 
 	// Versions contains version numbers for all libraries.
 	// This is the source of truth for release versions.
@@ -53,16 +54,6 @@ type Config struct {
 	// Only include libraries that differ from defaults.
 	// Versions are looked up from the Versions map above.
 	Libraries []*Library `yaml:"libraries,omitempty"`
-}
-
-// NameOverride represents an override for an auto-derived library name.
-type NameOverride struct {
-	// API is the googleapis API path (e.g., "google/api/apikeys/v2").
-	API string `yaml:"api"`
-
-	// Name is the library name to use instead of the auto-derived name
-	// (e.g., "google-api-keys" instead of "google-api-apikeys").
-	Name string `yaml:"name"`
 }
 
 // Sources contains references to external source repositories.
@@ -256,12 +247,10 @@ func (c *Config) Write(path string) error {
 // GetNameOverride returns the overridden name for the given API path.
 // Returns empty string if no override is configured.
 func (c *Config) GetNameOverride(apiPath string) string {
-	for _, override := range c.NameOverrides {
-		if override.API == apiPath {
-			return override.Name
-		}
+	if c.NameOverrides == nil {
+		return ""
 	}
-	return ""
+	return c.NameOverrides[apiPath]
 }
 
 // ReadDocumentationOverrides reads the embedded documentation overrides.
