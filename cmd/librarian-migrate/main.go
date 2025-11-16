@@ -15,11 +15,13 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -93,6 +95,19 @@ func run() error {
 	// Build name_overrides and libraries based on naming conventions
 	fmt.Fprintf(os.Stderr, "Building name_overrides and libraries...\n")
 	buildNameOverridesAndLibraries(cfg, googleapisAPIs, language)
+
+	// Discover versions from packages
+	if language == "python" {
+		fmt.Fprintf(os.Stderr, "Discovering package versions...\n")
+		versions, err := discoverVersions(repoPath, cfg)
+		if err != nil {
+			return fmt.Errorf("failed to discover versions: %w", err)
+		}
+		if len(versions) > 0 {
+			cfg.Versions = versions
+			fmt.Fprintf(os.Stderr, "Found %d package versions\n", len(versions))
+		}
+	}
 
 	// Sort for reproducibility
 	fmt.Fprintf(os.Stderr, "Sorting for reproducibility...\n")
@@ -246,31 +261,26 @@ func getBasePath(apiPath string) string {
 	return strings.Join(parts, "/")
 }
 
-// deriveExpectedName derives the expected library name from an API path based on language.
-func deriveExpectedName(apiPath, language string) string {
+// deriveExpectedName derives the expected library name from a service path based on language.
+// The service path should NOT include the version (e.g., google/ai/generativelanguage, not google/ai/generativelanguage/v1).
+func deriveExpectedName(servicePath, language string) string {
 	if language == "python" {
 		// Python: replace / with -
-		return strings.ReplaceAll(apiPath, "/", "-")
+		return strings.ReplaceAll(servicePath, "/", "-")
 	}
-	// Go: use the service name (last non-version component)
-	parts := strings.Split(apiPath, "/")
-	// Work backwards to find the first non-version component
-	for i := len(parts) - 1; i >= 0; i-- {
-		part := parts[i]
-		// Skip version components (v1, v1beta1, v2alpha, etc.)
-		if !strings.HasPrefix(part, "v") && !strings.Contains(part, "v1") && !strings.Contains(part, "v2") {
-			return part
-		}
-		// If it's a version-like string, skip it
-		if len(part) > 0 && part[0] == 'v' && len(part) > 1 && (part[1] >= '0' && part[1] <= '9') {
-			continue
-		}
-		return part
-	}
+	// Go: use the service name (last component)
+	parts := strings.Split(servicePath, "/")
 	return parts[len(parts)-1]
 }
 
 // buildNameOverridesAndLibraries constructs name_overrides and libraries based on naming conventions.
+// When one_library_per: service, all versions of a service are grouped into one library by default.
+// For example, google/ai/generativelanguage includes v1, v1alpha, v1beta, v1beta2.
+// Expected library names:
+//   - Python: google-ai-generativelanguage (replace / with -)
+//   - Go: generativelanguage (last component)
+// Only list in name_overrides if actual name differs from expected.
+// Only list in libraries if there's extra config OR APIs from multiple services.
 func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string, language string) {
 	nameOverrides := make(map[string]string)
 	var newLibraries []*config.Library
@@ -286,105 +296,108 @@ func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string,
 		}
 	}
 
-	// Group APIs by library name to detect multi-API libraries
-	libNameToAPIs := make(map[string][]string)
+	// Group APIs by service (base path) and track which library uses them
+	serviceToAPIs := make(map[string][]string)
+	serviceToLib := make(map[string]*config.Library)
 	for _, apiPath := range googleapisAPIs {
 		lib, exists := apiToLib[apiPath]
 		if !exists {
 			continue
 		}
-		libNameToAPIs[lib.Name] = append(libNameToAPIs[lib.Name], apiPath)
+		servicePath := getBasePath(apiPath)
+		serviceToAPIs[servicePath] = append(serviceToAPIs[servicePath], apiPath)
+		serviceToLib[servicePath] = lib
+	}
+
+	// For each library, find which services it covers
+	libToServices := make(map[string][]string)
+	for servicePath, lib := range serviceToLib {
+		libToServices[lib.Name] = append(libToServices[lib.Name], servicePath)
+	}
+
+	// Deduplicate services for each library
+	for libName := range libToServices {
+		services := libToServices[libName]
+		uniqueServices := make(map[string]bool)
+		for _, s := range services {
+			uniqueServices[s] = true
+		}
+		libToServices[libName] = make([]string, 0, len(uniqueServices))
+		for s := range uniqueServices {
+			libToServices[libName] = append(libToServices[libName], s)
+		}
+		sort.Strings(libToServices[libName])
 	}
 
 	// Determine which libraries need to be in libraries section vs name_overrides
-	libsToKeep := make(map[string]bool)
-
-	// First pass: identify all libraries with extra configuration
 	for _, lib := range cfg.Libraries {
+		services := libToServices[lib.Name]
+
+		// Check if library has extra configuration
 		hasExtraConfig := lib.Transport != "" ||
 			lib.Python != nil ||
 			len(lib.Keep) > 0 ||
 			lib.Release != nil ||
 			lib.Generate != nil
 
-		if lib.Name == "googleapis-common-protos" || hasExtraConfig {
-			libsToKeep[lib.Name] = true
-		}
-	}
-
-	// Second pass: identify multi-API libraries that need explicit listing
-	for libName, apis := range libNameToAPIs {
-		// If multiple APIs map to the same library
-		if len(apis) > 1 {
-			// Check if all APIs share the same base path
-			basePath := getBasePath(apis[0])
-			allSameBase := true
-			for _, api := range apis {
-				if getBasePath(api) != basePath {
-					allSameBase = false
-					break
-				}
+		// Always keep googleapis-common-protos in libraries section
+		if lib.Name == "googleapis-common-protos" {
+			// List all APIs for googleapis-common-protos
+			var allAPIs []string
+			for _, service := range services {
+				allAPIs = append(allAPIs, serviceToAPIs[service]...)
 			}
-
-			// If APIs come from different base paths, need to list explicitly
-			if !allSameBase {
-				libsToKeep[libName] = true
-				continue
-			}
-
-			// All APIs share the same base - check if library name follows convention
-			expectedName := deriveExpectedName(basePath, language)
-			if libName != expectedName {
-				// Doesn't follow convention - add to name_overrides
-				nameOverrides[basePath] = libName
-			}
+			sort.Strings(allAPIs)
+			lib.APIs = allAPIs
+			lib.API = ""
+			newLibraries = append(newLibraries, lib)
 			continue
 		}
 
-		// Single API - check if it follows naming convention
-		apiPath := apis[0]
-		expectedName := deriveExpectedName(apiPath, language)
-		if libName != expectedName {
-			// Doesn't follow convention - add to name_overrides
-			nameOverrides[apiPath] = libName
-		}
-	}
+		// If library covers exactly one service
+		if len(services) == 1 {
+			servicePath := services[0]
+			expectedName := deriveExpectedName(servicePath, language)
 
-	// Keep libraries that need to be in libraries section
-	for _, lib := range cfg.Libraries {
-		if lib.Name == "googleapis-common-protos" || libsToKeep[lib.Name] {
-			// Reconstruct API/APIs fields only when necessary
-			if lib.Name == "googleapis-common-protos" {
-				// Always list APIs for googleapis-common-protos
-				lib.APIs = libNameToAPIs[lib.Name]
-				lib.API = ""
-			} else if len(libNameToAPIs[lib.Name]) > 1 {
-				// Multi-API library - check if APIs should be listed
-				apis := libNameToAPIs[lib.Name]
-				basePath := getBasePath(apis[0])
-				allSameBase := true
-				for _, api := range apis {
-					if getBasePath(api) != basePath {
-						allSameBase = false
-						break
-					}
-				}
-
-				// Only list APIs if from different base paths
-				if !allSameBase {
-					lib.APIs = libNameToAPIs[lib.Name]
-					lib.API = ""
-				} else {
-					// APIs will be auto-discovered - don't list them
+			// Check if name matches convention
+			if lib.Name == expectedName {
+				// Name matches convention
+				if hasExtraConfig {
+					// Has extra config - add to libraries without api/apis fields
 					lib.API = ""
 					lib.APIs = nil
+					newLibraries = append(newLibraries, lib)
 				}
+				// else: auto-discovered, don't list anywhere
 			} else {
-				// Single API library with extra config - remove API fields
-				lib.API = ""
-				lib.APIs = nil
+				// Name doesn't match convention - add to name_overrides
+				nameOverrides[servicePath] = lib.Name
+				if hasExtraConfig {
+					// Also add to libraries without api/apis fields
+					lib.API = ""
+					lib.APIs = nil
+					newLibraries = append(newLibraries, lib)
+				}
 			}
+		} else if len(services) > 1 {
+			// Library covers multiple services - must list in libraries with explicit apis
+			var allAPIs []string
+			for _, service := range services {
+				allAPIs = append(allAPIs, serviceToAPIs[service]...)
+			}
+			sort.Strings(allAPIs)
+			lib.APIs = allAPIs
+			lib.API = ""
 			newLibraries = append(newLibraries, lib)
+
+			// Check if name matches convention for primary service
+			// Use first service alphabetically as primary
+			primaryService := services[0]
+			expectedName := deriveExpectedName(primaryService, language)
+			if lib.Name != expectedName {
+				// Name doesn't match convention - add to name_overrides
+				nameOverrides[primaryService] = lib.Name
+			}
 		}
 	}
 
@@ -392,4 +405,122 @@ func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string,
 	if len(nameOverrides) > 0 {
 		cfg.NameOverrides = nameOverrides
 	}
+}
+
+// discoverVersions discovers package versions from gapic_version.py files.
+// For Python packages, it looks for packages/{library-name}/google/.../gapic_version.py
+// and extracts the __version__ string.
+func discoverVersions(repoPath string, cfg *config.Config) (map[string]string, error) {
+	versions := make(map[string]string)
+	packagesDir := filepath.Join(repoPath, "packages")
+
+	// Check if packages directory exists
+	if _, err := os.Stat(packagesDir); os.IsNotExist(err) {
+		return versions, nil
+	}
+
+	// Get all library names from the config
+	libraryNames := make(map[string]bool)
+	for _, lib := range cfg.Libraries {
+		libraryNames[lib.Name] = true
+	}
+	// Also check name_overrides values
+	for _, name := range cfg.NameOverrides {
+		libraryNames[name] = true
+	}
+
+	// Iterate through each package directory
+	err := filepath.Walk(packagesDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Only look for gapic_version.py files
+		if info.IsDir() || info.Name() != "gapic_version.py" {
+			return nil
+		}
+
+		// Extract the library name from the path
+		// Path format: packages/{library-name}/google/.../gapic_version.py
+		relPath, err := filepath.Rel(packagesDir, path)
+		if err != nil {
+			return err
+		}
+
+		parts := strings.Split(relPath, string(os.PathSeparator))
+		if len(parts) < 2 {
+			return nil
+		}
+
+		libraryName := parts[0]
+
+		// Only process libraries we know about
+		if !libraryNames[libraryName] {
+			return nil
+		}
+
+		// Skip if we already found a version for this library
+		if _, exists := versions[libraryName]; exists {
+			return nil
+		}
+
+		// Check if this is the main gapic_version.py (not a versioned one)
+		// The main one is typically in a path without version suffix like _v1, _v1beta1, etc.
+		// Example: google/cloud/secretmanager/gapic_version.py (not secretmanager_v1/gapic_version.py)
+		// The directory containing gapic_version.py should not have a version suffix
+		if len(parts) >= 2 {
+			// Get the directory name that contains gapic_version.py
+			dirName := parts[len(parts)-2]
+			// Skip if directory name contains version pattern like _v1, _v1beta1, etc.
+			if strings.Contains(dirName, "_v") {
+				return nil
+			}
+		}
+
+		// Read the version from the file
+		version, err := readVersionFromFile(path)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to read version from %s: %v\n", path, err)
+			return nil
+		}
+
+		if version != "" && version != "0.0.0" {
+			versions[libraryName] = version
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return versions, nil
+}
+
+// readVersionFromFile reads the __version__ string from a gapic_version.py file.
+func readVersionFromFile(path string) (string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer file.Close()
+
+	// Regexp to match: __version__ = "1.2.3"
+	versionRegex := regexp.MustCompile(`__version__\s*=\s*"([^"]+)"`)
+
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+		matches := versionRegex.FindStringSubmatch(line)
+		if len(matches) >= 2 {
+			return matches[1], nil
+		}
+	}
+
+	if err := scanner.Err(); err != nil {
+		return "", err
+	}
+
+	return "", nil
 }
