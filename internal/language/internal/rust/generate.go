@@ -71,6 +71,11 @@ func buildCodec(library *config.Library) map[string]string {
 		codec["version"] = library.Version
 	}
 
+	// Add release level if specified
+	if library.ReleaseLevel != "" {
+		codec["release-level"] = library.ReleaseLevel
+	}
+
 	// Return empty codec if no Rust config
 	if library.Rust == nil {
 		return codec
