@@ -188,9 +188,15 @@ func restoreKeepFiles(backupDir, outdir string, keepPaths []string) error {
 
 // copyPath copies a file or directory from src to dst.
 func copyPath(src, dst string) error {
-	srcInfo, err := os.Stat(src)
+	// Use Lstat instead of Stat to detect symlinks without following them
+	srcInfo, err := os.Lstat(src)
 	if err != nil {
 		return err
+	}
+
+	// Handle symlinks specially - copy the symlink itself, not the target
+	if srcInfo.Mode()&os.ModeSymlink != 0 {
+		return copySymlink(src, dst)
 	}
 
 	if srcInfo.IsDir() {
@@ -225,6 +231,18 @@ func copyFile(src, dst string) error {
 	return os.Chmod(dst, srcInfo.Mode())
 }
 
+// copySymlink copies a symlink from src to dst, preserving the link target.
+func copySymlink(src, dst string) error {
+	// Read the symlink target
+	target, err := os.Readlink(src)
+	if err != nil {
+		return err
+	}
+
+	// Create the symlink at the destination
+	return os.Symlink(target, dst)
+}
+
 // copyDir recursively copies a directory from src to dst.
 func copyDir(src, dst string) error {
 	srcInfo, err := os.Stat(src)
@@ -245,14 +263,9 @@ func copyDir(src, dst string) error {
 		srcPath := filepath.Join(src, entry.Name())
 		dstPath := filepath.Join(dst, entry.Name())
 
-		if entry.IsDir() {
-			if err := copyDir(srcPath, dstPath); err != nil {
-				return err
-			}
-		} else {
-			if err := copyFile(srcPath, dstPath); err != nil {
-				return err
-			}
+		// Use copyPath to handle symlinks, directories, and files
+		if err := copyPath(srcPath, dstPath); err != nil {
+			return err
 		}
 	}
 
