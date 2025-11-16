@@ -261,6 +261,11 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 		opts = append(opts, library.Python.OptArgs...)
 	}
 
+	// Add gapic-version from library version
+	if library.Version != "" {
+		opts = append(opts, fmt.Sprintf("gapic-version=%s", library.Version))
+	}
+
 	// Add gRPC service config (retry/timeout settings) from library config if set
 	if library.GRPCServiceConfig != "" {
 		// GRPCServiceConfig is relative to the API directory
