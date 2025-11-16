@@ -26,8 +26,6 @@ import (
 // Sentinel errors for validation.
 var (
 	errConfigAlreadyExists = errors.New("librarian.yaml already exists in current directory")
-	errConfigNotFound      = errors.New("librarian.yaml not found in current directory")
-	errInvalidKey          = errors.New("invalid key name")
 )
 
 // Run executes the librarian command with the given arguments.
