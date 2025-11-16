@@ -90,52 +90,29 @@ default:
         source: google.protobuf
         force_used: true
 name_overrides:
-  - api: google/api/apikeys/v2
-    name: google-cloud-apikeys-v2
-  - api: google/api/cloudquotas/v1
-    name: google-cloud-api-cloudquotas-v1
-  - api: google/api/servicemanagement/v1
-    name: google-cloud-api-servicemanagement-v1
-  - api: google/api/serviceusage/v1
-    name: google-cloud-api-serviceusage-v1
-  - api: google/bigtable/admin/v2
-    name: google-cloud-bigtable-admin-v2
-  - api: google/cloud/translate/v3
-    name: google-cloud-translation-v3
-  - api: google/container/v1
-    name: google-cloud-container-v1
-  - api: google/devtools/artifactregistry/v1
-    name: google-cloud-artifactregistry-v1
-  - api: google/devtools/cloudtrace/v2
-    name: google-cloud-trace-v2
-  - api: google/devtools/containeranalysis/v1
-    name: google-cloud-containeranalysis-v1
-  - api: google/devtools/cloudbuild/v1
-    name: google-cloud-build-v1
-  - api: google/devtools/cloudbuild/v2
-    name: google-cloud-build-v2
-  - api: google/devtools/cloudprofiler/v2
-    name: google-cloud-profiler-v2
-  - api: google/datastore/admin/v1
-    name: google-cloud-datastore-admin-v1
-  - api: google/firestore/admin/v1
-    name: google-cloud-firestore-admin-v1
-  - api: grafeas/v1
-    name: google-cloud-grafeas-v1
-  - api: google/iam/credentials/v1
-    name: google-cloud-iam-credentials-v1
-  - api: google/iam/v2
-    name: google-cloud-iam-v2
-  - api: google/iam/v3
-    name: google-cloud-iam-v3
-  - api: google/identity/accesscontextmanager/v1
-    name: google-cloud-identity-accesscontextmanager-v1
-  - api: google/logging/v2
-    name: google-cloud-logging-v2
-  - api: google/privacy/dlp/v2
-    name: google-cloud-privacy-dlp-v2
-  - api: google/storagetransfer/v1
-    name: google-cloud-storagetransfer-v1
+  google/api/apikeys/v2: google-cloud-apikeys-v2
+  google/api/cloudquotas/v1: google-cloud-api-cloudquotas-v1
+  google/api/servicemanagement/v1: google-cloud-api-servicemanagement-v1
+  google/api/serviceusage/v1: google-cloud-api-serviceusage-v1
+  google/bigtable/admin/v2: google-cloud-bigtable-admin-v2
+  google/cloud/translate/v3: google-cloud-translation-v3
+  google/container/v1: google-cloud-container-v1
+  google/datastore/admin/v1: google-cloud-datastore-admin-v1
+  google/devtools/artifactregistry/v1: google-cloud-artifactregistry-v1
+  google/devtools/cloudbuild/v1: google-cloud-build-v1
+  google/devtools/cloudbuild/v2: google-cloud-build-v2
+  google/devtools/cloudprofiler/v2: google-cloud-profiler-v2
+  google/devtools/cloudtrace/v2: google-cloud-trace-v2
+  google/devtools/containeranalysis/v1: google-cloud-containeranalysis-v1
+  google/firestore/admin/v1: google-cloud-firestore-admin-v1
+  google/iam/credentials/v1: google-cloud-iam-credentials-v1
+  google/iam/v2: google-cloud-iam-v2
+  google/iam/v3: google-cloud-iam-v3
+  google/identity/accesscontextmanager/v1: google-cloud-identity-accesscontextmanager-v1
+  google/logging/v2: google-cloud-logging-v2
+  google/privacy/dlp/v2: google-cloud-privacy-dlp-v2
+  google/storagetransfer/v1: google-cloud-storagetransfer-v1
+  grafeas/v1: google-cloud-grafeas-v1
 versions:
   google-api: 1.1.0
   google-api-cloudquotas-v1: 1.1.0
