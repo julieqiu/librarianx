@@ -173,7 +173,7 @@ libraries:
       import_path: cloud.google.com/go/pubsublite/apiv1;pubsublite
       metadata: true
   - name: root-module
-    path: civil/
+    output: civil/
     release:
       disabled: true
   - name: run
