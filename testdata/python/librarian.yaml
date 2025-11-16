@@ -1,18 +1,123 @@
 version: v1
 language: python
+sources:
+  googleapis:
+    commit: 9fcfbea0aa5b50fa22e190faceb073d74504172b
 default:
   output: packages/{name}/
   generate:
+    all: true
     one_library_per: service
     transport: grpc+rest
     rest_numeric_enums: true
   release:
-    tag_format: '{name}/v{version}'
+    tag_format: '{id}-v{version}'
 libraries:
+  - name: google-ads-admanager
+    api: google/ads/admanager/v1
+    keep:
+      - packages/google-ads-admanager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: rest
+  - name: google-ads-marketingplatform-admin
+    api: google/marketingplatform/admin/v1alpha
+    keep:
+      - packages/google-ads-marketingplatform-admin/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-ai-generativelanguage
+    apis:
+      - google/ai/generativelanguage/v1
+      - google/ai/generativelanguage/v1beta
+      - google/ai/generativelanguage/v1beta3
+      - google/ai/generativelanguage/v1beta2
+      - google/ai/generativelanguage/v1alpha
+    keep:
+      - packages/google-ai-generativelanguage/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-analytics-admin
+    apis:
+      - google/analytics/admin/v1beta
+      - google/analytics/admin/v1alpha
+    keep:
+      - packages/google-analytics-admin/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-analytics-data
+    apis:
+      - google/analytics/data/v1alpha
+      - google/analytics/data/v1beta
+    keep:
+      - packages/google-analytics-data/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-apps-card
     api: google/apps/card/v1
     keep:
+      - packages/google-apps-card/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/card_v1/test_card.py
+  - name: google-apps-chat
+    api: google/chat/v1
+    keep:
+      - packages/google-apps-chat/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-apps-events-subscriptions
+    apis:
+      - google/apps/events/subscriptions/v1
+      - google/apps/events/subscriptions/v1beta
+    keep:
+      - packages/google-apps-events-subscriptions/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-apps-meet
+    apis:
+      - google/apps/meet/v2beta
+      - google/apps/meet/v2
+    keep:
+      - packages/google-apps-meet/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-apps-script-type
     apis:
       - google/apps/script/type
@@ -23,6 +128,13 @@ libraries:
       - google/apps/script/type/calendar
       - google/apps/script/type/slides
     keep:
+      - packages/google-apps-script-type/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/calendar/test_calendar.py
       - tests/unit/gapic/docs/test_docs.py
       - tests/unit/gapic/drive/test_drive.py
@@ -31,44 +143,411 @@ libraries:
       - tests/unit/gapic/slides/test_slides.py
       - tests/unit/gapic/type/test_type.py
     transport: grpc
+  - name: google-area120-tables
+    api: google/area120/tables/v1alpha1
+    keep:
+      - packages/google-area120-tables/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-access-approval
+    api: google/cloud/accessapproval/v1
+    keep:
+      - packages/google-cloud-access-approval/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-access-context-manager
+    apis:
+      - google/identity/accesscontextmanager/v1
+      - google/identity/accesscontextmanager/type
+  - name: google-cloud-advisorynotifications
+    api: google/cloud/advisorynotifications/v1
+    keep:
+      - packages/google-cloud-advisorynotifications/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-alloydb
+    apis:
+      - google/cloud/alloydb/v1beta
+      - google/cloud/alloydb/v1
+      - google/cloud/alloydb/v1alpha
+    keep:
+      - packages/google-cloud-alloydb/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-alloydb-connectors
     apis:
       - google/cloud/alloydb/connectors/v1
       - google/cloud/alloydb/connectors/v1alpha
       - google/cloud/alloydb/connectors/v1beta
     keep:
+      - packages/google-cloud-alloydb-connectors/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/connectors_v1/test_connectors.py
-    python: {}
-  - name: google-cloud-appengine-logging
-    api: google/appengine/logging/v1
+  - name: google-cloud-api-gateway
+    api: google/cloud/apigateway/v1
     keep:
-      - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
+      - packages/google-cloud-api-gateway/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-api-gateway
+  - name: google-cloud-api-keys
+    api: google/api/apikeys/v2
+    keep:
+      - packages/google-cloud-api-keys/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-apigee-connect
+    api: google/cloud/apigeeconnect/v1
+    keep:
+      - packages/google-cloud-apigee-connect/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
     transport: grpc
     python:
       opt_args:
-        - warehouse-package-name=google-cloud-appengine-logging
-        - python-gapic-namespace=google.cloud
-        - python-gapic-name=appengine_logging
+        - warehouse-package-name=google-cloud-apigee-connect
+  - name: google-cloud-apigee-registry
+    api: google/cloud/apigeeregistry/v1
+    keep:
+      - packages/google-cloud-apigee-registry/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-apihub
+    api: google/cloud/apihub/v1
+    keep:
+      - packages/google-cloud-apihub/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-appengine-admin
+    api: google/appengine/v1
+    keep:
+      - packages/google-cloud-appengine-admin/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-appengine-logging
+    api: google/appengine/logging/v1
+    keep:
+      - packages/google-cloud-appengine-logging/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+      - tests/unit/gapic/appengine_logging_v1/test_appengine_logging_v1.py
+    transport: grpc
+  - name: google-cloud-apphub
+    api: google/cloud/apphub/v1
+    keep:
+      - packages/google-cloud-apphub/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-artifact-registry
+    apis:
+      - google/devtools/artifactregistry/v1
+      - google/devtools/artifactregistry/v1beta2
+    keep:
+      - packages/google-cloud-artifact-registry/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-asset
+    apis:
+      - google/cloud/asset/v1p5beta1
+      - google/cloud/asset/v1
+      - google/cloud/asset/v1p1beta1
+      - google/cloud/asset/v1p2beta1
+    keep:
+      - packages/google-cloud-asset/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-assured-workloads
+    apis:
+      - google/cloud/assuredworkloads/v1
+      - google/cloud/assuredworkloads/v1beta1
+    keep:
+      - packages/google-cloud-assured-workloads/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-assured-workloads
+  - name: google-cloud-audit-log
+    api: google/cloud/audit
   - name: google-cloud-automl
     apis:
       - google/cloud/automl/v1beta1
       - google/cloud/automl/v1
     keep:
+      - packages/google-cloud-automl/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - docs/automl_v1beta1/tables.rst
       - google/cloud/automl_v1beta1/services/tables
       - samples/README
       - tests/unit/test_gcs_client_v1beta1.py
       - tests/unit/test_tables_client_v1beta1.py
+  - name: google-cloud-backupdr
+    api: google/cloud/backupdr/v1
+    keep:
+      - packages/google-cloud-backupdr/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-bare-metal-solution
+    api: google/cloud/baremetalsolution/v2
+    keep:
+      - packages/google-cloud-bare-metal-solution/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-batch
+    apis:
+      - google/cloud/batch/v1alpha
+      - google/cloud/batch/v1
+    keep:
+      - packages/google-cloud-batch/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-beyondcorp-appconnections
+    api: google/cloud/beyondcorp/appconnections/v1
+    keep:
+      - packages/google-cloud-beyondcorp-appconnections/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-beyondcorp-appconnectors
+    api: google/cloud/beyondcorp/appconnectors/v1
+    keep:
+      - packages/google-cloud-beyondcorp-appconnectors/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-beyondcorp-appgateways
+    api: google/cloud/beyondcorp/appgateways/v1
+    keep:
+      - packages/google-cloud-beyondcorp-appgateways/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-beyondcorp-clientconnectorservices
+    api: google/cloud/beyondcorp/clientconnectorservices/v1
+    keep:
+      - packages/google-cloud-beyondcorp-clientconnectorservices/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-beyondcorp-clientgateways
+    api: google/cloud/beyondcorp/clientgateways/v1
+    keep:
+      - packages/google-cloud-beyondcorp-clientgateways/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-biglake
+    api: google/cloud/biglake/v1
+    keep:
+      - packages/google-cloud-biglake/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-bigquery-analyticshub
+    api: google/cloud/bigquery/analyticshub/v1
+    keep:
+      - packages/google-cloud-bigquery-analyticshub/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-bigquery-biglake
+    apis:
+      - google/cloud/bigquery/biglake/v1alpha1
+      - google/cloud/bigquery/biglake/v1
+    keep:
+      - packages/google-cloud-bigquery-biglake/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-bigquery-connection
+    api: google/cloud/bigquery/connection/v1
+    keep:
+      - packages/google-cloud-bigquery-connection/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-bigquery-data-exchange
+    api: google/cloud/bigquery/dataexchange/v1beta1
+    keep:
+      - packages/google-cloud-bigquery-data-exchange/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-bigquery-datapolicies
+    apis:
+      - google/cloud/bigquery/datapolicies/v2beta1
+      - google/cloud/bigquery/datapolicies/v2
+      - google/cloud/bigquery/datapolicies/v1beta1
+      - google/cloud/bigquery/datapolicies/v1
+    keep:
+      - packages/google-cloud-bigquery-datapolicies/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-bigquery-datatransfer
+    api: google/cloud/bigquery/datatransfer/v1
+    keep:
+      - packages/google-cloud-bigquery-datatransfer/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-bigquery-logging
     api: google/cloud/bigquery/logging/v1
     keep:
+      - packages/google-cloud-bigquery-logging/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/bigquery_logging_v1/test_bigquery_logging_v1.py
     transport: grpc
-    python:
-      opt_args:
-        - warehouse-package-name=google-cloud-bigquery-logging
-        - python-gapic-namespace=google.cloud
-        - python-gapic-name=bigquery_logging
+  - name: google-cloud-bigquery-migration
+    apis:
+      - google/cloud/bigquery/migration/v2alpha
+      - google/cloud/bigquery/migration/v2
+    keep:
+      - packages/google-cloud-bigquery-migration/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-bigquery-reservation
+    api: google/cloud/bigquery/reservation/v1
+    keep:
+      - packages/google-cloud-bigquery-reservation/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-bigquery-storage
     apis:
       - google/cloud/bigquery/storage/v1beta2
@@ -78,6 +557,8 @@ libraries:
     keep:
       - docs/.*/library.rst
       - docs/samples
+      - docs/CHANGELOG.md
+      - docs/README.rst
       - google/cloud/bigquery_storage_v1/client.py
       - google/cloud/bigquery_storage_v1/exceptions.py
       - google/cloud/bigquery_storage_v1/gapic_types.py
@@ -86,39 +567,653 @@ libraries:
       - google/cloud/bigquery_storage_v1beta2/client.py
       - google/cloud/bigquery_storage_v1beta2/exceptions.py
       - google/cloud/bigquery_storage_v1beta2/writer.py
-      - CONTRIBUTING
+      - packages/google-cloud-bigquery-storage/CHANGELOG.md
+      - packages/google-cloud-bigquery-storage/CONTRIBUTING
       - samples/__init__.py
+      - samples/README.txt
       - samples/conftest.py
       - samples/pyarrow
       - samples/quickstart
       - samples/snippets
       - samples/to_dataframe
+      - scripts/client-post-processing
       - scripts/readme-gen
       - testing/.gitignore
+      - tests/system
       - tests/unit/.*.py
     transport: grpc
-    python:
-      opt_args:
-        - python-gapic-namespace=google.cloud
-        - python-gapic-name=bigquery_storage
+  - name: google-cloud-billing
+    api: google/cloud/billing/v1
+    keep:
+      - packages/google-cloud-billing/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-billing-budgets
+    apis:
+      - google/cloud/billing/budgets/v1
+      - google/cloud/billing/budgets/v1beta1
+    keep:
+      - packages/google-cloud-billing-budgets/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-binary-authorization
+    apis:
+      - google/cloud/binaryauthorization/v1
+      - google/cloud/binaryauthorization/v1beta1
+    keep:
+      - packages/google-cloud-binary-authorization/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-build
+    apis:
+      - google/devtools/cloudbuild/v1
+      - google/devtools/cloudbuild/v2
+    keep:
+      - packages/google-cloud-build/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-capacityplanner
+    api: google/cloud/capacityplanner/v1beta
+    keep:
+      - packages/google-cloud-capacityplanner/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-certificate-manager
+    api: google/cloud/certificatemanager/v1
+    keep:
+      - packages/google-cloud-certificate-manager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-channel
+    api: google/cloud/channel/v1
+    keep:
+      - packages/google-cloud-channel/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-chronicle
+    api: google/cloud/chronicle/v1
+    keep:
+      - packages/google-cloud-chronicle/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-cloudcontrolspartner
+    apis:
+      - google/cloud/cloudcontrolspartner/v1beta
+      - google/cloud/cloudcontrolspartner/v1
+    keep:
+      - packages/google-cloud-cloudcontrolspartner/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-cloudsecuritycompliance
+    api: google/cloud/cloudsecuritycompliance/v1
+    keep:
+      - packages/google-cloud-cloudsecuritycompliance/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-commerce-consumer-procurement
+    apis:
+      - google/cloud/commerce/consumer/procurement/v1
+      - google/cloud/commerce/consumer/procurement/v1alpha1
+    keep:
+      - packages/google-cloud-commerce-consumer-procurement/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-common
     api: google/cloud/common
     keep:
+      - packages/google-cloud-common/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/common/test_common.py
     transport: grpc
+  - name: google-cloud-compute
+    api: google/cloud/compute/v1
+    keep:
+      - packages/google-cloud-compute/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-compute-v1beta
+    api: google/cloud/compute/v1beta
+    keep:
+      - packages/google-cloud-compute-v1beta/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-confidentialcomputing
+    api: google/cloud/confidentialcomputing/v1
+    keep:
+      - packages/google-cloud-confidentialcomputing/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-config
+    api: google/cloud/config/v1
+    keep:
+      - packages/google-cloud-config/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-configdelivery
+    apis:
+      - google/cloud/configdelivery/v1beta
+      - google/cloud/configdelivery/v1alpha
+      - google/cloud/configdelivery/v1
+    keep:
+      - packages/google-cloud-configdelivery/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-contact-center-insights
+    api: google/cloud/contactcenterinsights/v1
+    keep:
+      - packages/google-cloud-contact-center-insights/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-container
+    apis:
+      - google/container/v1
+      - google/container/v1beta1
+    keep:
+      - packages/google-cloud-container/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-containeranalysis
     api: google/devtools/containeranalysis/v1
     keep:
+      - packages/google-cloud-containeranalysis/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/test_get_grafeas_client.py
+  - name: google-cloud-contentwarehouse
+    api: google/cloud/contentwarehouse/v1
+    keep:
+      - packages/google-cloud-contentwarehouse/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
     python:
       opt_args:
-        - python-gapic-namespace=google.cloud.devtools
-        - warehouse-package-name=google-cloud-containeranalysis
+        - proto-plus-deps=google.cloud.documentai.v1
+  - name: google-cloud-data-fusion
+    api: google/cloud/datafusion/v1
+    keep:
+      - packages/google-cloud-data-fusion/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-data-qna
+    api: google/cloud/dataqna/v1alpha
+    keep:
+      - packages/google-cloud-data-qna/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-datacatalog
+    apis:
+      - google/cloud/datacatalog/v1
+      - google/cloud/datacatalog/v1beta1
+    keep:
+      - packages/google-cloud-datacatalog/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-datacatalog-lineage
+    api: google/cloud/datacatalog/lineage/v1
+    keep:
+      - packages/google-cloud-datacatalog-lineage/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-dataflow-client
+    api: google/dataflow/v1beta3
+    keep:
+      - packages/google-cloud-dataflow-client/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-dataform
+    apis:
+      - google/cloud/dataform/v1beta1
+      - google/cloud/dataform/v1
+    keep:
+      - packages/google-cloud-dataform/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-datalabeling
+    api: google/cloud/datalabeling/v1beta1
+    keep:
+      - packages/google-cloud-datalabeling/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-dataplex
+    api: google/cloud/dataplex/v1
+    keep:
+      - packages/google-cloud-dataplex/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-dataproc
+    api: google/cloud/dataproc/v1
+    keep:
+      - packages/google-cloud-dataproc/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-dataproc-metastore
+    apis:
+      - google/cloud/metastore/v1alpha
+      - google/cloud/metastore/v1beta
+      - google/cloud/metastore/v1
+    keep:
+      - packages/google-cloud-dataproc-metastore/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-dataproc-metastore
+  - name: google-cloud-datastream
+    apis:
+      - google/cloud/datastream/v1
+      - google/cloud/datastream/v1alpha1
+    keep:
+      - packages/google-cloud-datastream/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-deploy
+    api: google/cloud/deploy/v1
+    keep:
+      - packages/google-cloud-deploy/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-developerconnect
+    api: google/cloud/developerconnect/v1
+    keep:
+      - packages/google-cloud-developerconnect/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-devicestreaming
+    api: google/cloud/devicestreaming/v1
+    keep:
+      - packages/google-cloud-devicestreaming/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-dialogflow
+    apis:
+      - google/cloud/dialogflow/v2beta1
+      - google/cloud/dialogflow/v2
+    keep:
+      - packages/google-cloud-dialogflow/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-dialogflow-cx
+    apis:
+      - google/cloud/dialogflow/cx/v3
+      - google/cloud/dialogflow/cx/v3beta1
+    keep:
+      - packages/google-cloud-dialogflow-cx/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-discoveryengine
+    apis:
+      - google/cloud/discoveryengine/v1
+      - google/cloud/discoveryengine/v1beta
+      - google/cloud/discoveryengine/v1alpha
+    keep:
+      - packages/google-cloud-discoveryengine/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-dlp
+    api: google/privacy/dlp/v2
+    keep:
+      - packages/google-cloud-dlp/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - python-gapic-namespace=google.cloud
+  - name: google-cloud-dms
+    api: google/cloud/clouddms/v1
+    keep:
+      - packages/google-cloud-dms/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-dms
+  - name: google-cloud-documentai
+    apis:
+      - google/cloud/documentai/v1beta3
+      - google/cloud/documentai/v1
+    keep:
+      - packages/google-cloud-documentai/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - autogen-snippets
+  - name: google-cloud-domains
+    apis:
+      - google/cloud/domains/v1beta1
+      - google/cloud/domains/v1
+    keep:
+      - packages/google-cloud-domains/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-edgecontainer
+    api: google/cloud/edgecontainer/v1
+    keep:
+      - packages/google-cloud-edgecontainer/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-edgenetwork
+    api: google/cloud/edgenetwork/v1
+    keep:
+      - packages/google-cloud-edgenetwork/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-enterpriseknowledgegraph
+    api: google/cloud/enterpriseknowledgegraph/v1
+    keep:
+      - packages/google-cloud-enterpriseknowledgegraph/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-essential-contacts
+    api: google/cloud/essentialcontacts/v1
+    keep:
+      - packages/google-cloud-essential-contacts/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-eventarc
+    api: google/cloud/eventarc/v1
+    keep:
+      - packages/google-cloud-eventarc/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-eventarc-publishing
+    api: google/cloud/eventarc/publishing/v1
+    keep:
+      - packages/google-cloud-eventarc-publishing/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-filestore
+    api: google/cloud/filestore/v1
+    keep:
+      - packages/google-cloud-filestore/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - proto-plus-deps=google.cloud.common
+  - name: google-cloud-financialservices
+    api: google/cloud/financialservices/v1
+    keep:
+      - packages/google-cloud-financialservices/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-functions
+    apis:
+      - google/cloud/functions/v2
+      - google/cloud/functions/v1
+    keep:
+      - packages/google-cloud-functions/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-gdchardwaremanagement
+    api: google/cloud/gdchardwaremanagement/v1alpha
+    keep:
+      - packages/google-cloud-gdchardwaremanagement/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-geminidataanalytics
+    apis:
+      - google/cloud/geminidataanalytics/v1beta
+      - google/cloud/geminidataanalytics/v1alpha
+    keep:
+      - packages/google-cloud-geminidataanalytics/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-gke-backup
+    api: google/cloud/gkebackup/v1
+    keep:
+      - packages/google-cloud-gke-backup/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-gke-connect-gateway
+    apis:
+      - google/cloud/gkeconnect/gateway/v1beta1
+      - google/cloud/gkeconnect/gateway/v1
+    keep:
+      - packages/google-cloud-gke-connect-gateway/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: rest
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-gke-connect-gateway
   - name: google-cloud-gke-hub
     apis:
       - google/cloud/gkehub/v1
       - google/cloud/gkehub/v1beta1
     keep:
+      - packages/google-cloud-gke-hub/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - docs/gkehub_v1/configmanagement_v1
       - docs/gkehub_v1/multiclusteringress_v1
       - google/cloud/gkehub_v1/configmanagement_v1
@@ -126,22 +1221,285 @@ libraries:
     python:
       opt_args:
         - warehouse-package-name=google-cloud-gke-hub
+  - name: google-cloud-gke-multicloud
+    api: google/cloud/gkemulticloud/v1
+    keep:
+      - packages/google-cloud-gke-multicloud/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-gkerecommender
+    api: google/cloud/gkerecommender/v1
+    keep:
+      - packages/google-cloud-gkerecommender/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-gsuiteaddons
+    api: google/cloud/gsuiteaddons/v1
+    keep:
+      - packages/google-cloud-gsuiteaddons/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-hypercomputecluster
+    api: google/cloud/hypercomputecluster/v1beta
+    keep:
+      - packages/google-cloud-hypercomputecluster/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-iam
+    apis:
+      - google/iam/v3
+      - google/iam/v3beta
+      - google/iam/admin/v1
+      - google/iam/v2
+      - google/iam/credentials/v1
+      - google/iam/v2beta
+    keep:
+      - packages/google-cloud-iam/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-iam-logging
     api: google/iam/v1/logging
     keep:
+      - packages/google-cloud-iam-logging/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
+    transport: grpc
+  - name: google-cloud-iap
+    api: google/cloud/iap/v1
+    keep:
+      - packages/google-cloud-iap/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-ids
+    api: google/cloud/ids/v1
+    keep:
+      - packages/google-cloud-ids/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-kms
+    api: google/cloud/kms/v1
+    keep:
+      - packages/google-cloud-kms/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-kms-inventory
+    api: google/cloud/kms/inventory/v1
+    keep:
+      - packages/google-cloud-kms-inventory/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-language
+    apis:
+      - google/cloud/language/v1
+      - google/cloud/language/v1beta2
+      - google/cloud/language/v2
+    keep:
+      - packages/google-cloud-language/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-licensemanager
+    api: google/cloud/licensemanager/v1
+    keep:
+      - packages/google-cloud-licensemanager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-life-sciences
+    api: google/cloud/lifesciences/v2beta
+    keep:
+      - packages/google-cloud-life-sciences/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-life-sciences
+  - name: google-cloud-locationfinder
+    api: google/cloud/locationfinder/v1
+    keep:
+      - packages/google-cloud-locationfinder/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-lustre
+    api: google/cloud/lustre/v1
+    keep:
+      - packages/google-cloud-lustre/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-maintenance-api
+    api: google/cloud/maintenance/api/v1beta
+    keep:
+      - packages/google-cloud-maintenance-api/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-managed-identities
+    api: google/cloud/managedidentities/v1
+    keep:
+      - packages/google-cloud-managed-identities/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
     transport: grpc
     python:
       opt_args:
-        - warehouse-package-name=google-cloud-iam-logging
-        - python-gapic-namespace=google.cloud
-        - python-gapic-name=iam_logging
+        - warehouse-package-name=google-cloud-managed-identities
+  - name: google-cloud-managedkafka
+    api: google/cloud/managedkafka/v1
+    keep:
+      - packages/google-cloud-managedkafka/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-managedkafka-schemaregistry
+    api: google/cloud/managedkafka/schemaregistry/v1
+    keep:
+      - packages/google-cloud-managedkafka-schemaregistry/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-media-translation
+    api: google/cloud/mediatranslation/v1beta1
+    keep:
+      - packages/google-cloud-media-translation/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-memcache
+    apis:
+      - google/cloud/memcache/v1
+      - google/cloud/memcache/v1beta2
+    keep:
+      - packages/google-cloud-memcache/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-memorystore
+    apis:
+      - google/cloud/memorystore/v1beta
+      - google/cloud/memorystore/v1
+    keep:
+      - packages/google-cloud-memorystore/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: rest
+  - name: google-cloud-migrationcenter
+    api: google/cloud/migrationcenter/v1
+    keep:
+      - packages/google-cloud-migrationcenter/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-modelarmor
+    apis:
+      - google/cloud/modelarmor/v1beta
+      - google/cloud/modelarmor/v1
+    keep:
+      - packages/google-cloud-modelarmor/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-monitoring
     api: google/monitoring/v3
     keep:
+      - packages/google-cloud-monitoring/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
       - docs/query.rst
-      - google/cloud/monitoring_v3/_dataframe.py
-      - google/cloud/monitoring_v3/query.py
+      - packages/google-cloud-monitoring/google/cloud/monitoring_v3/_dataframe.py
+      - packages/google-cloud-monitoring/google/cloud/monitoring_v3/query.py
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/test__dataframe.py
       - tests/unit/test_query.py
     transport: grpc
@@ -151,74 +1509,762 @@ libraries:
   - name: google-cloud-monitoring-dashboards
     api: google/monitoring/dashboard/v1
     keep:
-      - google/monitoring
+      - packages/google-cloud-monitoring-dashboards/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+      - packages/google-cloud-monitoring-dashboards/google/monitoring
       - tests/unit/gapic/dashboard_v1
+  - name: google-cloud-monitoring-metrics-scopes
+    api: google/monitoring/metricsscope/v1
+    keep:
+      - packages/google-cloud-monitoring-metrics-scopes/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-netapp
+    api: google/cloud/netapp/v1
+    keep:
+      - packages/google-cloud-netapp/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-network-connectivity
+    apis:
+      - google/cloud/networkconnectivity/v1
+      - google/cloud/networkconnectivity/v1alpha1
+    keep:
+      - packages/google-cloud-network-connectivity/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
     python:
       opt_args:
-        - python-gapic-name=monitoring_dashboard
-        - python-gapic-namespace=google.cloud
-        - warehouse-package-name=google-cloud-monitoring-dashboards
+        - warehouse-package-name=google-cloud-network-connectivity
+  - name: google-cloud-network-management
+    api: google/cloud/networkmanagement/v1
+    keep:
+      - packages/google-cloud-network-management/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-network-security
+    apis:
+      - google/cloud/networksecurity/v1alpha1
+      - google/cloud/networksecurity/v1beta1
+      - google/cloud/networksecurity/v1
+    keep:
+      - packages/google-cloud-network-security/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-network-services
+    api: google/cloud/networkservices/v1
+    keep:
+      - packages/google-cloud-network-services/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-notebooks
+    apis:
+      - google/cloud/notebooks/v1beta1
+      - google/cloud/notebooks/v1
+      - google/cloud/notebooks/v2
+    keep:
+      - packages/google-cloud-notebooks/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-optimization
+    api: google/cloud/optimization/v1
+    keep:
+      - packages/google-cloud-optimization/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-oracledatabase
+    api: google/cloud/oracledatabase/v1
+    keep:
+      - packages/google-cloud-oracledatabase/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-orchestration-airflow
+    apis:
+      - google/cloud/orchestration/airflow/service/v1
+      - google/cloud/orchestration/airflow/service/v1beta1
+    keep:
+      - packages/google-cloud-orchestration-airflow/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-orchestration-airflow
   - name: google-cloud-org-policy
     apis:
       - google/cloud/orgpolicy/v1
       - google/cloud/orgpolicy/v2
     keep:
-      - pytest.ini
+      - packages/google-cloud-org-policy/pytest.ini
+      - packages/google-cloud-org-policy/CHANGELOG.md
       - google/cloud/orgpolicy/v1/__init__.py
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/test_packaging.py
+  - name: google-cloud-os-config
+    apis:
+      - google/cloud/osconfig/v1alpha
+      - google/cloud/osconfig/v1
+    keep:
+      - packages/google-cloud-os-config/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-os-config
   - name: google-cloud-os-login
     api: google/cloud/oslogin/v1
     keep:
+      - packages/google-cloud-os-login/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - google/cloud/oslogin_v1/common
       - docs/oslogin_v1/common/types.rst
+  - name: google-cloud-parallelstore
+    apis:
+      - google/cloud/parallelstore/v1
+      - google/cloud/parallelstore/v1beta
+    keep:
+      - packages/google-cloud-parallelstore/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-parametermanager
+    api: google/cloud/parametermanager/v1
+    keep:
+      - packages/google-cloud-parametermanager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-phishing-protection
+    api: google/cloud/phishingprotection/v1beta1
+    keep:
+      - packages/google-cloud-phishing-protection/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-policy-troubleshooter
+    api: google/cloud/policytroubleshooter/v1
+    keep:
+      - packages/google-cloud-policy-troubleshooter/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
     python:
       opt_args:
-        - warehouse-package-name=google-cloud-os-login
-        - proto-plus-deps=google.cloud.oslogin.common
-  - name: google-cloud-source-context
-    api: google/devtools/source/v1
+        - warehouse-package-name=google-cloud-policy-troubleshooter
+  - name: google-cloud-policysimulator
+    api: google/cloud/policysimulator/v1
     keep:
-      - tests/unit/gapic/source_context_v1/test_source_context_v1.py
+      - packages/google-cloud-policysimulator/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-policytroubleshooter-iam
+    api: google/cloud/policytroubleshooter/iam/v3
+    keep:
+      - packages/google-cloud-policytroubleshooter-iam/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-private-ca
+    apis:
+      - google/cloud/security/privateca/v1
+      - google/cloud/security/privateca/v1beta1
+    keep:
+      - packages/google-cloud-private-ca/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-private-catalog
+    api: google/cloud/privatecatalog/v1beta1
+    keep:
+      - packages/google-cloud-private-catalog/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-privilegedaccessmanager
+    api: google/cloud/privilegedaccessmanager/v1
+    keep:
+      - packages/google-cloud-privilegedaccessmanager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-quotas
+    apis:
+      - google/api/cloudquotas/v1
+      - google/api/cloudquotas/v1beta
+    keep:
+      - packages/google-cloud-quotas/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-rapidmigrationassessment
+    api: google/cloud/rapidmigrationassessment/v1
+    keep:
+      - packages/google-cloud-rapidmigrationassessment/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-recaptcha-enterprise
+    api: google/cloud/recaptchaenterprise/v1
+    keep:
+      - packages/google-cloud-recaptcha-enterprise/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
     transport: grpc
     python:
       opt_args:
-        - warehouse-package-name=google-cloud-source-context
-        - python-gapic-namespace=google.cloud
-        - python-gapic-name=source_context
+        - warehouse-package-name=google-cloud-recaptcha-enterprise
+  - name: google-cloud-recommendations-ai
+    api: google/cloud/recommendationengine/v1beta1
+    keep:
+      - packages/google-cloud-recommendations-ai/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-recommendations-ai
+  - name: google-cloud-recommender
+    apis:
+      - google/cloud/recommender/v1beta1
+      - google/cloud/recommender/v1
+    keep:
+      - packages/google-cloud-recommender/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-redis
+    apis:
+      - google/cloud/redis/v1
+      - google/cloud/redis/v1beta1
+    keep:
+      - packages/google-cloud-redis/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-redis-cluster
+    apis:
+      - google/cloud/redis/cluster/v1
+      - google/cloud/redis/cluster/v1beta1
+    keep:
+      - packages/google-cloud-redis-cluster/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-resource-manager
+    api: google/cloud/resourcemanager/v3
+    keep:
+      - packages/google-cloud-resource-manager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-resource-manager
+  - name: google-cloud-retail
+    apis:
+      - google/cloud/retail/v2
+      - google/cloud/retail/v2alpha
+      - google/cloud/retail/v2beta
+    keep:
+      - packages/google-cloud-retail/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-run
+    api: google/cloud/run/v2
+    keep:
+      - packages/google-cloud-run/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-saasplatform-saasservicemgmt
+    api: google/cloud/saasplatform/saasservicemgmt/v1beta1
+    keep:
+      - packages/google-cloud-saasplatform-saasservicemgmt/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-scheduler
+    apis:
+      - google/cloud/scheduler/v1
+      - google/cloud/scheduler/v1beta1
+    keep:
+      - packages/google-cloud-scheduler/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-secret-manager
+    apis:
+      - google/cloud/secretmanager/v1
+      - google/cloud/secretmanager/v1beta2
+      - google/cloud/secrets/v1beta1
+    keep:
+      - packages/google-cloud-secret-manager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-securesourcemanager
+    api: google/cloud/securesourcemanager/v1
+    keep:
+      - packages/google-cloud-securesourcemanager/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-security-publicca
+    apis:
+      - google/cloud/security/publicca/v1
+      - google/cloud/security/publicca/v1beta1
+    keep:
+      - packages/google-cloud-security-publicca/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-securitycenter
+    apis:
+      - google/cloud/securitycenter/v2
+      - google/cloud/securitycenter/v1p1beta1
+      - google/cloud/securitycenter/v1beta1
+      - google/cloud/securitycenter/v1
+    keep:
+      - packages/google-cloud-securitycenter/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-securitycentermanagement
+    api: google/cloud/securitycentermanagement/v1
+    keep:
+      - packages/google-cloud-securitycentermanagement/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-service-control
+    apis:
+      - google/api/servicecontrol/v2
+      - google/api/servicecontrol/v1
+    keep:
+      - packages/google-cloud-service-control/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-service-directory
+    apis:
+      - google/cloud/servicedirectory/v1
+      - google/cloud/servicedirectory/v1beta1
+    keep:
+      - packages/google-cloud-service-directory/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-service-directory
+  - name: google-cloud-service-management
+    api: google/api/servicemanagement/v1
+    keep:
+      - packages/google-cloud-service-management/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-service-usage
+    api: google/api/serviceusage/v1
+    keep:
+      - packages/google-cloud-service-usage/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-servicehealth
+    api: google/cloud/servicehealth/v1
+    keep:
+      - packages/google-cloud-servicehealth/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-shell
+    api: google/cloud/shell/v1
+    keep:
+      - packages/google-cloud-shell/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-source-context
+    api: google/devtools/source/v1
+    keep:
+      - packages/google-cloud-source-context/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+      - tests/unit/gapic/source_context_v1/test_source_context_v1.py
+    transport: grpc
   - name: google-cloud-speech
     apis:
       - google/cloud/speech/v1
       - google/cloud/speech/v2
       - google/cloud/speech/v1p1beta1
     keep:
+      - packages/google-cloud-speech/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
       - google/cloud/speech_v1/helpers.py
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/test_helpers.py
+  - name: google-cloud-storage-control
+    api: google/storage/control/v2
+    keep:
+      - packages/google-cloud-storage-control/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-storage-transfer
+    api: google/storagetransfer/v1
+    keep:
+      - packages/google-cloud-storage-transfer/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-storagebatchoperations
+    api: google/cloud/storagebatchoperations/v1
+    keep:
+      - packages/google-cloud-storagebatchoperations/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-storageinsights
+    api: google/cloud/storageinsights/v1
+    keep:
+      - packages/google-cloud-storageinsights/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-support
+    apis:
+      - google/cloud/support/v2beta
+      - google/cloud/support/v2
+    keep:
+      - packages/google-cloud-support/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-talent
+    apis:
+      - google/cloud/talent/v4beta1
+      - google/cloud/talent/v4
+    keep:
+      - packages/google-cloud-talent/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-tasks
     apis:
       - google/cloud/tasks/v2beta2
       - google/cloud/tasks/v2beta3
       - google/cloud/tasks/v2
     keep:
+      - packages/google-cloud-tasks/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
       - snippets/README.md
+      - tests/system
   - name: google-cloud-telcoautomation
     apis:
       - google/cloud/telcoautomation/v1
       - google/cloud/telcoautomation/v1alpha1
     keep:
+      - packages/google-cloud-telcoautomation/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
       - snippets/README.md
-    python: {}
+      - tests/system
+  - name: google-cloud-texttospeech
+    apis:
+      - google/cloud/texttospeech/v1
+      - google/cloud/texttospeech/v1beta1
+    keep:
+      - packages/google-cloud-texttospeech/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-tpu
+    apis:
+      - google/cloud/tpu/v2alpha1
+      - google/cloud/tpu/v2
+      - google/cloud/tpu/v1
+    keep:
+      - packages/google-cloud-tpu/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-trace
+    apis:
+      - google/devtools/cloudtrace/v2
+      - google/devtools/cloudtrace/v1
+    keep:
+      - packages/google-cloud-trace/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-cloud-translate
     apis:
       - google/cloud/translate/v3beta1
       - google/cloud/translate/v3
     keep:
+      - packages/google-cloud-translate/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
       - docs/client.rst
       - docs/v2.rst
       - google/cloud/translate_v2
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/v2
     python:
       opt_args:
         - python-gapic-name=translate
+  - name: google-cloud-video-live-stream
+    api: google/cloud/video/livestream/v1
+    keep:
+      - packages/google-cloud-video-live-stream/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-video-stitcher
+    api: google/cloud/video/stitcher/v1
+    keep:
+      - packages/google-cloud-video-stitcher/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-video-transcoder
+    api: google/cloud/video/transcoder/v1
+    keep:
+      - packages/google-cloud-video-transcoder/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-videointelligence
+    apis:
+      - google/cloud/videointelligence/v1p3beta1
+      - google/cloud/videointelligence/v1
+      - google/cloud/videointelligence/v1p2beta1
+      - google/cloud/videointelligence/v1p1beta1
+      - google/cloud/videointelligence/v1beta2
+    keep:
+      - packages/google-cloud-videointelligence/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
   - name: google-cloud-vision
     apis:
       - google/cloud/vision/v1p3beta1
@@ -227,30 +2273,432 @@ libraries:
       - google/cloud/vision/v1p2beta1
       - google/cloud/vision/v1p4beta1
     keep:
+      - packages/google-cloud-vision/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
       - google/cloud/vision_helpers
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/test_decorators.py
       - tests/unit/test_helpers.py
+  - name: google-cloud-visionai
+    apis:
+      - google/cloud/visionai/v1alpha1
+      - google/cloud/visionai/v1
+    keep:
+      - packages/google-cloud-visionai/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-vm-migration
+    api: google/cloud/vmmigration/v1
+    keep:
+      - packages/google-cloud-vm-migration/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-vm-migration
+  - name: google-cloud-vmwareengine
+    api: google/cloud/vmwareengine/v1
+    keep:
+      - packages/google-cloud-vmwareengine/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-vpc-access
+    api: google/cloud/vpcaccess/v1
+    keep:
+      - packages/google-cloud-vpc-access/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - warehouse-package-name=google-cloud-vpc-access
+  - name: google-cloud-webrisk
+    apis:
+      - google/cloud/webrisk/v1beta1
+      - google/cloud/webrisk/v1
+    keep:
+      - packages/google-cloud-webrisk/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-websecurityscanner
+    apis:
+      - google/cloud/websecurityscanner/v1alpha
+      - google/cloud/websecurityscanner/v1beta
+      - google/cloud/websecurityscanner/v1
+    keep:
+      - packages/google-cloud-websecurityscanner/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-cloud-workflows
+    apis:
+      - google/cloud/workflows/executions/v1
+      - google/cloud/workflows/executions/v1beta
+      - google/cloud/workflows/v1
+      - google/cloud/workflows/v1beta
+    keep:
+      - packages/google-cloud-workflows/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-cloud-workstations
+    apis:
+      - google/cloud/workstations/v1beta
+      - google/cloud/workstations/v1
+    keep:
+      - packages/google-cloud-workstations/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-geo-type
     api: google/geo/type
     keep:
+      - packages/google-geo-type/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/type/test_type.py
     transport: grpc
+  - name: google-maps-addressvalidation
+    api: google/maps/addressvalidation/v1
+    keep:
+      - packages/google-maps-addressvalidation/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - proto-plus-deps=google.geo.type
+  - name: google-maps-areainsights
+    api: google/maps/areainsights/v1
+    keep:
+      - packages/google-maps-areainsights/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-maps-fleetengine
+    api: google/maps/fleetengine/v1
+    keep:
+      - packages/google-maps-fleetengine/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    transport: grpc
+  - name: google-maps-fleetengine-delivery
+    api: google/maps/fleetengine/delivery/v1
+    keep:
+      - packages/google-maps-fleetengine-delivery/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-maps-mapsplatformdatasets
+    api: google/maps/mapsplatformdatasets/v1
+    keep:
+      - packages/google-maps-mapsplatformdatasets/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-maps-places
+    api: google/maps/places/v1
+    keep:
+      - packages/google-maps-places/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-maps-routeoptimization
     api: google/maps/routeoptimization/v1
     keep:
+      - packages/google-maps-routeoptimization/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
       - samples/README.rst
-    python: {}
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-maps-routing
+    api: google/maps/routing/v2
+    keep:
+      - packages/google-maps-routing/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-maps-solar
+    api: google/maps/solar/v1
+    keep:
+      - packages/google-maps-solar/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-css
+    api: google/shopping/css/v1
+    keep:
+      - packages/google-shopping-css/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+    python:
+      opt_args:
+        - proto-plus-deps=google.shopping.type
+  - name: google-shopping-merchant-accounts
+    apis:
+      - google/shopping/merchant/accounts/v1
+      - google/shopping/merchant/accounts/v1beta
+    keep:
+      - packages/google-shopping-merchant-accounts/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-conversions
+    apis:
+      - google/shopping/merchant/conversions/v1
+      - google/shopping/merchant/conversions/v1beta
+    keep:
+      - packages/google-shopping-merchant-conversions/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-datasources
+    apis:
+      - google/shopping/merchant/datasources/v1
+      - google/shopping/merchant/datasources/v1beta
+    keep:
+      - packages/google-shopping-merchant-datasources/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-inventories
+    apis:
+      - google/shopping/merchant/inventories/v1beta
+      - google/shopping/merchant/inventories/v1
+    keep:
+      - packages/google-shopping-merchant-inventories/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-issueresolution
+    apis:
+      - google/shopping/merchant/issueresolution/v1
+      - google/shopping/merchant/issueresolution/v1beta
+    keep:
+      - packages/google-shopping-merchant-issueresolution/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-lfp
+    apis:
+      - google/shopping/merchant/lfp/v1beta
+      - google/shopping/merchant/lfp/v1
+    keep:
+      - packages/google-shopping-merchant-lfp/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-notifications
+    apis:
+      - google/shopping/merchant/notifications/v1
+      - google/shopping/merchant/notifications/v1beta
+    keep:
+      - packages/google-shopping-merchant-notifications/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-ordertracking
+    apis:
+      - google/shopping/merchant/ordertracking/v1
+      - google/shopping/merchant/ordertracking/v1beta
+    keep:
+      - packages/google-shopping-merchant-ordertracking/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-products
+    apis:
+      - google/shopping/merchant/products/v1
+      - google/shopping/merchant/products/v1beta
+    keep:
+      - packages/google-shopping-merchant-products/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-productstudio
+    api: google/shopping/merchant/productstudio/v1alpha
+    keep:
+      - packages/google-shopping-merchant-productstudio/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-promotions
+    apis:
+      - google/shopping/merchant/promotions/v1
+      - google/shopping/merchant/promotions/v1beta
+    keep:
+      - packages/google-shopping-merchant-promotions/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-quota
+    apis:
+      - google/shopping/merchant/quota/v1beta
+      - google/shopping/merchant/quota/v1
+    keep:
+      - packages/google-shopping-merchant-quota/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-reports
+    apis:
+      - google/shopping/merchant/reports/v1beta
+      - google/shopping/merchant/reports/v1
+      - google/shopping/merchant/reports/v1alpha
+    keep:
+      - packages/google-shopping-merchant-reports/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
+  - name: google-shopping-merchant-reviews
+    api: google/shopping/merchant/reviews/v1beta
+    keep:
+      - packages/google-shopping-merchant-reviews/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
   - name: google-shopping-type
     api: google/shopping/type
     keep:
+      - packages/google-shopping-type/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - tests/unit/gapic/type/test_type.py
+  - name: googleapis-common-protos
+    apis:
+      - google/api
+      - google/cloud/location
+      - google/logging/type
+      - google/rpc
+      - google/rpc/context
+      - google/type
   - name: grafeas
     api: grafeas/v1
     keep:
+      - packages/grafeas/CHANGELOG.md
+      - docs/CHANGELOG.md
+      - docs/README.rst
+      - samples/README.txt
+      - scripts/client-post-processing
+      - samples/snippets/README.rst
+      - tests/system
       - grafeas/grafeas.py
       - grafeas/grafeas/__init__.py
       - grafeas/grafeas/grafeas_v1/types.py
-    python:
-      opt_args:
-        - python-gapic-namespace=grafeas
-        - warehouse-package-name=grafeas
+  - name: grpc-google-iam-v1
+    api: google/iam/v1
