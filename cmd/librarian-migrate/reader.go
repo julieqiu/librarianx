@@ -34,7 +34,7 @@ type Reader struct {
 }
 
 // ReadAll reads all configuration sources and returns the parsed data.
-func (r *Reader) ReadAll() (*LegacyState, *LegacyConfig, *BuildBazelData, *GeneratorInputData, error) {
+func (r *Reader) ReadAll() (*LegacyState, *LegacyConfig, *BuildBazelData, *LegacyGeneratorInputData, error) {
 	state, err := r.readState()
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to read state.yaml: %w", err)
@@ -56,7 +56,7 @@ func (r *Reader) ReadAll() (*LegacyState, *LegacyConfig, *BuildBazelData, *Gener
 	if err != nil {
 		// Log warning but continue - generator input is optional
 		fmt.Fprintf(os.Stderr, "Warning: failed to read generator-input: %v\n", err)
-		generatorInput = &GeneratorInputData{Files: make(map[string][]byte)}
+		generatorInput = &LegacyGeneratorInputData{Files: make(map[string][]byte)}
 	}
 
 	return state, config, buildData, generatorInput, nil
@@ -217,15 +217,15 @@ func (r *Reader) extractListField(content, fieldName string) []string {
 }
 
 // readGeneratorInput reads files from .librarian/generator-input/.
-func (r *Reader) readGeneratorInput() (*GeneratorInputData, error) {
+func (r *Reader) readGeneratorInput() (*LegacyGeneratorInputData, error) {
 	inputDir := filepath.Join(r.RepoPath, ".librarian", "generator-input")
 
 	// Check if directory exists
 	if _, err := os.Stat(inputDir); os.IsNotExist(err) {
-		return &GeneratorInputData{Files: make(map[string][]byte)}, nil
+		return &LegacyGeneratorInputData{Files: make(map[string][]byte)}, nil
 	}
 
-	data := &GeneratorInputData{Files: make(map[string][]byte)}
+	data := &LegacyGeneratorInputData{Files: make(map[string][]byte)}
 
 	err := filepath.Walk(inputDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {

@@ -14,6 +14,8 @@
 
 package main
 
+import "github.com/julieqiu/librarianx/internal/config"
+
 // LegacyState represents the old .librarian/state.yaml file.
 type LegacyState struct {
 	// Image is the generator container image reference.
@@ -116,53 +118,8 @@ type BuildLibrary struct {
 	ServiceYAML string
 }
 
-// GeneratorInputData represents parsed data from .librarian/generator-input/.
-type GeneratorInputData struct {
+// LegacyGeneratorInputData represents parsed data from .librarian/generator-input/.
+type LegacyGeneratorInputData struct {
 	// Files maps file names to their content.
 	Files map[string][]byte
-}
-
-// MergedLibrary represents a library with data merged from all sources.
-type MergedLibrary struct {
-	// Name is the library name (from state.yaml ID).
-	Name string
-
-	// APIs is the list of API paths.
-	APIs []string
-
-	// Keep is the list of files to preserve (from state.yaml preserve_regex).
-	Keep []string
-
-	// Transport is the transport protocol.
-	Transport string
-
-	// TagFormat is the release tag format.
-	TagFormat string
-
-	// PythonOptArgs are Python-specific generator options.
-	PythonOptArgs []string
-
-	// NextVersion is the next version to release.
-	NextVersion string
-
-	// GenerateBlocked prevents generation.
-	GenerateBlocked bool
-
-	// ReleaseBlocked prevents release.
-	ReleaseBlocked bool
-}
-
-// MergedData represents all merged library data.
-type MergedData struct {
-	// Libraries is the list of merged libraries.
-	Libraries []*MergedLibrary
-
-	// DefaultTransport is the most common transport.
-	DefaultTransport string
-
-	// DefaultTagFormat is the most common tag format.
-	DefaultTagFormat string
-
-	// DefaultOutput is the output path template.
-	DefaultOutput string
 }
