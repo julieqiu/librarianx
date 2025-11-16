@@ -124,6 +124,7 @@ name_overrides:
   google/cloud/resourcemanager/v3: google-cloud-resource-manager
   google/cloud/run/v2: google-cloud-run
   google/cloud/saasplatform/saasservicemgmt/v1beta1: google-cloud-saasplatform-saasservicemgmt
+  google/cloud/secretmanager: google-cloud-secret-manager
   google/cloud/securesourcemanager/v1: google-cloud-securesourcemanager
   google/cloud/security/privateca: google-cloud-private-ca
   google/cloud/securitycentermanagement/v1: google-cloud-securitycentermanagement
