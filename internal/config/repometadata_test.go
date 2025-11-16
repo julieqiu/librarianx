@@ -74,7 +74,7 @@ publishing:
 	want := RepoMetadata{
 		Name:                 "secretmanager",
 		NamePretty:           "Secret Manager",
-		ProductDocumentation: "https://cloud.google.com/secret-manager/docs/overview",
+		ProductDocumentation: "https://cloud.google.com/secret-manager/",
 		ClientDocumentation:  "https://cloud.google.com/python/docs/reference/secretmanager/latest",
 		IssueTracker:         "",
 		ReleaseLevel:         "stable",
@@ -201,6 +201,42 @@ func TestExtractNameFromAPIID(t *testing.T) {
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			got := extractNameFromAPIID(test.apiID)
+			if got != test.want {
+				t.Errorf("got %q, want %q", got, test.want)
+			}
+		})
+	}
+}
+
+func TestExtractBaseProductURL(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		docURI string
+		want   string
+	}{
+		{
+			"strip /docs/overview",
+			"https://cloud.google.com/secret-manager/docs/overview",
+			"https://cloud.google.com/secret-manager/",
+		},
+		{
+			"strip /docs/reference",
+			"https://cloud.google.com/storage/docs/reference",
+			"https://cloud.google.com/storage/",
+		},
+		{
+			"no /docs/ in URL",
+			"https://cloud.google.com/secret-manager",
+			"https://cloud.google.com/secret-manager",
+		},
+		{
+			"empty",
+			"",
+			"",
+		},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			got := extractBaseProductURL(test.docURI)
 			if got != test.want {
 				t.Errorf("got %q, want %q", got, test.want)
 			}

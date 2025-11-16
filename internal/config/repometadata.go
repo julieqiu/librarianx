@@ -27,18 +27,18 @@ import (
 // RepoMetadata represents the .repo-metadata.json file structure.
 type RepoMetadata struct {
 	Name                 string `json:"name,omitempty"`
-	NamePretty           string `json:"name_pretty"`
+	NamePretty           string `json:"name_pretty,omitempty"`
 	ProductDocumentation string `json:"product_documentation,omitempty"`
-	ClientDocumentation  string `json:"client_documentation"`
+	ClientDocumentation  string `json:"client_documentation,omitempty"`
 	IssueTracker         string `json:"issue_tracker,omitempty"`
-	ReleaseLevel         string `json:"release_level"`
-	Language             string `json:"language"`
-	LibraryType          string `json:"library_type"`
-	Repo                 string `json:"repo"`
-	DistributionName     string `json:"distribution_name"`
-	APIID                string `json:"api_id"`
+	ReleaseLevel         string `json:"release_level,omitempty"`
+	Language             string `json:"language,omitempty"`
+	LibraryType          string `json:"library_type,omitempty"`
+	Repo                 string `json:"repo,omitempty"`
+	DistributionName     string `json:"distribution_name,omitempty"`
+	APIID                string `json:"api_id,omitempty"`
 	DefaultVersion       string `json:"default_version,omitempty"`
-	APIShortname         string `json:"api_shortname"`
+	APIShortname         string `json:"api_shortname,omitempty"`
 	APIDescription       string `json:"api_description,omitempty"`
 }
 
@@ -73,7 +73,7 @@ func GenerateRepoMetadata(library *Library, language, repo, serviceConfigPath, o
 	if svcCfg.GetPublishing() != nil {
 		publishing := svcCfg.GetPublishing()
 		if publishing.GetDocumentationUri() != "" {
-			metadata.ProductDocumentation = publishing.GetDocumentationUri()
+			metadata.ProductDocumentation = extractBaseProductURL(publishing.GetDocumentationUri())
 		}
 		if publishing.GetApiShortName() != "" {
 			metadata.APIShortname = publishing.GetApiShortName()
@@ -202,6 +202,17 @@ func DeriveDefaultVersion(apiPath string) string {
 		return lastPart
 	}
 	return ""
+}
+
+// extractBaseProductURL extracts the base product URL from a documentation URI.
+// Example: "https://cloud.google.com/secret-manager/docs/overview" -> "https://cloud.google.com/secret-manager/"
+func extractBaseProductURL(docURI string) string {
+	// Strip off /docs/* suffix to get base product URL
+	if idx := strings.Index(docURI, "/docs/"); idx != -1 {
+		return docURI[:idx+1]
+	}
+	// If no /docs/ found, return as-is
+	return docURI
 }
 
 // CleanTitle removes "API" suffix from title to get name_pretty.
