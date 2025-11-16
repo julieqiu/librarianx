@@ -281,12 +281,15 @@ exclude_apis:
   - google/firebase
   - google/firestore/admin/v1beta1
   - google/firestore/admin/v1beta2
+  - google/firestore/v1
   - google/firestore/v1beta1
   - google/genomics
+  - google/geo/type
   - google/home
   - google/iam/v1beta
   - google/iam/v2beta
   - google/iam/v3beta
+  - google/networking/trafficdirector/type
   - google/maps
   - google/marketingplatform
   - google/partner
