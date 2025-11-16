@@ -160,6 +160,9 @@ func formatPackageDependency(dep *config.RustPackageDependency) string {
 	if dep.Feature != "" {
 		parts = append(parts, "feature="+dep.Feature)
 	}
+	if dep.Workspace {
+		parts = append(parts, "workspace=true")
+	}
 
 	return strings.Join(parts, ",")
 }

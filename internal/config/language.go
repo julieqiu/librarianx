@@ -114,6 +114,9 @@ type RustPackageDependency struct {
 
 	// Feature is the feature name for the dependency.
 	Feature string `yaml:"feature,omitempty"`
+
+	// Workspace indicates if the dependency version is managed by the workspace.
+	Workspace bool `yaml:"workspace,omitempty"`
 }
 
 // PythonPackage contains Python-specific library configuration.
