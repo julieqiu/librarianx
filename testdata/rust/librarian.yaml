@@ -89,8 +89,11 @@ default:
         package: google-cloud-wkt
         source: google.protobuf
         force_used: true
+name_overrides:
+  - api: google/api/apikeys/v2
+    name: google-cloud-apikeys-v2
 libraries:
-  - name: google-api-apikeys-v2
+  - name: google-cloud-apikeys-v2
     version: 1.1.1
   - name: google-api-cloudquotas-v1
     version: 1.1.0
