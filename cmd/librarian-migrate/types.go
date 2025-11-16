@@ -14,8 +14,6 @@
 
 package main
 
-import "github.com/julieqiu/librarianx/internal/config"
-
 // LegacyState represents the old .librarian/state.yaml file.
 type LegacyState struct {
 	// Image is the generator container image reference.

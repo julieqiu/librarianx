@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/julieqiu/librarianx/internal/config"
+	"github.com/googleapis/librarian/internal/config"
 )
 
 // merge combines data from all sources and returns a config.Config.
