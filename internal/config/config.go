@@ -166,6 +166,9 @@ type Library struct {
 	// Release contains per-library release configuration.
 	Release *LibraryRelease `yaml:"release,omitempty"`
 
+	// Publish contains per-library publish configuration.
+	Publish *LibraryPublish `yaml:"publish,omitempty"`
+
 	// LaunchStage overrides the derived launch stage.
 	LaunchStage string `yaml:"launch_stage,omitempty"`
 
@@ -196,7 +199,13 @@ type LibraryGenerate struct {
 
 // LibraryRelease contains per-library release configuration.
 type LibraryRelease struct {
-	// Disabled prevents library release and publish.
+	// Disabled prevents library release.
+	Disabled bool `yaml:"disabled,omitempty"`
+}
+
+// LibraryPublish contains per-library publish configuration.
+type LibraryPublish struct {
+	// Disabled prevents library from being published to package registries.
 	Disabled bool `yaml:"disabled,omitempty"`
 }
 

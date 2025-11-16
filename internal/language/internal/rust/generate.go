@@ -93,7 +93,7 @@ func buildCodec(library *config.Library) map[string]string {
 	if rust.ModulePath != "" {
 		codec["module-path"] = rust.ModulePath
 	}
-	if rust.NotForPublication {
+	if library.Publish != nil && library.Publish.Disabled {
 		codec["not-for-publication"] = "true"
 	}
 	if len(rust.DisabledRustdocWarnings) > 0 {

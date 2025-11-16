@@ -96,9 +96,6 @@ type RustCrate struct {
 
 	// DetailedTracingAttributes indicates whether to include detailed tracing attributes.
 	DetailedTracingAttributes bool `yaml:"detailed_tracing_attributes,omitempty"`
-
-	// NotForPublication indicates the crate should not be published.
-	NotForPublication bool `yaml:"not_for_publication,omitempty"`
 }
 
 // RustPackageDependency represents a package dependency configuration.

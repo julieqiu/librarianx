@@ -157,7 +157,7 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 }
 
 // deriveLibraryName derives a library name from an API path.
-// For example: "google/api/cloudquotas/v1" -> "google-api-cloudquotas-v1"
+// For example: "google/api/cloudquotas/v1" -> "google-api-cloudquotas-v1".
 func deriveLibraryName(apiPath string) string {
 	return strings.ReplaceAll(apiPath, "/", "-")
 }
