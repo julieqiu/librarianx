@@ -109,7 +109,10 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		return fmt.Errorf("failed to fix package names in generated files: %w", err)
 	}
 
-	// Run black formatter to fix quote styles and other formatting
+	// Run isort to sort imports, then black to format code
+	if err := runIsort(outdir); err != nil {
+		return fmt.Errorf("failed to run isort: %w", err)
+	}
 	if err := runBlackFormatter(outdir); err != nil {
 		return fmt.Errorf("failed to run black formatter: %w", err)
 	}
@@ -530,6 +533,17 @@ func fixJSONFile(path, correctPackageName string) error {
 
 	if newContent != string(content) {
 		return os.WriteFile(path, []byte(newContent), 0644)
+	}
+	return nil
+}
+
+// runIsort runs the isort import sorter on Python files in the output directory.
+// The --fss flag forces strict alphabetical sorting within sections.
+func runIsort(outdir string) error {
+	cmd := exec.Command("isort", "--fss", outdir)
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("isort failed: %w\nOutput: %s", err, string(output))
 	}
 	return nil
 }
