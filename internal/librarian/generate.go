@@ -136,6 +136,7 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 
 	// Check if generation is disabled for this library
 	if library.Generate != nil && library.Generate.Disabled {
+		fmt.Printf("  ⊘ %s (generation disabled)\n", apiPath)
 		return nil
 	}
 
