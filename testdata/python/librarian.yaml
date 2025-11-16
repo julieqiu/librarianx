@@ -14,64 +14,27 @@ default:
     tag_format: '{name}-v{version}'
 name_overrides:
   google/ads/admanager/v1: google-ads-admanager
-  google/ai/generativelanguage/v1: google-ai-generativelanguage
-  google/ai/generativelanguage/v1alpha: google-ai-generativelanguage
-  google/ai/generativelanguage/v1beta: google-ai-generativelanguage
-  google/ai/generativelanguage/v1beta2: google-ai-generativelanguage
-  google/ai/generativelanguage/v1beta3: google-ai-generativelanguage
-  google/analytics/admin/v1alpha: google-analytics-admin
-  google/analytics/admin/v1beta: google-analytics-admin
-  google/analytics/data/v1alpha: google-analytics-data
-  google/analytics/data/v1beta: google-analytics-data
-  google/api: googleapis-common-protos
   google/api/apikeys/v2: google-cloud-api-keys
-  google/api/cloudquotas/v1: google-cloud-quotas
-  google/api/cloudquotas/v1beta: google-cloud-quotas
-  google/api/servicecontrol/v1: google-cloud-service-control
-  google/api/servicecontrol/v2: google-cloud-service-control
+  google/api/cloudquotas: google-cloud-quotas
+  google/api/servicecontrol: google-cloud-service-control
   google/api/servicemanagement/v1: google-cloud-service-management
   google/api/serviceusage/v1: google-cloud-service-usage
   google/appengine/logging/v1: google-cloud-appengine-logging
   google/appengine/v1: google-cloud-appengine-admin
   google/apps/card/v1: google-apps-card
-  google/apps/events/subscriptions/v1: google-apps-events-subscriptions
-  google/apps/events/subscriptions/v1beta: google-apps-events-subscriptions
-  google/apps/meet/v2: google-apps-meet
-  google/apps/meet/v2beta: google-apps-meet
-  google/apps/script/type/calendar: google-apps-script-type
-  google/apps/script/type/docs: google-apps-script-type
-  google/apps/script/type/drive: google-apps-script-type
-  google/apps/script/type/gmail: google-apps-script-type
-  google/apps/script/type/sheets: google-apps-script-type
-  google/apps/script/type/slides: google-apps-script-type
   google/area120/tables/v1alpha1: google-area120-tables
   google/chat/v1: google-apps-chat
   google/cloud/accessapproval/v1: google-cloud-access-approval
   google/cloud/advisorynotifications/v1: google-cloud-advisorynotifications
-  google/cloud/alloydb/connectors/v1: google-cloud-alloydb-connectors
-  google/cloud/alloydb/connectors/v1alpha: google-cloud-alloydb-connectors
-  google/cloud/alloydb/connectors/v1beta: google-cloud-alloydb-connectors
-  google/cloud/alloydb/v1: google-cloud-alloydb
-  google/cloud/alloydb/v1alpha: google-cloud-alloydb
-  google/cloud/alloydb/v1beta: google-cloud-alloydb
   google/cloud/apigateway/v1: google-cloud-api-gateway
   google/cloud/apigeeconnect/v1: google-cloud-apigee-connect
   google/cloud/apigeeregistry/v1: google-cloud-apigee-registry
   google/cloud/apihub/v1: google-cloud-apihub
   google/cloud/apphub/v1: google-cloud-apphub
-  google/cloud/asset/v1: google-cloud-asset
-  google/cloud/asset/v1p1beta1: google-cloud-asset
-  google/cloud/asset/v1p2beta1: google-cloud-asset
-  google/cloud/asset/v1p5beta1: google-cloud-asset
-  google/cloud/assuredworkloads/v1: google-cloud-assured-workloads
-  google/cloud/assuredworkloads/v1beta1: google-cloud-assured-workloads
+  google/cloud/assuredworkloads: google-cloud-assured-workloads
   google/cloud/audit: google-cloud-audit-log
-  google/cloud/automl/v1: google-cloud-automl
-  google/cloud/automl/v1beta1: google-cloud-automl
   google/cloud/backupdr/v1: google-cloud-backupdr
   google/cloud/baremetalsolution/v2: google-cloud-bare-metal-solution
-  google/cloud/batch/v1: google-cloud-batch
-  google/cloud/batch/v1alpha: google-cloud-batch
   google/cloud/beyondcorp/appconnections/v1: google-cloud-beyondcorp-appconnections
   google/cloud/beyondcorp/appconnectors/v1: google-cloud-beyondcorp-appconnectors
   google/cloud/beyondcorp/appgateways/v1: google-cloud-beyondcorp-appgateways
@@ -79,72 +42,33 @@ name_overrides:
   google/cloud/beyondcorp/clientgateways/v1: google-cloud-beyondcorp-clientgateways
   google/cloud/biglake/v1: google-cloud-biglake
   google/cloud/bigquery/analyticshub/v1: google-cloud-bigquery-analyticshub
-  google/cloud/bigquery/biglake/v1: google-cloud-bigquery-biglake
-  google/cloud/bigquery/biglake/v1alpha1: google-cloud-bigquery-biglake
   google/cloud/bigquery/connection/v1: google-cloud-bigquery-connection
   google/cloud/bigquery/dataexchange/v1beta1: google-cloud-bigquery-data-exchange
-  google/cloud/bigquery/datapolicies/v1: google-cloud-bigquery-datapolicies
-  google/cloud/bigquery/datapolicies/v1beta1: google-cloud-bigquery-datapolicies
-  google/cloud/bigquery/datapolicies/v2: google-cloud-bigquery-datapolicies
-  google/cloud/bigquery/datapolicies/v2beta1: google-cloud-bigquery-datapolicies
   google/cloud/bigquery/datatransfer/v1: google-cloud-bigquery-datatransfer
   google/cloud/bigquery/logging/v1: google-cloud-bigquery-logging
-  google/cloud/bigquery/migration/v2: google-cloud-bigquery-migration
-  google/cloud/bigquery/migration/v2alpha: google-cloud-bigquery-migration
   google/cloud/bigquery/reservation/v1: google-cloud-bigquery-reservation
-  google/cloud/bigquery/storage/v1: google-cloud-bigquery-storage
-  google/cloud/bigquery/storage/v1alpha: google-cloud-bigquery-storage
-  google/cloud/bigquery/storage/v1beta: google-cloud-bigquery-storage
-  google/cloud/bigquery/storage/v1beta2: google-cloud-bigquery-storage
-  google/cloud/billing/budgets/v1: google-cloud-billing-budgets
-  google/cloud/billing/budgets/v1beta1: google-cloud-billing-budgets
   google/cloud/billing/v1: google-cloud-billing
-  google/cloud/binaryauthorization/v1: google-cloud-binary-authorization
-  google/cloud/binaryauthorization/v1beta1: google-cloud-binary-authorization
+  google/cloud/binaryauthorization: google-cloud-binary-authorization
   google/cloud/capacityplanner/v1beta: google-cloud-capacityplanner
   google/cloud/certificatemanager/v1: google-cloud-certificate-manager
   google/cloud/channel/v1: google-cloud-channel
   google/cloud/chronicle/v1: google-cloud-chronicle
-  google/cloud/cloudcontrolspartner/v1: google-cloud-cloudcontrolspartner
-  google/cloud/cloudcontrolspartner/v1beta: google-cloud-cloudcontrolspartner
   google/cloud/clouddms/v1: google-cloud-dms
   google/cloud/cloudsecuritycompliance/v1: google-cloud-cloudsecuritycompliance
-  google/cloud/commerce/consumer/procurement/v1: google-cloud-commerce-consumer-procurement
-  google/cloud/commerce/consumer/procurement/v1alpha1: google-cloud-commerce-consumer-procurement
   google/cloud/compute/v1: google-cloud-compute
   google/cloud/confidentialcomputing/v1: google-cloud-confidentialcomputing
   google/cloud/config/v1: google-cloud-config
-  google/cloud/configdelivery/v1: google-cloud-configdelivery
-  google/cloud/configdelivery/v1alpha: google-cloud-configdelivery
-  google/cloud/configdelivery/v1beta: google-cloud-configdelivery
   google/cloud/contactcenterinsights/v1: google-cloud-contact-center-insights
   google/cloud/contentwarehouse/v1: google-cloud-contentwarehouse
   google/cloud/datacatalog/lineage/v1: google-cloud-datacatalog-lineage
-  google/cloud/datacatalog/v1: google-cloud-datacatalog
-  google/cloud/datacatalog/v1beta1: google-cloud-datacatalog
-  google/cloud/dataform/v1: google-cloud-dataform
-  google/cloud/dataform/v1beta1: google-cloud-dataform
   google/cloud/datafusion/v1: google-cloud-data-fusion
   google/cloud/datalabeling/v1beta1: google-cloud-datalabeling
   google/cloud/dataplex/v1: google-cloud-dataplex
   google/cloud/dataproc/v1: google-cloud-dataproc
   google/cloud/dataqna/v1alpha: google-cloud-data-qna
-  google/cloud/datastream/v1: google-cloud-datastream
-  google/cloud/datastream/v1alpha1: google-cloud-datastream
   google/cloud/deploy/v1: google-cloud-deploy
   google/cloud/developerconnect/v1: google-cloud-developerconnect
   google/cloud/devicestreaming/v1: google-cloud-devicestreaming
-  google/cloud/dialogflow/cx/v3: google-cloud-dialogflow-cx
-  google/cloud/dialogflow/cx/v3beta1: google-cloud-dialogflow-cx
-  google/cloud/dialogflow/v2: google-cloud-dialogflow
-  google/cloud/dialogflow/v2beta1: google-cloud-dialogflow
-  google/cloud/discoveryengine/v1: google-cloud-discoveryengine
-  google/cloud/discoveryengine/v1alpha: google-cloud-discoveryengine
-  google/cloud/discoveryengine/v1beta: google-cloud-discoveryengine
-  google/cloud/documentai/v1: google-cloud-documentai
-  google/cloud/documentai/v1beta3: google-cloud-documentai
-  google/cloud/domains/v1: google-cloud-domains
-  google/cloud/domains/v1beta1: google-cloud-domains
   google/cloud/edgecontainer/v1: google-cloud-edgecontainer
   google/cloud/edgenetwork/v1: google-cloud-edgenetwork
   google/cloud/enterpriseknowledgegraph/v1: google-cloud-enterpriseknowledgegraph
@@ -153,16 +77,10 @@ name_overrides:
   google/cloud/eventarc/v1: google-cloud-eventarc
   google/cloud/filestore/v1: google-cloud-filestore
   google/cloud/financialservices/v1: google-cloud-financialservices
-  google/cloud/functions/v1: google-cloud-functions
-  google/cloud/functions/v2: google-cloud-functions
   google/cloud/gdchardwaremanagement/v1alpha: google-cloud-gdchardwaremanagement
-  google/cloud/geminidataanalytics/v1alpha: google-cloud-geminidataanalytics
-  google/cloud/geminidataanalytics/v1beta: google-cloud-geminidataanalytics
   google/cloud/gkebackup/v1: google-cloud-gke-backup
-  google/cloud/gkeconnect/gateway/v1: google-cloud-gke-connect-gateway
-  google/cloud/gkeconnect/gateway/v1beta1: google-cloud-gke-connect-gateway
-  google/cloud/gkehub/v1: google-cloud-gke-hub
-  google/cloud/gkehub/v1beta1: google-cloud-gke-hub
+  google/cloud/gkeconnect/gateway: google-cloud-gke-connect-gateway
+  google/cloud/gkehub: google-cloud-gke-hub
   google/cloud/gkemulticloud/v1: google-cloud-gke-multicloud
   google/cloud/gkerecommender/v1: google-cloud-gkerecommender
   google/cloud/gsuiteaddons/v1: google-cloud-gsuiteaddons
@@ -171,12 +89,8 @@ name_overrides:
   google/cloud/ids/v1: google-cloud-ids
   google/cloud/kms/inventory/v1: google-cloud-kms-inventory
   google/cloud/kms/v1: google-cloud-kms
-  google/cloud/language/v1: google-cloud-language
-  google/cloud/language/v1beta2: google-cloud-language
-  google/cloud/language/v2: google-cloud-language
   google/cloud/licensemanager/v1: google-cloud-licensemanager
   google/cloud/lifesciences/v2beta: google-cloud-life-sciences
-  google/cloud/location: googleapis-common-protos
   google/cloud/locationfinder/v1: google-cloud-locationfinder
   google/cloud/lustre/v1: google-cloud-lustre
   google/cloud/maintenance/api/v1beta: google-cloud-maintenance-api
@@ -184,38 +98,19 @@ name_overrides:
   google/cloud/managedkafka/schemaregistry/v1: google-cloud-managedkafka-schemaregistry
   google/cloud/managedkafka/v1: google-cloud-managedkafka
   google/cloud/mediatranslation/v1beta1: google-cloud-media-translation
-  google/cloud/memcache/v1: google-cloud-memcache
-  google/cloud/memcache/v1beta2: google-cloud-memcache
-  google/cloud/memorystore/v1: google-cloud-memorystore
-  google/cloud/memorystore/v1beta: google-cloud-memorystore
-  google/cloud/metastore/v1: google-cloud-dataproc-metastore
-  google/cloud/metastore/v1alpha: google-cloud-dataproc-metastore
-  google/cloud/metastore/v1beta: google-cloud-dataproc-metastore
+  google/cloud/metastore: google-cloud-dataproc-metastore
   google/cloud/migrationcenter/v1: google-cloud-migrationcenter
-  google/cloud/modelarmor/v1: google-cloud-modelarmor
-  google/cloud/modelarmor/v1beta: google-cloud-modelarmor
   google/cloud/netapp/v1: google-cloud-netapp
-  google/cloud/networkconnectivity/v1: google-cloud-network-connectivity
-  google/cloud/networkconnectivity/v1alpha1: google-cloud-network-connectivity
+  google/cloud/networkconnectivity: google-cloud-network-connectivity
   google/cloud/networkmanagement/v1: google-cloud-network-management
-  google/cloud/networksecurity/v1: google-cloud-network-security
-  google/cloud/networksecurity/v1alpha1: google-cloud-network-security
-  google/cloud/networksecurity/v1beta1: google-cloud-network-security
+  google/cloud/networksecurity: google-cloud-network-security
   google/cloud/networkservices/v1: google-cloud-network-services
-  google/cloud/notebooks/v1: google-cloud-notebooks
-  google/cloud/notebooks/v1beta1: google-cloud-notebooks
-  google/cloud/notebooks/v2: google-cloud-notebooks
   google/cloud/optimization/v1: google-cloud-optimization
   google/cloud/oracledatabase/v1: google-cloud-oracledatabase
-  google/cloud/orchestration/airflow/service/v1: google-cloud-orchestration-airflow
-  google/cloud/orchestration/airflow/service/v1beta1: google-cloud-orchestration-airflow
-  google/cloud/orgpolicy/v1: google-cloud-org-policy
-  google/cloud/orgpolicy/v2: google-cloud-org-policy
-  google/cloud/osconfig/v1: google-cloud-os-config
-  google/cloud/osconfig/v1alpha: google-cloud-os-config
+  google/cloud/orchestration/airflow/service: google-cloud-orchestration-airflow
+  google/cloud/orgpolicy: google-cloud-org-policy
+  google/cloud/osconfig: google-cloud-os-config
   google/cloud/oslogin/v1: google-cloud-os-login
-  google/cloud/parallelstore/v1: google-cloud-parallelstore
-  google/cloud/parallelstore/v1beta: google-cloud-parallelstore
   google/cloud/parametermanager/v1: google-cloud-parametermanager
   google/cloud/phishingprotection/v1beta1: google-cloud-phishing-protection
   google/cloud/policysimulator/v1: google-cloud-policysimulator
@@ -226,109 +121,32 @@ name_overrides:
   google/cloud/rapidmigrationassessment/v1: google-cloud-rapidmigrationassessment
   google/cloud/recaptchaenterprise/v1: google-cloud-recaptcha-enterprise
   google/cloud/recommendationengine/v1beta1: google-cloud-recommendations-ai
-  google/cloud/recommender/v1: google-cloud-recommender
-  google/cloud/recommender/v1beta1: google-cloud-recommender
-  google/cloud/redis/cluster/v1: google-cloud-redis-cluster
-  google/cloud/redis/cluster/v1beta1: google-cloud-redis-cluster
-  google/cloud/redis/v1: google-cloud-redis
-  google/cloud/redis/v1beta1: google-cloud-redis
   google/cloud/resourcemanager/v3: google-cloud-resource-manager
-  google/cloud/retail/v2: google-cloud-retail
-  google/cloud/retail/v2alpha: google-cloud-retail
-  google/cloud/retail/v2beta: google-cloud-retail
   google/cloud/run/v2: google-cloud-run
   google/cloud/saasplatform/saasservicemgmt/v1beta1: google-cloud-saasplatform-saasservicemgmt
-  google/cloud/scheduler/v1: google-cloud-scheduler
-  google/cloud/scheduler/v1beta1: google-cloud-scheduler
-  google/cloud/secretmanager/v1: google-cloud-secret-manager
-  google/cloud/secretmanager/v1beta2: google-cloud-secret-manager
-  google/cloud/secrets/v1beta1: google-cloud-secret-manager
   google/cloud/securesourcemanager/v1: google-cloud-securesourcemanager
-  google/cloud/security/privateca/v1: google-cloud-private-ca
-  google/cloud/security/privateca/v1beta1: google-cloud-private-ca
-  google/cloud/security/publicca/v1: google-cloud-security-publicca
-  google/cloud/security/publicca/v1beta1: google-cloud-security-publicca
-  google/cloud/securitycenter/v1: google-cloud-securitycenter
-  google/cloud/securitycenter/v1beta1: google-cloud-securitycenter
-  google/cloud/securitycenter/v1p1beta1: google-cloud-securitycenter
-  google/cloud/securitycenter/v2: google-cloud-securitycenter
+  google/cloud/security/privateca: google-cloud-private-ca
   google/cloud/securitycentermanagement/v1: google-cloud-securitycentermanagement
-  google/cloud/servicedirectory/v1: google-cloud-service-directory
-  google/cloud/servicedirectory/v1beta1: google-cloud-service-directory
+  google/cloud/servicedirectory: google-cloud-service-directory
   google/cloud/servicehealth/v1: google-cloud-servicehealth
   google/cloud/shell/v1: google-cloud-shell
-  google/cloud/speech/v1: google-cloud-speech
-  google/cloud/speech/v1p1beta1: google-cloud-speech
-  google/cloud/speech/v2: google-cloud-speech
   google/cloud/storagebatchoperations/v1: google-cloud-storagebatchoperations
   google/cloud/storageinsights/v1: google-cloud-storageinsights
-  google/cloud/support/v2: google-cloud-support
-  google/cloud/support/v2beta: google-cloud-support
-  google/cloud/talent/v4: google-cloud-talent
-  google/cloud/talent/v4beta1: google-cloud-talent
-  google/cloud/tasks/v2: google-cloud-tasks
-  google/cloud/tasks/v2beta2: google-cloud-tasks
-  google/cloud/tasks/v2beta3: google-cloud-tasks
-  google/cloud/telcoautomation/v1: google-cloud-telcoautomation
-  google/cloud/telcoautomation/v1alpha1: google-cloud-telcoautomation
-  google/cloud/texttospeech/v1: google-cloud-texttospeech
-  google/cloud/texttospeech/v1beta1: google-cloud-texttospeech
-  google/cloud/tpu/v1: google-cloud-tpu
-  google/cloud/tpu/v2: google-cloud-tpu
-  google/cloud/tpu/v2alpha1: google-cloud-tpu
-  google/cloud/translate/v3: google-cloud-translate
-  google/cloud/translate/v3beta1: google-cloud-translate
   google/cloud/video/livestream/v1: google-cloud-video-live-stream
   google/cloud/video/stitcher/v1: google-cloud-video-stitcher
   google/cloud/video/transcoder/v1: google-cloud-video-transcoder
-  google/cloud/videointelligence/v1: google-cloud-videointelligence
-  google/cloud/videointelligence/v1beta2: google-cloud-videointelligence
-  google/cloud/videointelligence/v1p1beta1: google-cloud-videointelligence
-  google/cloud/videointelligence/v1p2beta1: google-cloud-videointelligence
-  google/cloud/videointelligence/v1p3beta1: google-cloud-videointelligence
-  google/cloud/vision/v1: google-cloud-vision
-  google/cloud/vision/v1p1beta1: google-cloud-vision
-  google/cloud/vision/v1p2beta1: google-cloud-vision
-  google/cloud/vision/v1p3beta1: google-cloud-vision
-  google/cloud/vision/v1p4beta1: google-cloud-vision
-  google/cloud/visionai/v1: google-cloud-visionai
-  google/cloud/visionai/v1alpha1: google-cloud-visionai
   google/cloud/vmmigration/v1: google-cloud-vm-migration
   google/cloud/vmwareengine/v1: google-cloud-vmwareengine
   google/cloud/vpcaccess/v1: google-cloud-vpc-access
-  google/cloud/webrisk/v1: google-cloud-webrisk
-  google/cloud/webrisk/v1beta1: google-cloud-webrisk
-  google/cloud/websecurityscanner/v1: google-cloud-websecurityscanner
-  google/cloud/websecurityscanner/v1alpha: google-cloud-websecurityscanner
-  google/cloud/websecurityscanner/v1beta: google-cloud-websecurityscanner
-  google/cloud/workflows/executions/v1: google-cloud-workflows
-  google/cloud/workflows/executions/v1beta: google-cloud-workflows
-  google/cloud/workflows/v1: google-cloud-workflows
-  google/cloud/workflows/v1beta: google-cloud-workflows
-  google/cloud/workstations/v1: google-cloud-workstations
-  google/cloud/workstations/v1beta: google-cloud-workstations
-  google/container/v1: google-cloud-container
-  google/container/v1beta1: google-cloud-container
+  google/container: google-cloud-container
   google/dataflow/v1beta3: google-cloud-dataflow-client
-  google/devtools/artifactregistry/v1: google-cloud-artifact-registry
-  google/devtools/artifactregistry/v1beta2: google-cloud-artifact-registry
-  google/devtools/cloudbuild/v1: google-cloud-build
-  google/devtools/cloudbuild/v2: google-cloud-build
-  google/devtools/cloudtrace/v1: google-cloud-trace
-  google/devtools/cloudtrace/v2: google-cloud-trace
+  google/devtools/artifactregistry: google-cloud-artifact-registry
+  google/devtools/cloudbuild: google-cloud-build
+  google/devtools/cloudtrace: google-cloud-trace
   google/devtools/containeranalysis/v1: google-cloud-containeranalysis
   google/devtools/source/v1: google-cloud-source-context
-  google/iam/admin/v1: google-cloud-iam
-  google/iam/credentials/v1: google-cloud-iam
   google/iam/v1: grpc-google-iam-v1
   google/iam/v1/logging: google-cloud-iam-logging
-  google/iam/v2: google-cloud-iam
-  google/iam/v2beta: google-cloud-iam
-  google/iam/v3: google-cloud-iam
-  google/iam/v3beta: google-cloud-iam
-  google/identity/accesscontextmanager/type: google-cloud-access-context-manager
-  google/identity/accesscontextmanager/v1: google-cloud-access-context-manager
-  google/logging/type: googleapis-common-protos
   google/maps/addressvalidation/v1: google-maps-addressvalidation
   google/maps/areainsights/v1: google-maps-areainsights
   google/maps/fleetengine/delivery/v1: google-maps-fleetengine-delivery
@@ -343,39 +161,11 @@ name_overrides:
   google/monitoring/metricsscope/v1: google-cloud-monitoring-metrics-scopes
   google/monitoring/v3: google-cloud-monitoring
   google/privacy/dlp/v2: google-cloud-dlp
-  google/rpc: googleapis-common-protos
-  google/rpc/context: googleapis-common-protos
   google/shopping/css/v1: google-shopping-css
-  google/shopping/merchant/accounts/v1: google-shopping-merchant-accounts
-  google/shopping/merchant/accounts/v1beta: google-shopping-merchant-accounts
-  google/shopping/merchant/conversions/v1: google-shopping-merchant-conversions
-  google/shopping/merchant/conversions/v1beta: google-shopping-merchant-conversions
-  google/shopping/merchant/datasources/v1: google-shopping-merchant-datasources
-  google/shopping/merchant/datasources/v1beta: google-shopping-merchant-datasources
-  google/shopping/merchant/inventories/v1: google-shopping-merchant-inventories
-  google/shopping/merchant/inventories/v1beta: google-shopping-merchant-inventories
-  google/shopping/merchant/issueresolution/v1: google-shopping-merchant-issueresolution
-  google/shopping/merchant/issueresolution/v1beta: google-shopping-merchant-issueresolution
-  google/shopping/merchant/lfp/v1: google-shopping-merchant-lfp
-  google/shopping/merchant/lfp/v1beta: google-shopping-merchant-lfp
-  google/shopping/merchant/notifications/v1: google-shopping-merchant-notifications
-  google/shopping/merchant/notifications/v1beta: google-shopping-merchant-notifications
-  google/shopping/merchant/ordertracking/v1: google-shopping-merchant-ordertracking
-  google/shopping/merchant/ordertracking/v1beta: google-shopping-merchant-ordertracking
-  google/shopping/merchant/products/v1: google-shopping-merchant-products
-  google/shopping/merchant/products/v1beta: google-shopping-merchant-products
   google/shopping/merchant/productstudio/v1alpha: google-shopping-merchant-productstudio
-  google/shopping/merchant/promotions/v1: google-shopping-merchant-promotions
-  google/shopping/merchant/promotions/v1beta: google-shopping-merchant-promotions
-  google/shopping/merchant/quota/v1: google-shopping-merchant-quota
-  google/shopping/merchant/quota/v1beta: google-shopping-merchant-quota
-  google/shopping/merchant/reports/v1: google-shopping-merchant-reports
-  google/shopping/merchant/reports/v1alpha: google-shopping-merchant-reports
-  google/shopping/merchant/reports/v1beta: google-shopping-merchant-reports
   google/shopping/merchant/reviews/v1beta: google-shopping-merchant-reviews
   google/storage/control/v2: google-cloud-storage-control
   google/storagetransfer/v1: google-cloud-storage-transfer
-  google/type: googleapis-common-protos
   grafeas/v1: grafeas
 libraries:
   - name: google-ads-admanager
@@ -384,6 +174,14 @@ libraries:
     keep:
       - tests/unit/gapic/card_v1/test_card.py
   - name: google-apps-script-type
+    apis:
+      - google/apps/script/type
+      - google/apps/script/type/calendar
+      - google/apps/script/type/docs
+      - google/apps/script/type/drive
+      - google/apps/script/type/gmail
+      - google/apps/script/type/sheets
+      - google/apps/script/type/slides
     keep:
       - tests/unit/gapic/calendar/test_calendar.py
       - tests/unit/gapic/docs/test_docs.py
@@ -393,6 +191,10 @@ libraries:
       - tests/unit/gapic/slides/test_slides.py
       - tests/unit/gapic/type/test_type.py
     transport: grpc
+  - name: google-cloud-access-context-manager
+    apis:
+      - google/identity/accesscontextmanager/type
+      - google/identity/accesscontextmanager/v1
   - name: google-cloud-alloydb-connectors
     keep:
       - tests/unit/gapic/connectors_v1/test_connectors.py
@@ -505,6 +307,14 @@ libraries:
     python:
       opt_args:
         - warehouse-package-name=google-cloud-gke-hub
+  - name: google-cloud-iam
+    apis:
+      - google/iam/admin/v1
+      - google/iam/credentials/v1
+      - google/iam/v2
+      - google/iam/v2beta
+      - google/iam/v3
+      - google/iam/v3beta
   - name: google-cloud-iam-logging
     keep:
       - tests/unit/gapic/iam_logging_v1/test_iam_logging.py
@@ -578,6 +388,11 @@ libraries:
     python:
       opt_args:
         - warehouse-package-name=google-cloud-resource-manager
+  - name: google-cloud-secret-manager
+    apis:
+      - google/cloud/secretmanager/v1
+      - google/cloud/secretmanager/v1beta2
+      - google/cloud/secrets/v1beta1
   - name: google-cloud-service-directory
     python:
       opt_args:
@@ -623,6 +438,11 @@ libraries:
       opt_args:
         - warehouse-package-name=google-cloud-vpc-access
   - name: google-cloud-workflows
+    apis:
+      - google/cloud/workflows/executions/v1
+      - google/cloud/workflows/executions/v1beta
+      - google/cloud/workflows/v1
+      - google/cloud/workflows/v1beta
     transport: grpc
   - name: google-geo-type
     keep:
