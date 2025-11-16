@@ -29,8 +29,13 @@ type ServiceConfigOverrides struct {
 	// ServiceConfigs maps API paths to their service YAML filenames.
 	ServiceConfigs map[string]string `yaml:"service_configs"`
 
-	// ExcludeAPIs lists API path patterns to exclude from wildcard discovery.
-	ExcludeAPIs []string `yaml:"exclude_apis"`
+	// ExcludedAPIs contains language-specific API exclusions.
+	ExcludedAPIs struct {
+		// All lists APIs excluded from all languages.
+		All []string `yaml:"all"`
+		// Rust lists APIs excluded from Rust only.
+		Rust []string `yaml:"rust"`
+	} `yaml:"excluded_apis"`
 }
 
 // ReadServiceConfigOverrides reads the embedded service_config_overrides.yaml file.
@@ -42,13 +47,32 @@ func ReadServiceConfigOverrides() (*ServiceConfigOverrides, error) {
 	return &overrides, nil
 }
 
-// IsExcluded returns true if the given API path matches any exclusion pattern.
-func (o *ServiceConfigOverrides) IsExcluded(apiPath string) bool {
-	for _, pattern := range o.ExcludeAPIs {
+// IsExcluded returns true if the given API path matches any exclusion pattern for the specified language.
+// Checks both global "all" exclusions and language-specific exclusions.
+func (o *ServiceConfigOverrides) IsExcluded(language, apiPath string) bool {
+	// Check "all" exclusions first (applies to all languages)
+	for _, pattern := range o.ExcludedAPIs.All {
 		if matchGlobPattern(pattern, apiPath) {
 			return true
 		}
 	}
+
+	// Check language-specific exclusions
+	var languageExclusions []string
+	switch language {
+	case "rust":
+		languageExclusions = o.ExcludedAPIs.Rust
+	// Add more languages here as needed
+	// case "python":
+	//     languageExclusions = o.ExcludedAPIs.Python
+	}
+
+	for _, pattern := range languageExclusions {
+		if matchGlobPattern(pattern, apiPath) {
+			return true
+		}
+	}
+
 	return false
 }
 

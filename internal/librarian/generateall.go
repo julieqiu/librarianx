@@ -62,7 +62,7 @@ func runGenerateAll(ctx context.Context) error {
 	}
 
 	// Discover all APIs
-	apis, err := discoverAPIs(googleapisDir, overrides)
+	apis, err := discoverAPIs(googleapisDir, cfg.Language, overrides)
 	if err != nil {
 		return fmt.Errorf("failed to discover APIs: %w", err)
 	}
@@ -89,7 +89,7 @@ func runGenerateAll(ctx context.Context) error {
 }
 
 // discoverAPIs walks the googleapis directory tree and returns all discovered APIs.
-func discoverAPIs(googleapisDir string, overrides *config.ServiceConfigOverrides) ([]*discoveredAPI, error) {
+func discoverAPIs(googleapisDir, language string, overrides *config.ServiceConfigOverrides) ([]*discoveredAPI, error) {
 	var apis []*discoveredAPI
 
 	err := filepath.Walk(googleapisDir, func(path string, info os.FileInfo, err error) error {
@@ -122,7 +122,7 @@ func discoverAPIs(googleapisDir string, overrides *config.ServiceConfigOverrides
 		}
 
 		// Check if excluded
-		if overrides != nil && overrides.IsExcluded(apiPath) {
+		if overrides != nil && overrides.IsExcluded(language, apiPath) {
 			return nil
 		}
 

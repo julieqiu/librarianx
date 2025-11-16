@@ -109,7 +109,7 @@ func runGenerate(ctx context.Context, name string) error {
 		// Generate each API
 		for _, apiPath := range apiPaths {
 			// Check if API is excluded
-			if overrides.IsExcluded(apiPath) {
+			if overrides.IsExcluded(cfg.Language, apiPath) {
 				fmt.Printf("  ⊘ %s (excluded)\n", apiPath)
 				continue
 			}
@@ -144,7 +144,7 @@ func runGenerate(ctx context.Context, name string) error {
 	}
 
 	// Check if API is excluded
-	if overrides.IsExcluded(apiPath) {
+	if overrides.IsExcluded(cfg.Language, apiPath) {
 		return fmt.Errorf("API %q is excluded from generation", apiPath)
 	}
 

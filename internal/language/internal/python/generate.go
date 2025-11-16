@@ -38,6 +38,13 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 			outdir = strings.ReplaceAll(defaults.Output, "{name}", library.Name)
 		}
 	}
+
+	// Convert to absolute path since protoc runs from a different directory
+	var err error
+	outdir, err = filepath.Abs(outdir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for output directory: %w", err)
+	}
 	fmt.Println(outdir)
 
 	// Get keep paths - use library.Keep if specified, otherwise use defaults

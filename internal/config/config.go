@@ -256,29 +256,44 @@ func (c *Config) GetNameOverride(apiPath string) string {
 
 // GetLibraryName returns the library name for the given API path.
 // It checks name_overrides first, then derives the name based on naming conventions.
+// When one_library_per: service, all versions of a service share the same library name.
 func (c *Config) GetLibraryName(apiPath string) string {
-	// Check for name override
+	// Extract service path (remove version)
+	servicePath := getServicePath(apiPath)
+
+	// Check for name override on service path
+	if override := c.GetNameOverride(servicePath); override != "" {
+		return override
+	}
+
+	// Check for name override on full API path (for backward compatibility)
 	if override := c.GetNameOverride(apiPath); override != "" {
 		return override
 	}
 
 	// Derive name based on language convention
 	if c.Language == "python" {
-		// Python: replace / with -
-		return strings.ReplaceAll(apiPath, "/", "-")
+		// Python: replace / with - in service path
+		return strings.ReplaceAll(servicePath, "/", "-")
 	}
 
-	// Go and other languages: use the service name (last non-version component)
-	parts := strings.Split(apiPath, "/")
-	for i := len(parts) - 1; i >= 0; i-- {
-		part := parts[i]
-		// Skip version components (v1, v1beta1, v2alpha, etc.)
-		if len(part) > 0 && part[0] == 'v' && len(part) > 1 && (part[1] >= '0' && part[1] <= '9') {
-			continue
-		}
-		return part
-	}
+	// Go and other languages: use the service name (last component)
+	parts := strings.Split(servicePath, "/")
 	return parts[len(parts)-1]
+}
+
+// getServicePath extracts the service path (base path without version) from an API path.
+// Example: google/ai/generativelanguage/v1 → google/ai/generativelanguage
+func getServicePath(apiPath string) string {
+	parts := strings.Split(apiPath, "/")
+	// Remove version component (last part if it starts with 'v' followed by a digit)
+	if len(parts) > 0 {
+		lastPart := parts[len(parts)-1]
+		if len(lastPart) > 0 && lastPart[0] == 'v' && len(lastPart) > 1 && (lastPart[1] >= '0' && lastPart[1] <= '9') {
+			parts = parts[:len(parts)-1]
+		}
+	}
+	return strings.Join(parts, "/")
 }
 
 // ReadDocumentationOverrides reads the embedded documentation overrides.

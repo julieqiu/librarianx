@@ -51,30 +51,35 @@ func TestMatchGlobPattern(t *testing.T) {
 }
 
 func TestServiceConfigOverrides_IsExcluded(t *testing.T) {
-	overrides := &ServiceConfigOverrides{
-		ExcludeAPIs: []string{
-			"google/actions",
-			"google/ads",
-			"google/cloud/batch",
-		},
+	overrides := &ServiceConfigOverrides{}
+	overrides.ExcludedAPIs.All = []string{"google/firebase"}
+	overrides.ExcludedAPIs.Rust = []string{
+		"google/actions",
+		"google/ads",
+		"google/cloud/batch",
 	}
 
 	for _, test := range []struct {
-		name string
-		path string
-		want bool
+		name     string
+		language string
+		path     string
+		want     bool
 	}{
-		{"excluded nested subdirectory", "google/actions/sdk/v2", true},
-		{"excluded direct subdirectory", "google/actions/v2", true},
-		{"excluded deeply nested", "google/ads/googleads/v1/services", true},
-		{"excluded batch subdirectory", "google/cloud/batch/v1", true},
-		{"not excluded different path", "google/cloud/secretmanager/v1", false},
-		{"not excluded similar prefix", "google/action/v1", false},
+		{"rust excluded nested subdirectory", "rust", "google/actions/sdk/v2", true},
+		{"rust excluded direct subdirectory", "rust", "google/actions/v2", true},
+		{"rust excluded deeply nested", "rust", "google/ads/googleads/v1/services", true},
+		{"rust excluded batch subdirectory", "rust", "google/cloud/batch/v1", true},
+		{"rust not excluded different path", "rust", "google/cloud/secretmanager/v1", false},
+		{"rust not excluded similar prefix", "rust", "google/action/v1", false},
+		{"python not excluded even if in rust list", "python", "google/actions/sdk/v2", false},
+		{"python not excluded batch", "python", "google/cloud/batch/v1", false},
+		{"all languages excluded firebase", "rust", "google/firebase/v1", true},
+		{"python also excluded firebase", "python", "google/firebase/v1", true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got := overrides.IsExcluded(test.path)
+			got := overrides.IsExcluded(test.language, test.path)
 			if got != test.want {
-				t.Errorf("IsExcluded(%q) = %v, want %v", test.path, got, test.want)
+				t.Errorf("IsExcluded(%q, %q) = %v, want %v", test.language, test.path, got, test.want)
 			}
 		})
 	}
@@ -86,45 +91,60 @@ func TestServiceConfigOverrides_EmbeddedExclusions(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Test Rust exclusions
 	for _, test := range []struct {
 		name string
 		path string
 		want bool
 	}{
-		{"actions excluded", "google/actions/sdk/v2", true},
-		{"apigeeregistry excluded", "google/cloud/apigeeregistry/v1", true},
-		{"videointelligence v1 excluded", "google/cloud/videointelligence/v1", true},
-		{"videointelligence v1beta2 excluded", "google/cloud/videointelligence/v1beta2", true},
-		{"videointelligence v1p1beta1 excluded", "google/cloud/videointelligence/v1p1beta1", true},
-		{"videointelligence v1p2beta1 excluded", "google/cloud/videointelligence/v1p2beta1", true},
-		{"videointelligence v1p3beta1 excluded", "google/cloud/videointelligence/v1p3beta1", true},
-		{"vision v1 excluded", "google/cloud/vision/v1", true},
-		{"vision v1p1beta1 excluded", "google/cloud/vision/v1p1beta1", true},
-		{"vision v1p2beta1 excluded", "google/cloud/vision/v1p2beta1", true},
-		{"vision v1p3beta1 excluded", "google/cloud/vision/v1p3beta1", true},
-		{"vision v1p4beta1 excluded", "google/cloud/vision/v1p4beta1", true},
-		{"visionai v1 excluded", "google/cloud/visionai/v1", true},
-		{"visionai v1alpha1 excluded", "google/cloud/visionai/v1alpha1", true},
-		{"firestore v1 excluded", "google/firestore/v1", true},
-		{"genomics excluded", "google/genomics/v1", true},
-		{"geo/type excluded", "google/geo/type", true},
-		{"home excluded", "google/home/v1", true},
-		{"networking/trafficdirector/type excluded", "google/networking/trafficdirector/type", true},
-		{"maps excluded", "google/maps/v1", true},
-		{"marketingplatform excluded", "google/marketingplatform/admin/v1alpha", true},
-		{"partner excluded", "google/partner/aistreams/v1alpha1", true},
-		{"search excluded", "google/search/partnerdataingestion/logging/v1", true},
-		{"security excluded", "google/security/v1", true},
-		{"shopping excluded", "google/shopping/v1", true},
-		{"streetview excluded", "google/streetview/publish/v1", true},
-		{"watcher excluded", "google/watcher/v1", true},
-		{"remoteworkers excluded", "google/devtools/remoteworkers/v1", true},
+		{"actions excluded for rust", "google/actions/sdk/v2", true},
+		{"apigeeregistry excluded for rust", "google/cloud/apigeeregistry/v1", true},
+		{"videointelligence v1 excluded for rust", "google/cloud/videointelligence/v1", true},
+		{"videointelligence v1beta2 excluded for rust", "google/cloud/videointelligence/v1beta2", true},
+		{"videointelligence v1p1beta1 excluded for rust", "google/cloud/videointelligence/v1p1beta1", true},
+		{"videointelligence v1p2beta1 excluded for rust", "google/cloud/videointelligence/v1p2beta1", true},
+		{"videointelligence v1p3beta1 excluded for rust", "google/cloud/videointelligence/v1p3beta1", true},
+		{"vision v1 excluded for rust", "google/cloud/vision/v1", true},
+		{"vision v1p1beta1 excluded for rust", "google/cloud/vision/v1p1beta1", true},
+		{"vision v1p2beta1 excluded for rust", "google/cloud/vision/v1p2beta1", true},
+		{"vision v1p3beta1 excluded for rust", "google/cloud/vision/v1p3beta1", true},
+		{"vision v1p4beta1 excluded for rust", "google/cloud/vision/v1p4beta1", true},
+		{"visionai v1 excluded for rust", "google/cloud/visionai/v1", true},
+		{"visionai v1alpha1 excluded for rust", "google/cloud/visionai/v1alpha1", true},
+		{"firestore v1 excluded for rust", "google/firestore/v1", true},
+		{"genomics excluded for rust", "google/genomics/v1", true},
+		{"geo/type excluded for rust", "google/geo/type", true},
+		{"home excluded for rust", "google/home/v1", true},
+		{"networking/trafficdirector/type excluded for rust", "google/networking/trafficdirector/type", true},
+		{"maps excluded for rust", "google/maps/v1", true},
+		{"marketingplatform excluded for rust", "google/marketingplatform/admin/v1alpha", true},
+		{"partner excluded for rust", "google/partner/aistreams/v1alpha1", true},
+		{"search excluded for rust", "google/search/partnerdataingestion/logging/v1", true},
+		{"security excluded for rust", "google/security/v1", true},
+		{"shopping excluded for rust", "google/shopping/v1", true},
+		{"streetview excluded for rust", "google/streetview/publish/v1", true},
+		{"watcher excluded for rust", "google/watcher/v1", true},
+		{"remoteworkers excluded for rust", "google/devtools/remoteworkers/v1", true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got := overrides.IsExcluded(test.path)
+			got := overrides.IsExcluded("rust", test.path)
 			if got != test.want {
-				t.Errorf("IsExcluded(%q) = %v, want %v", test.path, got, test.want)
+				t.Errorf("IsExcluded(\"rust\", %q) = %v, want %v", test.path, got, test.want)
 			}
 		})
 	}
+
+	// Test that Python does not have these exclusions
+	t.Run("python not excluded", func(t *testing.T) {
+		pythonNotExcluded := []string{
+			"google/actions/sdk/v2",
+			"google/cloud/videointelligence/v1",
+			"google/firestore/v1",
+		}
+		for _, path := range pythonNotExcluded {
+			if overrides.IsExcluded("python", path) {
+				t.Errorf("IsExcluded(\"python\", %q) = true, want false (should not be excluded for Python)", path)
+			}
+		}
+	})
 }

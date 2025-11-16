@@ -52,13 +52,16 @@ service_configs:
 # ============================================================================
 # API EXCLUSIONS
 # ============================================================================
-# APIs excluded from generation.
-# These APIs cannot be generated with 'librarian generate' or discovered by 'librarian generate --all'.
-# To generate an excluded API: remove it from this list
+# APIs excluded from generation, organized by language.
+# - all: APIs excluded from all languages
+# - rust: APIs excluded from Rust only
+# - python: APIs excluded from Python only (if needed in future)
 #
 # Format: list of directory paths (all subdirectories are excluded)
 
-exclude_apis:
+excluded_apis:
+  all: []
+  rust:
   # Advertising & Marketing
   - google/ads                    # Google Ads (AdManager, AdMob, GoogleAds, SearchAds360)
   - google/analytics              # Google Analytics
