@@ -151,10 +151,13 @@ func runYamlfmt(path string) error {
 // detectLanguage detects the programming language from the repository path.
 func detectLanguage(repoPath string) (string, error) {
 	// Extract language from repository name
-	languages := []string{"go", "python", "rust", "dart", "java", "node", "ruby", "php"}
+	// Check longer names first to avoid false matches (e.g., "go" in "googleapis")
+	languages := []string{"python", "rust", "dart", "java", "node", "ruby", "php", "go"}
 
+	lowerPath := strings.ToLower(repoPath)
 	for _, lang := range languages {
-		if strings.Contains(strings.ToLower(repoPath), lang) {
+		// Look for language in the final path component (repo name)
+		if strings.Contains(lowerPath, "cloud-"+lang) || strings.HasSuffix(lowerPath, "-"+lang) {
 			return lang, nil
 		}
 	}

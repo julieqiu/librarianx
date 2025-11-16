@@ -35,9 +35,15 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 	var libraries []*config.Library
 	var tagFormats []string
 	for _, stateLib := range state.Libraries {
+		// Only filter keep patterns for Python repositories
+		keepPatterns := stateLib.PreserveRegex
+		if language == "python" {
+			keepPatterns = filterKeepPatterns(stateLib.PreserveRegex, stateLib.ID)
+		}
+
 		lib := &config.Library{
 			Name: stateLib.ID,
-			Keep: stateLib.PreserveRegex,
+			Keep: keepPatterns,
 		}
 
 		// Extract API paths
@@ -75,14 +81,21 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 		libraries = append(libraries, lib)
 	}
 
+	// Determine output path based on language
+	outputPath := "{name}"
+	if language == "python" {
+		outputPath = "packages/{name}/"
+	}
+
 	// Create config with defaults
 	cfg := &config.Config{
 		Version:   "v1",
 		Language:  language,
 		Libraries: libraries,
 		Default: &config.Default{
-			Output: "packages/{name}/",
+			Output: outputPath,
 			Generate: &config.DefaultGenerate{
+				All:              true,
 				OneLibraryPer:    "service",
 				RestNumericEnums: true,
 			},
@@ -153,4 +166,39 @@ func shouldOmitField(fieldValue, defaultValue string) bool {
 		return false
 	}
 	return fieldValue == defaultValue
+}
+
+// filterKeepPatterns filters out unwanted patterns from the keep list.
+func filterKeepPatterns(patterns []string, libraryName string) []string {
+	// Patterns to exclude (with {name} placeholder for library name)
+	excludePatterns := []string{
+		"packages/{name}/CHANGELOG.md",
+		"docs/CHANGELOG.md",
+		"docs/README.rst",
+		"samples/README.txt",
+		"scripts/client-post-processing",
+		"samples/snippets/README.rst",
+		"tests/system",
+	}
+
+	// Replace {name} with actual library name
+	var expandedExcludePatterns []string
+	for _, pattern := range excludePatterns {
+		expandedExcludePatterns = append(expandedExcludePatterns, strings.Replace(pattern, "{name}", libraryName, -1))
+	}
+
+	var filtered []string
+	for _, pattern := range patterns {
+		exclude := false
+		for _, excludePattern := range expandedExcludePatterns {
+			if strings.Contains(pattern, excludePattern) {
+				exclude = true
+				break
+			}
+		}
+		if !exclude {
+			filtered = append(filtered, pattern)
+		}
+	}
+	return filtered
 }
