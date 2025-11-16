@@ -34,6 +34,9 @@ type RustCrate struct {
 	// TemplateOverride overrides the default template.
 	TemplateOverride string `yaml:"template_override,omitempty"`
 
+	// CopyrightYear is the year for copyright headers.
+	CopyrightYear string `yaml:"copyright_year,omitempty"`
+
 	// TitleOverride overrides the crate title.
 	TitleOverride string `yaml:"title_override,omitempty"`
 

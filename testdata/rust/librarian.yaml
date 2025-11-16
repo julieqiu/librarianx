@@ -307,6 +307,7 @@ libraries:
     api: google/cloud/secretmanager/v1
     path: src/generated/cloud/secretmanager/v1
     rust:
+      copyright_year: "2024"
       generate_setter_samples: true
   - name: google-cloud-storageinsights-v1
     api: google/cloud/storageinsights/v1

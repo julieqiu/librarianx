@@ -1,0 +1,91 @@
+version: (devel) darwin/arm64
+language: rust
+sources:
+  googleapis:
+    commit: 0eeb1be5b78a9c7e006ee57cde95349834ae9f3b
+default:
+  output: src/generated/
+  generate:
+    all: true
+    one_library_per: version
+    release_level: stable
+  release:
+    tag_format: '{name}/v{version}'
+    remote: upstream
+    branch: main
+  rust:
+    disabled_rustdoc_warnings:
+      - redundant_explicit_links
+      - broken_intra_doc_links
+    package_dependencies:
+      - name: api
+        package: google-cloud-api
+        source: google.api
+      - name: async-trait
+        package: async-trait
+        used_if: services
+      - name: bytes
+        package: bytes
+        force_used: true
+      - name: cloud_common
+        package: google-cloud-common
+        source: google.cloud.common
+      - name: gax
+        package: google-cloud-gax
+        used_if: services
+      - name: gaxi
+        package: google-cloud-gax-internal
+        used_if: services
+        feature: _internal-http-client
+      - name: grafeas
+        package: google-cloud-grafeas-v1
+        source: grafeas.v1
+      - name: gtype
+        package: google-cloud-type
+        source: google.type
+      - name: iam_v1
+        package: google-cloud-iam-v1
+        source: google.iam.v1
+      - name: lazy_static
+        package: lazy_static
+        used_if: services
+      - name: location
+        package: google-cloud-location
+        source: google.cloud.location
+      - name: logging_type
+        package: google-cloud-logging-type
+        source: google.logging.type
+      - name: longrunning
+        package: google-cloud-longrunning
+        source: google.longrunning
+      - name: lro
+        package: google-cloud-lro
+        used_if: lro
+      - name: reqwest
+        package: reqwest
+        used_if: services
+      - name: rpc
+        package: google-cloud-rpc
+        source: google.rpc
+      - name: rpc_context
+        package: google-cloud-rpc-context
+        source: google.rpc.context
+      - name: serde
+        package: serde
+        force_used: true
+      - name: serde_json
+        package: serde_json
+        force_used: true
+      - name: serde_with
+        package: serde_with
+        force_used: true
+      - name: tracing
+        package: tracing
+        used_if: services
+      - name: uuid
+        package: uuid
+        used_if: autopopulated
+      - name: wkt
+        package: google-cloud-wkt
+        source: google.protobuf
+        force_used: true

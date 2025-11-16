@@ -16,6 +16,9 @@ package rust
 
 import (
 	"context"
+	"fmt"
+	"os/exec"
+	"path/filepath"
 	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
@@ -25,13 +28,23 @@ import (
 )
 
 // Generate generates a Rust client library.
-func Generate(ctx context.Context, library *config.Library, googleapisDir, outdir, serviceConfigPath string) error {
+func Generate(ctx context.Context, library *config.Library, googleapisDir, serviceConfigPath, defaultOutput string) error {
+	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
 	sidekickConfig := toSidekickConfig(library, googleapisDir, serviceConfigPath)
 	model, err := parser.CreateModel(sidekickConfig)
 	if err != nil {
 		return err
 	}
-	return sidekickrust.Generate(model, outdir, sidekickConfig)
+	if err := sidekickrust.Generate(model, outdir, sidekickConfig); err != nil {
+		return err
+	}
+
+	cmd := exec.CommandContext(ctx, "cargo", "fmt", "--manifest-path", filepath.Join(outdir, "Cargo.toml"))
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return fmt.Errorf("cargo fmt failed: %w\n%s", err, output)
+	}
+
+	return nil
 }
 
 func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) *sidekickconfig.Config {
@@ -45,29 +58,85 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 		Source: map[string]string{
 			"googleapis-root": googleapisDir,
 		},
-		Codec: map[string]string{
-			"name-overrides":              library.Rust.NameOverrides,
-			"module-path":                 library.Rust.ModulePath,
-			"not-for-publication":         boolToString(library.Rust.NotForPublication),
-			"disabled-rustdoc-warnings":   strings.Join(library.Rust.DisabledRustdocWarnings, ","),
-			"disabled-clippy-warnings":    strings.Join(library.Rust.DisabledClippyWarnings, ","),
-			"template-override":           library.Rust.TemplateOverride,
-			"include-grpc-only-methods":   boolToString(library.Rust.IncludeGrpcOnlyMethods),
-			"per-service-features":        boolToString(library.Rust.PerServiceFeatures),
-			"default-features":            strings.Join(library.Rust.DefaultFeatures, ","),
-			"detailed-tracing-attributes": boolToString(library.Rust.DetailedTracingAttributes),
-			"has-veneer":                  boolToString(library.Rust.HasVeneer),
-			"extra-modules":               strings.Join(library.Rust.ExtraModules, ","),
-			"routing-required":            boolToString(library.Rust.RoutingRequired),
-			"generate-setter-samples":     boolToString(library.Rust.GenerateSetterSamples),
-		},
+		Codec: buildCodec(library.Rust),
 	}
 	return sidekickCfg
 }
 
-func boolToString(b bool) string {
-	if b {
-		return "true"
+func buildCodec(rust *config.RustCrate) map[string]string {
+	codec := make(map[string]string)
+
+	if rust.NameOverrides != "" {
+		codec["name-overrides"] = rust.NameOverrides
 	}
-	return ""
+	if rust.ModulePath != "" {
+		codec["module-path"] = rust.ModulePath
+	}
+	if rust.NotForPublication {
+		codec["not-for-publication"] = "true"
+	}
+	if len(rust.DisabledRustdocWarnings) > 0 {
+		codec["disabled-rustdoc-warnings"] = strings.Join(rust.DisabledRustdocWarnings, ",")
+	}
+	if len(rust.DisabledClippyWarnings) > 0 {
+		codec["disabled-clippy-warnings"] = strings.Join(rust.DisabledClippyWarnings, ",")
+	}
+	if rust.TemplateOverride != "" {
+		codec["template-override"] = rust.TemplateOverride
+	}
+	if rust.CopyrightYear != "" {
+		codec["copyright-year"] = rust.CopyrightYear
+	}
+	if rust.IncludeGrpcOnlyMethods {
+		codec["include-grpc-only-methods"] = "true"
+	}
+	if rust.PerServiceFeatures {
+		codec["per-service-features"] = "true"
+	}
+	if len(rust.DefaultFeatures) > 0 {
+		codec["default-features"] = strings.Join(rust.DefaultFeatures, ",")
+	}
+	if rust.DetailedTracingAttributes {
+		codec["detailed-tracing-attributes"] = "true"
+	}
+	if rust.HasVeneer {
+		codec["has-veneer"] = "true"
+	}
+	if len(rust.ExtraModules) > 0 {
+		codec["extra-modules"] = strings.Join(rust.ExtraModules, ",")
+	}
+	if rust.RoutingRequired {
+		codec["routing-required"] = "true"
+	}
+	if rust.GenerateSetterSamples {
+		codec["generate-setter-samples"] = "true"
+	}
+
+	for _, dep := range rust.PackageDependencies {
+		codec["package:"+dep.Name] = formatPackageDependency(&dep)
+	}
+
+	return codec
+}
+
+func formatPackageDependency(dep *config.RustPackageDependency) string {
+	var parts []string
+
+	if dep.Package != "" {
+		parts = append(parts, "package="+dep.Package)
+	}
+	if dep.Source != "" {
+		parts = append(parts, "source="+dep.Source)
+	}
+	if dep.ForceUsed {
+		parts = append(parts, "force-used=true")
+	}
+	if dep.UsedIf != "" {
+		parts = append(parts, "used-if="+dep.UsedIf)
+	}
+	if dep.Feature != "" {
+		parts = append(parts, "feature="+dep.Feature)
+	}
+
+	return strings.Join(parts, ",")
 }
