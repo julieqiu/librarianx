@@ -104,14 +104,22 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 	// Check for name override first
 	nameOverride := cfg.GetNameOverride(apiPath)
 
+	// Derive the library name from API path (for matching libraries in generate.all mode)
+	derivedName := deriveLibraryName(apiPath)
+
 	var library *config.Library
 	for _, lib := range cfg.Libraries {
-		// If there's a name override, look up by name
-		// Otherwise, look up by API path (existing behavior)
+		// Try matching in order of priority:
+		// 1. If there's a name override, match by override name
+		// 2. Match by explicit API field (for backward compatibility)
+		// 3. Match by derived name (for generate.all mode where api field is omitted)
 		if nameOverride != "" && lib.Name == nameOverride {
 			library = lib
 			break
-		} else if nameOverride == "" && lib.API == apiPath {
+		} else if lib.API == apiPath {
+			library = lib
+			break
+		} else if lib.Name == derivedName {
 			library = lib
 			break
 		}
@@ -125,6 +133,11 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		library = &config.Library{
 			API: apiPath,
 		}
+	}
+
+	// Ensure API field is set (in case library was found by name override without explicit api field)
+	if library.API == "" {
+		library.API = apiPath
 	}
 
 	// Ensure name override is set on the library
@@ -141,6 +154,12 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 	}
 
 	return language.Generate(ctx, library, googleapisDir, serviceConfigPath, cfg.Default.Output)
+}
+
+// deriveLibraryName derives a library name from an API path.
+// For example: "google/api/cloudquotas/v1" -> "google-api-cloudquotas-v1"
+func deriveLibraryName(apiPath string) string {
+	return strings.ReplaceAll(apiPath, "/", "-")
 }
 
 func applyDefaults(library *config.Library, defaults *config.Default) {
