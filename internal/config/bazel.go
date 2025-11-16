@@ -95,7 +95,7 @@ func parseBuildBazel(content string) (*BazelConfig, error) {
 }
 
 // extractStringValue extracts a string attribute value from BUILD.bazel content.
-// Example: grpc_service_config = "file.json" -> returns "file.json"
+// Example: grpc_service_config = "file.json" -> returns "file.json".
 func extractStringValue(content, key string) string {
 	pattern := regexp.MustCompile(fmt.Sprintf(`%s\s*=\s*"([^"]+)"`, regexp.QuoteMeta(key)))
 	matches := pattern.FindStringSubmatch(content)
@@ -106,7 +106,7 @@ func extractStringValue(content, key string) string {
 }
 
 // extractBoolValue extracts a boolean attribute value from BUILD.bazel content.
-// Example: rest_numeric_enums = True -> returns true
+// Example: rest_numeric_enums = True -> returns true.
 func extractBoolValue(content, key string) bool {
 	pattern := regexp.MustCompile(fmt.Sprintf(`%s\s*=\s*(True|False)`, regexp.QuoteMeta(key)))
 	matches := pattern.FindStringSubmatch(content)
@@ -117,7 +117,7 @@ func extractBoolValue(content, key string) bool {
 }
 
 // extractListValue extracts a list attribute value from BUILD.bazel content.
-// Example: opt_args = ["arg1", "arg2"] -> returns ["arg1", "arg2"]
+// Example: opt_args = ["arg1", "arg2"] -> returns ["arg1", "arg2"].
 func extractListValue(content, key string) []string {
 	// Match: key = [...] with multiline support
 	// Use (?s) for dot to match newlines

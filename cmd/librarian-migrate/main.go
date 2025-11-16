@@ -66,7 +66,7 @@ func run() error {
 	}
 
 	fmt.Fprintf(os.Stderr, "Reading legacy configuration from %s...\n", repoPath)
-	state, config, buildData, generatorInput, err := reader.ReadAll()
+	state, config, buildData, _, err := reader.ReadAll()
 	if err != nil {
 		return fmt.Errorf("failed to read legacy configuration: %w", err)
 	}
@@ -248,7 +248,7 @@ func discoverGoogleapisAPIs(googleapisPath string) ([]string, error) {
 }
 
 // getBasePath extracts the base path without the version.
-// Example: google/cloud/vision/v1 → google/cloud/vision
+// Example: google/cloud/vision/v1 → google/cloud/vision.
 func getBasePath(apiPath string) string {
 	parts := strings.Split(apiPath, "/")
 	// Remove version component (last part if it starts with 'v' followed by a digit)
@@ -279,6 +279,7 @@ func deriveExpectedName(servicePath, language string) string {
 // Expected library names:
 //   - Python: google-ai-generativelanguage (replace / with -)
 //   - Go: generativelanguage (last component)
+//
 // Only list in name_overrides if actual name differs from expected.
 // Only list in libraries if there's extra config OR APIs from multiple services.
 func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string, language string) {

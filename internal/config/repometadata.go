@@ -165,7 +165,7 @@ func isStableVersion(version string) bool {
 	versionNum := strings.TrimPrefix(version, "v")
 	// Check if it contains only digits (stable) or has alpha/beta (not stable)
 	for _, r := range versionNum {
-		if !('0' <= r && r <= '9') {
+		if r < '0' || r > '9' {
 			return false
 		}
 	}
@@ -195,7 +195,7 @@ func selectHighestVersion(versions []string) string {
 }
 
 // DeriveDefaultVersion extracts the version from an API path.
-// Example: "google/cloud/secretmanager/v1" -> "v1"
+// Example: "google/cloud/secretmanager/v1" -> "v1".
 func DeriveDefaultVersion(apiPath string) string {
 	parts := strings.Split(apiPath, "/")
 	if len(parts) == 0 {
@@ -221,7 +221,7 @@ func extractBaseProductURL(docURI string) string {
 }
 
 // CleanTitle removes "API" suffix from title to get name_pretty.
-// Example: "Secret Manager API" -> "Secret Manager"
+// Example: "Secret Manager API" -> "Secret Manager".
 func CleanTitle(title string) string {
 	title = strings.TrimSpace(title)
 	title = strings.TrimSuffix(title, " API")
@@ -229,7 +229,7 @@ func CleanTitle(title string) string {
 }
 
 // extractNameFromAPIID extracts the service name from the API ID.
-// Example: "secretmanager.googleapis.com" -> "secretmanager"
+// Example: "secretmanager.googleapis.com" -> "secretmanager".
 func extractNameFromAPIID(apiID string) string {
 	parts := strings.Split(apiID, ".")
 	if len(parts) > 0 {

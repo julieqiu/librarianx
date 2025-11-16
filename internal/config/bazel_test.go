@@ -152,11 +152,12 @@ func TestBazelConfig_GetPaths(t *testing.T) {
 
 func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 	for _, test := range []struct {
-		name   string
-		bazel  *BazelConfig
-		lib    *Library
-		want   *Library
+		name  string
+		bazel *BazelConfig
+		lib   *Library
+		want  *Library
 	}{
+
 		{
 			name: "merge transport",
 			bazel: &BazelConfig{

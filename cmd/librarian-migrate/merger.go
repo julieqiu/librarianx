@@ -54,7 +54,7 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 		// Track tag format for default identification
 		if stateLib.TagFormat != "" {
 			// Replace {id} with {name} for new format
-			tagFormat := strings.Replace(stateLib.TagFormat, "{id}", "{name}", -1)
+			tagFormat := strings.ReplaceAll(stateLib.TagFormat, "{id}", "{name}")
 			tagFormats = append(tagFormats, tagFormat)
 		}
 
@@ -190,7 +190,7 @@ func filterKeepPatterns(patterns []string, libraryName string) []string {
 	// Replace {name} with actual library name
 	var expandedExcludePatterns []string
 	for _, pattern := range excludePatterns {
-		expandedExcludePatterns = append(expandedExcludePatterns, strings.Replace(pattern, "{name}", libraryName, -1))
+		expandedExcludePatterns = append(expandedExcludePatterns, strings.ReplaceAll(pattern, "{name}", libraryName))
 	}
 
 	var filtered []string

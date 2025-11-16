@@ -44,12 +44,7 @@ func (r *Reader) ReadAll() (*LegacyState, *LegacyConfig, *BuildBazelData, *Legac
 		return nil, nil, nil, nil, fmt.Errorf("failed to read config.yaml: %w", err)
 	}
 
-	buildData, err := r.readBuildBazel(state)
-	if err != nil {
-		// Log warning but continue - BUILD.bazel data is optional
-		fmt.Fprintf(os.Stderr, "Warning: failed to read BUILD.bazel files: %v\n", err)
-		buildData = &BuildBazelData{Libraries: make(map[string]*BuildLibrary)}
-	}
+	buildData := r.readBuildBazel(state)
 
 	generatorInput, err := r.readGeneratorInput()
 	if err != nil {
@@ -175,5 +170,5 @@ func (r *Reader) readGeneratorInput() (*LegacyGeneratorInputData, error) {
 		return nil, err
 	}
 
-	return data, nil
+	return data
 }

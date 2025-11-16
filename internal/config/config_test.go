@@ -16,8 +16,6 @@ package config
 
 import (
 	"bytes"
-	"os"
-	"strings"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -63,22 +61,16 @@ func TestReadWrite(t *testing.T) {
 				t.Fatalf("failed to marshal struct to YAML: %v", err)
 			}
 
-			var index int
-			data, err := os.ReadFile(test.filePath)
+			wantCfg, err := Read(test.filePath)
 			if err != nil {
 				t.Fatal(err)
 			}
-			lines := strings.Split(string(data), "\n")
-			for i, line := range lines {
-				if strings.HasPrefix(line, "#") {
-					// Skip the header, and the new lines after the header
-					index = i + 2
-					continue
-				}
+			var gotCfg Config
+			if err := yaml.Unmarshal(got.Bytes(), &gotCfg); err != nil {
+				t.Fatalf("failed to unmarshal generated YAML: %v", err)
 			}
 
-			want := strings.Join(lines[index:], "\n")
-			if diff := cmp.Diff(want, got.String()); diff != "" {
+			if diff := cmp.Diff(wantCfg, &gotCfg); diff != "" {
 				t.Errorf("mismatch(-want, +got): %s", diff)
 			}
 		})
@@ -88,7 +80,7 @@ func TestReadWrite(t *testing.T) {
 func TestConfig_GetNameOverride(t *testing.T) {
 	cfg := &Config{
 		NameOverrides: map[string]string{
-			"google/api/apikeys/v2":             "google-api-keys",
+			"google/api/apikeys/v2":            "google-api-keys",
 			"google/cloud/bigquery/storage/v1": "google-cloud-bigquery-storage",
 		},
 	}

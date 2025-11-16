@@ -82,7 +82,7 @@ func updateManifest(config *config.Release, lastTag, manifest string) ([]string,
 }
 
 // BumpPackageVersion increments the minor version of a semantic version string.
-// Examples: 1.0.0 -> 1.1.0, 1.5.3 -> 1.6.0, 1.5.3-alpha.1 -> 1.6.0-alpha.1
+// Examples: 1.0.0 -> 1.1.0, 1.5.3 -> 1.6.0, 1.5.3-alpha.1 -> 1.6.0-alpha.1.
 func BumpPackageVersion(version string) (string, error) {
 	components := strings.SplitN(version, ".", 3)
 	if len(components) != 3 {

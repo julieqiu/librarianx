@@ -286,7 +286,7 @@ func (c *Config) GetLibraryName(apiPath string) string {
 }
 
 // getServicePath extracts the service path (base path without version) from an API path.
-// Example: google/ai/generativelanguage/v1 → google/ai/generativelanguage
+// Example: google/ai/generativelanguage/v1 → google/ai/generativelanguage.
 func getServicePath(apiPath string) string {
 	parts := strings.Split(apiPath, "/")
 	// Remove version component (last part if it starts with 'v' followed by a digit)

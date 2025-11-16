@@ -62,11 +62,10 @@ func (o *ServiceConfigOverrides) IsExcluded(language, apiPath string) bool {
 	switch language {
 	case "rust":
 		languageExclusions = o.ExcludedAPIs.Rust
-	// Add more languages here as needed
-	// case "python":
-	//     languageExclusions = o.ExcludedAPIs.Python
+		// Add more languages here as needed
+		// case "python":
+		// 	languageExclusions = o.ExcludedAPIs.Python
 	}
-
 	for _, pattern := range languageExclusions {
 		if matchGlobPattern(pattern, apiPath) {
 			return true
