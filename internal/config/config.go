@@ -178,6 +178,9 @@ type Library struct {
 	// GRPCServiceConfig is the gRPC service config JSON file path.
 	GRPCServiceConfig string `yaml:"grpc_service_config,omitempty"`
 
+	// CopyrightYear is the copyright year for the library.
+	CopyrightYear string `yaml:"copyright_year,omitempty"`
+
 	// Rust contains Rust-specific library configuration.
 	Rust *RustCrate `yaml:"rust,omitempty"`
 

@@ -81,6 +81,11 @@ func buildCodec(library *config.Library) map[string]string {
 		codec["package-name-override"] = library.Name
 	}
 
+	// Add copyright year if specified
+	if library.CopyrightYear != "" {
+		codec["copyright-year"] = library.CopyrightYear
+	}
+
 	// Return codec if no Rust config
 	if library.Rust == nil {
 		return codec
@@ -104,9 +109,6 @@ func buildCodec(library *config.Library) map[string]string {
 	}
 	if rust.TemplateOverride != "" {
 		codec["template-override"] = rust.TemplateOverride
-	}
-	if rust.CopyrightYear != "" {
-		codec["copyright-year"] = rust.CopyrightYear
 	}
 	if rust.IncludeGrpcOnlyMethods {
 		codec["include-grpc-only-methods"] = "true"
