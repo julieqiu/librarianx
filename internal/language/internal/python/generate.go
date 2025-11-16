@@ -261,9 +261,16 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 		opts = append(opts, library.Python.OptArgs...)
 	}
 
-	// Add service config if provided
+	// Add gRPC service config (retry/timeout settings) from library config if set
+	if library.GRPCServiceConfig != "" {
+		// GRPCServiceConfig is relative to the API directory
+		grpcConfigPath := filepath.Join(googleapisDir, apiPath, library.GRPCServiceConfig)
+		opts = append(opts, fmt.Sprintf("retry-config=%s", grpcConfigPath))
+	}
+
+	// Add service YAML (API metadata) if provided
 	if serviceConfigPath != "" {
-		opts = append(opts, fmt.Sprintf("grpc-service-config=%s", serviceConfigPath))
+		opts = append(opts, fmt.Sprintf("service-yaml=%s", serviceConfigPath))
 	}
 
 	// Build protoc command
@@ -283,6 +290,9 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 	// Construct the full command as a shell command
 	// We need shell=true because of the glob pattern *.proto
 	cmdStr := "protoc " + strings.Join(args, " ")
+
+	// Debug: print the protoc command
+	fmt.Fprintf(os.Stderr, "Running: %s\n", cmdStr)
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
 	cmd.Dir = googleapisDir
