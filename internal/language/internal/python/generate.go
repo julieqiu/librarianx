@@ -243,58 +243,70 @@ func copyDir(src, dst string) error {
 
 // generateAPI generates code for a single API.
 func generateAPI(ctx context.Context, apiPath string, library *config.Library, googleapisDir, serviceConfigPath, outdir, transport string, restNumericEnums bool) error {
-	// Build generator options
-	var opts []string
+	// Check if this is a proto-only library
+	isProtoOnly := library.Python != nil && library.Python.IsProtoOnly
 
-	// Add transport option
-	if transport != "" {
-		opts = append(opts, fmt.Sprintf("transport=%s", transport))
-	}
-
-	// Add rest_numeric_enums option
-	if restNumericEnums {
-		opts = append(opts, "rest-numeric-enums")
-	}
-
-	// Add Python-specific options
-	if library.Python != nil && len(library.Python.OptArgs) > 0 {
-		opts = append(opts, library.Python.OptArgs...)
-	}
-
-	// Add gapic-version from library version
-	if library.Version != "" {
-		opts = append(opts, fmt.Sprintf("gapic-version=%s", library.Version))
-	}
-
-	// Add gRPC service config (retry/timeout settings) from library config if set
-	if library.GRPCServiceConfig != "" {
-		// GRPCServiceConfig is relative to the API directory
-		grpcConfigPath := filepath.Join(googleapisDir, apiPath, library.GRPCServiceConfig)
-		opts = append(opts, fmt.Sprintf("retry-config=%s", grpcConfigPath))
-	}
-
-	// Add service YAML (API metadata) if provided
-	if serviceConfigPath != "" {
-		opts = append(opts, fmt.Sprintf("service-yaml=%s", serviceConfigPath))
-	}
-
-	// Build protoc command
 	protoPattern := filepath.Join(apiPath, "*.proto")
+	var args []string
+	var cmdStr string
 
-	args := []string{
-		protoPattern,
-		fmt.Sprintf("--python_gapic_out=%s", outdir),
+	if isProtoOnly {
+		// Proto-only library: generate Python proto files only
+		args = []string{
+			protoPattern,
+			fmt.Sprintf("--python_out=%s", outdir),
+			fmt.Sprintf("--pyi_out=%s", outdir),
+		}
+		cmdStr = "protoc " + strings.Join(args, " ")
+	} else {
+		// GAPIC library: generate full client library
+		var opts []string
+
+		// Add transport option
+		if transport != "" {
+			opts = append(opts, fmt.Sprintf("transport=%s", transport))
+		}
+
+		// Add rest_numeric_enums option
+		if restNumericEnums {
+			opts = append(opts, "rest-numeric-enums")
+		}
+
+		// Add Python-specific options
+		if library.Python != nil && len(library.Python.OptArgs) > 0 {
+			opts = append(opts, library.Python.OptArgs...)
+		}
+
+		// Add gapic-version from library version
+		if library.Version != "" {
+			opts = append(opts, fmt.Sprintf("gapic-version=%s", library.Version))
+		}
+
+		// Add gRPC service config (retry/timeout settings) from library config if set
+		if library.GRPCServiceConfig != "" {
+			// GRPCServiceConfig is relative to the API directory
+			grpcConfigPath := filepath.Join(googleapisDir, apiPath, library.GRPCServiceConfig)
+			opts = append(opts, fmt.Sprintf("retry-config=%s", grpcConfigPath))
+		}
+
+		// Add service YAML (API metadata) if provided
+		if serviceConfigPath != "" {
+			opts = append(opts, fmt.Sprintf("service-yaml=%s", serviceConfigPath))
+		}
+
+		args = []string{
+			protoPattern,
+			fmt.Sprintf("--python_gapic_out=%s", outdir),
+		}
+
+		// Add options if any
+		if len(opts) > 0 {
+			optString := "metadata," + strings.Join(opts, ",")
+			args = append(args, fmt.Sprintf("--python_gapic_opt=%s", optString))
+		}
+
+		cmdStr = "protoc " + strings.Join(args, " ")
 	}
-
-	// Add options if any
-	if len(opts) > 0 {
-		optString := "metadata," + strings.Join(opts, ",")
-		args = append(args, fmt.Sprintf("--python_gapic_opt=%s", optString))
-	}
-
-	// Construct the full command as a shell command
-	// We need shell=true because of the glob pattern *.proto
-	cmdStr := "protoc " + strings.Join(args, " ")
 
 	// Debug: print the protoc command
 	fmt.Fprintf(os.Stderr, "Running: %s\n", cmdStr)

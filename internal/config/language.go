@@ -154,6 +154,9 @@ type PythonPackage struct {
 	// OptArgs contains additional options passed to the generator.
 	// Example: ["warehouse-package-name=google-cloud-batch"]
 	OptArgs []string `yaml:"opt_args,omitempty"`
+
+	// IsProtoOnly indicates this library only contains proto files (no GAPIC generation).
+	IsProtoOnly bool `yaml:"is_proto_only,omitempty"`
 }
 
 // GoModule contains Go-specific library configuration.
