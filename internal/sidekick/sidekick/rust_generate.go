@@ -44,16 +44,9 @@ directories from the name of the service config YAML file.
 	)
 }
 
-// rustGenerate takes some state and applies it to a template to create a client
-// library.
-func rustGenerate(rootConfig *config.Config, cmdLine *CommandLine) error {
-	if cmdLine.SpecificationSource == "" {
-		cmdLine.SpecificationSource = path.Dir(cmdLine.ServiceConfig)
-	}
-	if cmdLine.Output == "" {
-		cmdLine.Output = path.Join("src/generated", strings.TrimPrefix(cmdLine.SpecificationSource, "google/"))
-	}
-
+// VerifyRustTools checks that all the required tools for generating Rust client
+// libraries are available on the system.
+func VerifyRustTools() error {
 	if err := external.Run("cargo", "--version"); err != nil {
 		return fmt.Errorf("got an error trying to run `cargo --version`, the instructions on https://www.rust-lang.org/learn/get-started may solve this problem: %w", err)
 	}
@@ -66,25 +59,54 @@ func rustGenerate(rootConfig *config.Config, cmdLine *CommandLine) error {
 	if err := external.Run("git", "--version"); err != nil {
 		return fmt.Errorf("got an error trying to run `git --version`, the instructions on https://github.com/git-guides/install-git may solve this problem: %w", err)
 	}
+	return nil
+}
 
+// PrepareCargoWorkspace creates a new cargo package in the specified output
+// directory.
+func PrepareCargoWorkspace(outputDir string) error {
 	slog.Info("preparing cargo workspace to get new package")
-	if err := external.Run("cargo", "new", "--vcs", "none", "--lib", cmdLine.Output); err != nil {
+	if err := external.Run("cargo", "new", "--vcs", "none", "--lib", outputDir); err != nil {
 		return err
 	}
 	if err := external.Run("taplo", "fmt", "Cargo.toml"); err != nil {
+		return err
+	}
+	return nil
+}
+
+func rustGenerate(rootConfig *config.Config, cmdLine *CommandLine) error {
+	if cmdLine.SpecificationSource == "" {
+		cmdLine.SpecificationSource = path.Dir(cmdLine.ServiceConfig)
+	}
+	if cmdLine.Output == "" {
+		cmdLine.Output = path.Join("src/generated", strings.TrimPrefix(cmdLine.SpecificationSource, "google/"))
+	}
+
+	if err := VerifyRustTools(); err != nil {
+		return err
+	}
+
+	if err := PrepareCargoWorkspace(cmdLine.Output); err != nil {
 		return err
 	}
 	slog.Info("generating new library code and adding it to git")
 	if err := generate(rootConfig, cmdLine); err != nil {
 		return err
 	}
+	return PostGenerate(cmdLine.Output)
+}
+
+// PostGenerate performs the steps required after generating a Rust client
+// library, including formatting, running tests, and adding files to git.
+func PostGenerate(outputDir string) error {
 	if err := external.Run("cargo", "fmt"); err != nil {
 		return err
 	}
-	if err := external.Run("git", "add", cmdLine.Output); err != nil {
+	if err := external.Run("git", "add", outputDir); err != nil {
 		return err
 	}
-	packagez, err := getPackageName(cmdLine.Output)
+	packagez, err := getPackageName(outputDir)
 	if err != nil {
 		return err
 	}

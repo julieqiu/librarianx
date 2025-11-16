@@ -16,8 +16,6 @@ package rust
 
 import (
 	"context"
-	"fmt"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -25,10 +23,15 @@ import (
 	sidekickconfig "github.com/googleapis/librarian/internal/sidekick/config"
 	"github.com/googleapis/librarian/internal/sidekick/parser"
 	sidekickrust "github.com/googleapis/librarian/internal/sidekick/rust"
+	sidekick "github.com/googleapis/librarian/internal/sidekick/sidekick"
 )
 
 // Generate generates a Rust client library.
 func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+	if err := sidekick.VerifyRustTools(); err != nil {
+		return err
+	}
+
 	if defaults.Rust != nil {
 		if library.Rust == nil {
 			library.Rust = &config.RustCrate{}
@@ -41,6 +44,9 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	}
 
 	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
+	if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
+		return err
+	}
 	sidekickConfig, err := toSidekickConfig(library, googleapisDir, serviceConfigPath)
 	if err != nil {
 		return err
@@ -52,30 +58,7 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	if err := sidekickrust.Generate(model, outdir, sidekickConfig); err != nil {
 		return err
 	}
-
-	// Get the package name from the library
-	packageName := library.Name
-	if packageName == "" {
-		packageName = derivePackageName(library.API)
-	}
-
-	// Run cargo fmt from the workspace root
-	cmd := exec.CommandContext(ctx, "cargo", "fmt", "--package", packageName)
-	if output, err := cmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("cargo fmt failed: %w\n%s", err, output)
-	}
-
-	// Run typos on the generated directory
-	typosCmd := exec.CommandContext(ctx, "typos", outdir)
-	if output, err := typosCmd.CombinedOutput(); err != nil {
-		return fmt.Errorf("typos check failed: %w\n%s", err, output)
-	}
-
-	return nil
-}
-
-func derivePackageName(apiPath string) string {
-	return strings.ReplaceAll(apiPath, "/", "-")
+	return sidekick.PostGenerate(outdir)
 }
 
 func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) (*sidekickconfig.Config, error) {
