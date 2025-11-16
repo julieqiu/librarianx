@@ -134,6 +134,11 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 
 	applyDefaults(library, cfg.Default)
 
+	// Check if generation is disabled for this library
+	if library.Generate != nil && library.Generate.Disabled {
+		return nil
+	}
+
 	return language.Generate(ctx, library, googleapisDir, serviceConfigPath, cfg.Default.Output)
 }
 
