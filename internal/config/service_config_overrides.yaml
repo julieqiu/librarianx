@@ -231,6 +231,7 @@ exclude_apis:
   - google/cloud/servicedirectory/v1beta1
   - google/cloud/servicehealth/logging
   - google/cloud/speech/v1
+  - google/cloud/speech/v1p1beta1
   - google/cloud/sql/v1beta4
   - google/cloud/stream
   - google/cloud/support/v2beta
