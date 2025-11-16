@@ -149,10 +149,10 @@ type Library struct {
 	// Generate contains per-library generate configuration.
 	Generate *LibraryGenerate `yaml:"generate,omitempty"`
 
-	// Path specifies the filesystem location (overrides computed location from defaults.output).
+	// Output specifies the filesystem location (overrides computed location from defaults.output).
 	// For generated libraries: overrides where code is generated to.
 	// For handwritten libraries: specifies the source directory.
-	Path string `yaml:"path,omitempty"`
+	Output string `yaml:"output,omitempty"`
 
 	// Keep lists files/directories to preserve during regeneration.
 	Keep []string `yaml:"keep,omitempty"`

@@ -43,6 +43,10 @@ type DiscoveryConfig struct {
 
 // RustCrate contains Rust-specific library configuration.
 type RustCrate struct {
+	// Language specifies the generator language ("rust", "rust+prost", "rust_storage").
+	// If not specified, defaults to "rust".
+	Language string `yaml:"language,omitempty"`
+
 	// SpecificationFormat specifies the API specification format ("protobuf" or "discovery").
 	// If not specified, defaults to "protobuf".
 	SpecificationFormat string `yaml:"specification_format,omitempty"`

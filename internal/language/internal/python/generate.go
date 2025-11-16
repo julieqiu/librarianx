@@ -31,10 +31,10 @@ import (
 // If library.Keep is not specified, a default list of paths is used.
 func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	// Determine output directory
-	outdir := library.Path
+	outdir := library.Output
 	if outdir == "" {
-		// Use default output pattern if no explicit path
-		if defaults != nil {
+		// Use default output pattern if no explicit output
+		if defaults != nil && defaults.Output != "" {
 			outdir = strings.ReplaceAll(defaults.Output, "{name}", library.Name)
 		}
 	}

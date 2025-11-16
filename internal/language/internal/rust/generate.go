@@ -25,6 +25,7 @@ import (
 	sidekickconfig "github.com/googleapis/librarian/internal/sidekick/config"
 	"github.com/googleapis/librarian/internal/sidekick/parser"
 	sidekickrust "github.com/googleapis/librarian/internal/sidekick/rust"
+	sidekickrustprost "github.com/googleapis/librarian/internal/sidekick/rust_prost"
 )
 
 // Generate generates a Rust client library.
@@ -40,7 +41,14 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 		library.Rust.PackageDependencies = mergePackageDependencies(defaults.Rust.PackageDependencies, library.Rust.PackageDependencies)
 	}
 
-	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
+	// Determine output directory
+	outdir := library.Output
+	if outdir == "" {
+		// Derive from API path
+		outdir = strings.TrimPrefix(library.API, "google/")
+	}
+	outdir = filepath.Join(defaultOutput, outdir)
+
 	sidekickConfig, err := toSidekickConfig(library, googleapisDir, discoveryDir, serviceConfigPath)
 	if err != nil {
 		return err
@@ -49,8 +57,22 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	if err != nil {
 		return err
 	}
-	if err := sidekickrust.Generate(model, outdir, sidekickConfig); err != nil {
-		return err
+
+	// Route to the appropriate generator based on language
+	language := sidekickConfig.General.Language
+	switch language {
+	case "rust":
+		if err := sidekickrust.Generate(model, outdir, sidekickConfig); err != nil {
+			return err
+		}
+	case "rust+prost":
+		if err := sidekickrustprost.Generate(model, outdir, sidekickConfig); err != nil {
+			return err
+		}
+	case "rust_storage":
+		return fmt.Errorf("rust_storage language not yet supported in librarian")
+	default:
+		return fmt.Errorf("unsupported rust language: %s", language)
 	}
 
 	// Get the package name from the library
@@ -91,9 +113,15 @@ func toSidekickConfig(library *config.Library, googleapisDir, discoveryDir, serv
 		sidekickSpecFormat = "disco"
 	}
 
+	// Determine language
+	language := "rust"
+	if library.Rust != nil && library.Rust.Language != "" {
+		language = library.Rust.Language
+	}
+
 	sidekickCfg := &sidekickconfig.Config{
 		General: sidekickconfig.GeneralConfig{
-			Language:            "rust",
+			Language:            language,
 			SpecificationFormat: sidekickSpecFormat,
 			ServiceConfig:       serviceConfig,
 			SpecificationSource: library.API,
