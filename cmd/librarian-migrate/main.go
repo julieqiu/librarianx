@@ -19,6 +19,8 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
@@ -79,6 +81,22 @@ func run() error {
 	// Deduplicate fields that match defaults
 	fmt.Fprintf(os.Stderr, "Deduplicating library-specific fields...\n")
 	deduplicate(cfg)
+
+	// Discover all APIs from googleapis
+	fmt.Fprintf(os.Stderr, "Discovering APIs from googleapis...\n")
+	googleapisAPIs, err := discoverGoogleapisAPIs(googleapisPath)
+	if err != nil {
+		return fmt.Errorf("failed to discover googleapis APIs: %w", err)
+	}
+	fmt.Fprintf(os.Stderr, "Found %d APIs in googleapis\n", len(googleapisAPIs))
+
+	// Build name_overrides and libraries based on naming conventions
+	fmt.Fprintf(os.Stderr, "Building name_overrides and libraries...\n")
+	buildNameOverridesAndLibraries(cfg, googleapisAPIs, language)
+
+	// Sort for reproducibility
+	fmt.Fprintf(os.Stderr, "Sorting for reproducibility...\n")
+	sortConfig(cfg)
 
 	// Write output
 	if outputPath == "" {
@@ -163,4 +181,215 @@ func detectLanguage(repoPath string) (string, error) {
 	}
 
 	return "", fmt.Errorf("could not detect language from repository path: %s", repoPath)
+}
+
+// sortConfig sorts all lists in the config for reproducible output.
+func sortConfig(cfg *config.Config) {
+	// Sort libraries by name
+	sort.Slice(cfg.Libraries, func(i, j int) bool {
+		return cfg.Libraries[i].Name < cfg.Libraries[j].Name
+	})
+
+	// Sort fields within each library
+	for _, lib := range cfg.Libraries {
+		sort.Strings(lib.APIs)
+		sort.Strings(lib.Keep)
+		if lib.Python != nil {
+			sort.Strings(lib.Python.OptArgs)
+		}
+	}
+}
+
+// discoverGoogleapisAPIs finds all API paths in the googleapis repository.
+func discoverGoogleapisAPIs(googleapisPath string) ([]string, error) {
+	if googleapisPath == "" {
+		return nil, fmt.Errorf("googleapis path is required")
+	}
+
+	var apis []string
+	err := filepath.Walk(googleapisPath, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		// Look for BUILD.bazel files
+		if !info.IsDir() && info.Name() == "BUILD.bazel" {
+			// Get the directory path relative to googleapis root
+			dir := filepath.Dir(path)
+			relPath, err := filepath.Rel(googleapisPath, dir)
+			if err != nil {
+				return err
+			}
+			// Only include paths under google/
+			if strings.HasPrefix(relPath, "google/") || strings.HasPrefix(relPath, "grafeas/") {
+				apis = append(apis, relPath)
+			}
+		}
+		return nil
+	})
+	if err != nil {
+		return nil, err
+	}
+	return apis, nil
+}
+
+// getBasePath extracts the base path without the version.
+// Example: google/cloud/vision/v1 → google/cloud/vision
+func getBasePath(apiPath string) string {
+	parts := strings.Split(apiPath, "/")
+	// Remove version component (last part if it starts with 'v' followed by a digit)
+	if len(parts) > 0 {
+		lastPart := parts[len(parts)-1]
+		if len(lastPart) > 0 && lastPart[0] == 'v' && len(lastPart) > 1 && (lastPart[1] >= '0' && lastPart[1] <= '9') {
+			parts = parts[:len(parts)-1]
+		}
+	}
+	return strings.Join(parts, "/")
+}
+
+// deriveExpectedName derives the expected library name from an API path based on language.
+func deriveExpectedName(apiPath, language string) string {
+	if language == "python" {
+		// Python: replace / with -
+		return strings.ReplaceAll(apiPath, "/", "-")
+	}
+	// Go: use the service name (last non-version component)
+	parts := strings.Split(apiPath, "/")
+	// Work backwards to find the first non-version component
+	for i := len(parts) - 1; i >= 0; i-- {
+		part := parts[i]
+		// Skip version components (v1, v1beta1, v2alpha, etc.)
+		if !strings.HasPrefix(part, "v") && !strings.Contains(part, "v1") && !strings.Contains(part, "v2") {
+			return part
+		}
+		// If it's a version-like string, skip it
+		if len(part) > 0 && part[0] == 'v' && len(part) > 1 && (part[1] >= '0' && part[1] <= '9') {
+			continue
+		}
+		return part
+	}
+	return parts[len(parts)-1]
+}
+
+// buildNameOverridesAndLibraries constructs name_overrides and libraries based on naming conventions.
+func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string, language string) {
+	nameOverrides := make(map[string]string)
+	var newLibraries []*config.Library
+
+	// Create a map of API path to library for quick lookup
+	apiToLib := make(map[string]*config.Library)
+	for _, lib := range cfg.Libraries {
+		if lib.API != "" {
+			apiToLib[lib.API] = lib
+		}
+		for _, api := range lib.APIs {
+			apiToLib[api] = lib
+		}
+	}
+
+	// Group APIs by library name to detect multi-API libraries
+	libNameToAPIs := make(map[string][]string)
+	for _, apiPath := range googleapisAPIs {
+		lib, exists := apiToLib[apiPath]
+		if !exists {
+			continue
+		}
+		libNameToAPIs[lib.Name] = append(libNameToAPIs[lib.Name], apiPath)
+	}
+
+	// Determine which libraries need to be in libraries section vs name_overrides
+	libsToKeep := make(map[string]bool)
+
+	// First pass: identify all libraries with extra configuration
+	for _, lib := range cfg.Libraries {
+		hasExtraConfig := lib.Transport != "" ||
+			lib.Python != nil ||
+			len(lib.Keep) > 0 ||
+			lib.Release != nil ||
+			lib.Generate != nil
+
+		if lib.Name == "googleapis-common-protos" || hasExtraConfig {
+			libsToKeep[lib.Name] = true
+		}
+	}
+
+	// Second pass: identify multi-API libraries that need explicit listing
+	for libName, apis := range libNameToAPIs {
+		// If multiple APIs map to the same library
+		if len(apis) > 1 {
+			// Check if all APIs share the same base path
+			basePath := getBasePath(apis[0])
+			allSameBase := true
+			for _, api := range apis {
+				if getBasePath(api) != basePath {
+					allSameBase = false
+					break
+				}
+			}
+
+			// If APIs come from different base paths, need to list explicitly
+			if !allSameBase {
+				libsToKeep[libName] = true
+				continue
+			}
+
+			// All APIs share the same base - check if library name follows convention
+			expectedName := deriveExpectedName(basePath, language)
+			if libName != expectedName {
+				// Doesn't follow convention - add to name_overrides
+				nameOverrides[basePath] = libName
+			}
+			continue
+		}
+
+		// Single API - check if it follows naming convention
+		apiPath := apis[0]
+		expectedName := deriveExpectedName(apiPath, language)
+		if libName != expectedName {
+			// Doesn't follow convention - add to name_overrides
+			nameOverrides[apiPath] = libName
+		}
+	}
+
+	// Keep libraries that need to be in libraries section
+	for _, lib := range cfg.Libraries {
+		if lib.Name == "googleapis-common-protos" || libsToKeep[lib.Name] {
+			// Reconstruct API/APIs fields only when necessary
+			if lib.Name == "googleapis-common-protos" {
+				// Always list APIs for googleapis-common-protos
+				lib.APIs = libNameToAPIs[lib.Name]
+				lib.API = ""
+			} else if len(libNameToAPIs[lib.Name]) > 1 {
+				// Multi-API library - check if APIs should be listed
+				apis := libNameToAPIs[lib.Name]
+				basePath := getBasePath(apis[0])
+				allSameBase := true
+				for _, api := range apis {
+					if getBasePath(api) != basePath {
+						allSameBase = false
+						break
+					}
+				}
+
+				// Only list APIs if from different base paths
+				if !allSameBase {
+					lib.APIs = libNameToAPIs[lib.Name]
+					lib.API = ""
+				} else {
+					// APIs will be auto-discovered - don't list them
+					lib.API = ""
+					lib.APIs = nil
+				}
+			} else {
+				// Single API library with extra config - remove API fields
+				lib.API = ""
+				lib.APIs = nil
+			}
+			newLibraries = append(newLibraries, lib)
+		}
+	}
+
+	cfg.Libraries = newLibraries
+	if len(nameOverrides) > 0 {
+		cfg.NameOverrides = nameOverrides
+	}
 }
