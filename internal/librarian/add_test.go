@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 )
 
 func TestAdd(t *testing.T) {

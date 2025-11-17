@@ -17,8 +17,8 @@ package parser
 import (
 	"testing"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
-	"github.com/googleapis/librarian/internal/sidekick/api/apitest"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api/apitest"
 	"google.golang.org/genproto/googleapis/api/annotations"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 	"google.golang.org/protobuf/types/known/apipb"

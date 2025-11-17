@@ -15,7 +15,7 @@
 package parser
 
 import (
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 	v3 "github.com/pb33f/libopenapi/datamodel/high/v3"
 )
 

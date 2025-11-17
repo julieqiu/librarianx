@@ -22,7 +22,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 	"github.com/pelletier/go-toml/v2"
 )
 

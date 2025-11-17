@@ -15,8 +15,8 @@
 package sidekick
 
 import (
-	"github.com/googleapis/librarian/internal/sidekick/config"
-	rustrelease "github.com/googleapis/librarian/internal/sidekick/rust_release"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
+	rustrelease "github.com/julieqiu/librarianx/internal/sidekick/rust_release"
 )
 
 var (

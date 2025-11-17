@@ -19,8 +19,8 @@ import (
 	"log/slog"
 	"slices"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
-	"github.com/googleapis/librarian/internal/sidekick/external"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/external"
 )
 
 // BumpVersions finds all the crates that need a version bump and performs the

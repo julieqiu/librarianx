@@ -20,8 +20,8 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/sidekick/config"
-	"github.com/googleapis/librarian/internal/sidekick/external"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/external"
 )
 
 const (

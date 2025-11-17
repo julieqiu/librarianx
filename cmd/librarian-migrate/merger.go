@@ -19,7 +19,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 	"gopkg.in/yaml.v3"
 )
 

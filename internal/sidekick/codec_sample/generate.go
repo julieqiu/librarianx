@@ -18,9 +18,9 @@ package codec_sample
 import (
 	"embed"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
-	"github.com/googleapis/librarian/internal/sidekick/config"
-	"github.com/googleapis/librarian/internal/sidekick/language"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/language"
 )
 
 //go:embed all:templates

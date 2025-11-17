@@ -21,9 +21,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/language/internal/python"
-	"github.com/googleapis/librarian/internal/language/internal/rust"
+	"github.com/julieqiu/librarianx/internal/config"
+	"github.com/julieqiu/librarianx/internal/language/internal/python"
+	"github.com/julieqiu/librarianx/internal/language/internal/rust"
 )
 
 // Create creates a new client library for the specified language.

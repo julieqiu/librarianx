@@ -21,7 +21,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 )
 
 // BazelConfig contains configuration extracted from BUILD.bazel files.

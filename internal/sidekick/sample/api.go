@@ -18,7 +18,7 @@ package sample
 import (
 	"net/http"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 )
 
 const (

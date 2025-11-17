@@ -15,7 +15,7 @@
 package rust
 
 import (
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 )
 
 // ConfigDefault initializes a default Rust config.

@@ -20,7 +20,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 	"github.com/urfave/cli/v3"
 )
 

@@ -1,4 +1,4 @@
-module github.com/googleapis/librarian
+module github.com/julieqiu/librarianx
 
 go 1.25.3
 

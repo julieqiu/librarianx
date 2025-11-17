@@ -17,7 +17,7 @@ package discovery
 import (
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 )
 
 func compareMessages(a, b *api.Message) int {

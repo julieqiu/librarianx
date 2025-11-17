@@ -19,8 +19,8 @@ import (
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
-	"github.com/googleapis/librarian/internal/sidekick/api"
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 func TestLroAnnotations(t *testing.T) {

@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/parser"
+	"github.com/julieqiu/librarianx/internal/sidekick/parser"
 )
 
 // RepoMetadata represents the .repo-metadata.json file structure.

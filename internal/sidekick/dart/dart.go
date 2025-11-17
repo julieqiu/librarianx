@@ -21,9 +21,9 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
-	"github.com/googleapis/librarian/internal/sidekick/external"
 	"github.com/iancoleman/strcase"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/external"
 )
 
 const (

@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
-	"github.com/googleapis/librarian/internal/sidekick/external"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/external"
 )
 
 // PreFlight() verifies all the necessary tools are installed.

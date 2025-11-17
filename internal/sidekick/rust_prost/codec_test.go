@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 func TestParseOptions(t *testing.T) {

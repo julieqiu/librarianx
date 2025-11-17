@@ -21,9 +21,9 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/fetch"
-	"github.com/googleapis/librarian/internal/language"
+	"github.com/julieqiu/librarianx/internal/config"
+	"github.com/julieqiu/librarianx/internal/fetch"
+	"github.com/julieqiu/librarianx/internal/language"
 	"github.com/urfave/cli/v3"
 )
 

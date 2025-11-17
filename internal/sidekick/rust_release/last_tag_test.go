@@ -17,7 +17,7 @@ package rustrelease
 import (
 	"testing"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 func TestLastTagSuccess(t *testing.T) {

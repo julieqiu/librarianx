@@ -20,7 +20,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 )
 
 // ParseSegments parses a PathTemplate, defined at the [google.api.http annotation].
