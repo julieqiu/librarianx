@@ -23,6 +23,7 @@ import (
 	"github.com/googleapis/librarian/internal/language/internal/rust"
 )
 
+// Create creates a new client library for the specified language.
 func Create(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	switch language {
 	case "rust":

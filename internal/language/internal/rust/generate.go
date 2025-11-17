@@ -27,6 +27,7 @@ import (
 	sidekick "github.com/googleapis/librarian/internal/sidekick/sidekick"
 )
 
+// Create creates a new Rust client library.
 func Create(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	if err := sidekick.VerifyRustTools(); err != nil {
 		return err
