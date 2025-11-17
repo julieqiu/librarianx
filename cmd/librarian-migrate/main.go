@@ -15,13 +15,11 @@
 package main
 
 import (
-	"bufio"
 	"flag"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"sort"
 	"strings"
 
@@ -100,16 +98,14 @@ func run() error {
 	buildNameOverridesAndLibraries(cfg, googleapisAPIs, language)
 
 	// Discover versions from packages
-	if language == "python" {
-		fmt.Fprintf(os.Stderr, "Discovering package versions...\n")
-		versions, err := discoverVersions(repoPath, cfg)
-		if err != nil {
-			return fmt.Errorf("failed to discover versions: %w", err)
-		}
-		if len(versions) > 0 {
-			cfg.Versions = versions
-			fmt.Fprintf(os.Stderr, "Found %d package versions\n", len(versions))
-		}
+	fmt.Fprintf(os.Stderr, "Discovering package versions...\n")
+	versions, err := discoverVersions(repoPath, cfg, state, language)
+	if err != nil {
+		return fmt.Errorf("failed to discover versions: %w", err)
+	}
+	if len(versions) > 0 {
+		cfg.Versions = versions
+		fmt.Fprintf(os.Stderr, "Found %d package versions\n", len(versions))
 	}
 
 	// Sort for reproducibility
@@ -412,17 +408,9 @@ func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string,
 	}
 }
 
-// discoverVersions discovers package versions from gapic_version.py files.
-// For Python packages, it looks for packages/{library-name}/google/.../gapic_version.py
-// and extracts the __version__ string.
-func discoverVersions(repoPath string, cfg *config.Config) (map[string]string, error) {
+// discoverVersions discovers package versions from .librarian/state.yaml.
+func discoverVersions(repoPath string, cfg *config.Config, state *LegacyState, language string) (map[string]string, error) {
 	versions := make(map[string]string)
-	packagesDir := filepath.Join(repoPath, "packages")
-
-	// Check if packages directory exists
-	if _, err := os.Stat(packagesDir); os.IsNotExist(err) {
-		return versions, nil
-	}
 
 	// Get all library names from the config
 	libraryNames := make(map[string]bool)
@@ -434,98 +422,16 @@ func discoverVersions(repoPath string, cfg *config.Config) (map[string]string, e
 		libraryNames[name] = true
 	}
 
-	// Iterate through each package directory
-	err := filepath.Walk(packagesDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
+	// Extract versions from state.yaml
+	for _, lib := range state.Libraries {
+		if lib.Version == "" || lib.Version == "0.0.0" {
+			continue
 		}
-
-		// Only look for gapic_version.py files
-		if info.IsDir() || info.Name() != "gapic_version.py" {
-			return nil
+		// Only include versions for libraries we know about
+		if libraryNames[lib.ID] {
+			versions[lib.ID] = lib.Version
 		}
-
-		// Extract the library name from the path
-		// Path format: packages/{library-name}/google/.../gapic_version.py
-		relPath, err := filepath.Rel(packagesDir, path)
-		if err != nil {
-			return err
-		}
-
-		parts := strings.Split(relPath, string(os.PathSeparator))
-		if len(parts) < 2 {
-			return nil
-		}
-
-		libraryName := parts[0]
-
-		// Only process libraries we know about
-		if !libraryNames[libraryName] {
-			return nil
-		}
-
-		// Skip if we already found a version for this library
-		if _, exists := versions[libraryName]; exists {
-			return nil
-		}
-
-		// Check if this is the main gapic_version.py (not a versioned one)
-		// The main one is typically in a path without version suffix like _v1, _v1beta1, etc.
-		// Example: google/cloud/secretmanager/gapic_version.py (not secretmanager_v1/gapic_version.py)
-		// The directory containing gapic_version.py should not have a version suffix
-		if len(parts) >= 2 {
-			// Get the directory name that contains gapic_version.py
-			dirName := parts[len(parts)-2]
-			// Skip if directory name contains version pattern like _v1, _v1beta1, etc.
-			if strings.Contains(dirName, "_v") {
-				return nil
-			}
-		}
-
-		// Read the version from the file
-		version, err := readVersionFromFile(path)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to read version from %s: %v\n", path, err)
-			return nil
-		}
-
-		if version != "" && version != "0.0.0" {
-			versions[libraryName] = version
-		}
-
-		return nil
-	})
-
-	if err != nil {
-		return nil, err
 	}
 
 	return versions, nil
-}
-
-// readVersionFromFile reads the __version__ string from a gapic_version.py file.
-func readVersionFromFile(path string) (string, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		return "", err
-	}
-	defer file.Close()
-
-	// Regexp to match: __version__ = "1.2.3"
-	versionRegex := regexp.MustCompile(`__version__\s*=\s*"([^"]+)"`)
-
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		line := scanner.Text()
-		matches := versionRegex.FindStringSubmatch(line)
-		if len(matches) >= 2 {
-			return matches[1], nil
-		}
-	}
-
-	if err := scanner.Err(); err != nil {
-		return "", err
-	}
-
-	return "", nil
 }
