@@ -66,7 +66,7 @@ func run() error {
 	}
 
 	fmt.Fprintf(os.Stderr, "Reading legacy configuration from %s...\n", repoPath)
-	state, config, buildData, _, err := reader.ReadAll()
+	state, config, buildData, generatorInput, err := reader.ReadAll()
 	if err != nil {
 		return fmt.Errorf("failed to read legacy configuration: %w", err)
 	}
@@ -75,7 +75,7 @@ func run() error {
 
 	// Merge all sources into config.Config
 	fmt.Fprintf(os.Stderr, "Merging configuration sources...\n")
-	cfg, err := merge(state, config, buildData, generatorInput, language)
+	cfg, err := merge(state, config, buildData, language)
 	if err != nil {
 		return fmt.Errorf("failed to merge configuration: %w", err)
 	}

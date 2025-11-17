@@ -23,7 +23,7 @@ import (
 )
 
 // merge combines data from all sources and returns a config.Config.
-func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazelData, generatorInput *LegacyGeneratorInputData, language string) (*config.Config, error) {
+func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazelData, language string) (*config.Config, error) {
 	// Create a map of config overrides for quick lookup
 	configMap := make(map[string]*LegacyConfigLibrary)
 	for i := range legacyConfig.Libraries {
@@ -164,14 +164,6 @@ func identifyDefaults(cfg *config.Config, tagFormats []string) {
 		cfg.Default.Release.TagFormat = defaultTagFormat
 		fmt.Fprintf(os.Stderr, "Identified default tag_format: %s (%d libraries)\n", defaultTagFormat, maxCount)
 	}
-}
-
-// shouldOmitField returns true if a library field matches the default and should be omitted.
-func shouldOmitField(fieldValue, defaultValue string) bool {
-	if defaultValue == "" {
-		return false
-	}
-	return fieldValue == defaultValue
 }
 
 // filterKeepPatterns filters out unwanted patterns from the keep list.
