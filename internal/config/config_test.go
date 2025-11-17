@@ -95,9 +95,12 @@ func TestConfig_GetNameOverride(t *testing.T) {
 		{"not found", "google/cloud/secretmanager/v1", ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got := cfg.GetNameOverride(test.apiPath)
+			var got string
+			if cfg.NameOverrides != nil {
+				got = cfg.NameOverrides[test.apiPath]
+			}
 			if got != test.want {
-				t.Errorf("GetNameOverride(%q) = %q, want %q", test.apiPath, got, test.want)
+				t.Errorf("NameOverrides[%q] = %q, want %q", test.apiPath, got, test.want)
 			}
 		})
 	}

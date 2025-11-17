@@ -18,7 +18,6 @@ import (
 	_ "embed"
 	"fmt"
 	"os"
-	"strings"
 
 	"gopkg.in/yaml.v3"
 )
@@ -251,57 +250,6 @@ func (c *Config) Write(path string) error {
 	}
 
 	return nil
-}
-
-// GetNameOverride returns the overridden name for the given API path.
-// Returns empty string if no override is configured.
-func (c *Config) GetNameOverride(apiPath string) string {
-	if c.NameOverrides == nil {
-		return ""
-	}
-	return c.NameOverrides[apiPath]
-}
-
-// GetLibraryName returns the library name for the given API path.
-// It checks name_overrides first, then derives the name based on naming conventions.
-// When one_library_per: service, all versions of a service share the same library name.
-func (c *Config) GetLibraryName(apiPath string) string {
-	// Extract service path (remove version)
-	servicePath := getServicePath(apiPath)
-
-	// Check for name override on service path
-	if override := c.GetNameOverride(servicePath); override != "" {
-		return override
-	}
-
-	// Check for name override on full API path (for backward compatibility)
-	if override := c.GetNameOverride(apiPath); override != "" {
-		return override
-	}
-
-	// Derive name based on language convention
-	if c.Language == "python" {
-		// Python: replace / with - in service path
-		return strings.ReplaceAll(servicePath, "/", "-")
-	}
-
-	// Go and other languages: use the service name (last component)
-	parts := strings.Split(servicePath, "/")
-	return parts[len(parts)-1]
-}
-
-// getServicePath extracts the service path (base path without version) from an API path.
-// Example: google/ai/generativelanguage/v1 → google/ai/generativelanguage.
-func getServicePath(apiPath string) string {
-	parts := strings.Split(apiPath, "/")
-	// Remove version component (last part if it starts with 'v' followed by a digit)
-	if len(parts) > 0 {
-		lastPart := parts[len(parts)-1]
-		if len(lastPart) > 0 && lastPart[0] == 'v' && len(lastPart) > 1 && (lastPart[1] >= '0' && lastPart[1] <= '9') {
-			parts = parts[:len(parts)-1]
-		}
-	}
-	return strings.Join(parts, "/")
 }
 
 // ReadDocumentationOverrides reads the embedded documentation overrides.

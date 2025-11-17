@@ -37,8 +37,23 @@ func Create(ctx context.Context, language, repo string, library *config.Library,
 	}
 }
 
-// Generate generates a client library for the specified language.
-func Generate(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+// Generate generates a library based on the one_library_per mode.
+// For "service" mode: generates once for all APIs in the library.
+// For "version" mode: generates separately for each API version.
+func Generate(ctx context.Context, oneLibraryPer, language, repo string, library *config.Library, defaults *config.Default, googleapisDir string) error {
+	switch oneLibraryPer {
+	case "service":
+		return generateForService(ctx, language, repo, library, defaults, googleapisDir)
+	case "version":
+		return generateForVersion(ctx, language, repo, library, defaults, googleapisDir)
+	default:
+		return fmt.Errorf("invalid one_library_per value %q: must be \"service\" or \"version\"", oneLibraryPer)
+	}
+}
+
+// generateAPI generates code for a single API using language-specific generators.
+// This is used internally by generateForService and generateForVersion.
+func generateAPI(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	switch language {
 	case "rust":
 		return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
@@ -48,6 +63,35 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	default:
 		return fmt.Errorf("unsupported language: %s", language)
 	}
+}
+
+// generateForService generates a single library containing all API versions.
+// Used for languages with "one_library_per: service" (Python, Go).
+func generateForService(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir string) error {
+	// Use the first service config path (all point to the same service YAML)
+	var primaryServiceConfigPath string
+	for _, serviceConfigPath := range library.APIServiceConfigs {
+		primaryServiceConfigPath = serviceConfigPath
+		break
+	}
+
+	return generateAPI(ctx, language, repo, library, defaults, googleapisDir, primaryServiceConfigPath, defaults.Output)
+}
+
+// generateForVersion generates a separate library for each API version.
+// Used for languages with "one_library_per: version" (Rust, Dart).
+func generateForVersion(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir string) error {
+	for apiPath, serviceConfigPath := range library.APIServiceConfigs {
+		// Create a single-API library for this version
+		singleAPILibrary := *library
+		singleAPILibrary.API = apiPath
+		singleAPILibrary.APIServiceConfigs = map[string]string{apiPath: serviceConfigPath}
+
+		if err := generateAPI(ctx, language, repo, &singleAPILibrary, defaults, googleapisDir, serviceConfigPath, defaults.Output); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // getDefaultAPI returns the default API path for a library.

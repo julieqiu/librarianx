@@ -380,7 +380,7 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 	}
 
 	// Debug: print the protoc command
-	fmt.Fprintf(os.Stderr, "Running: %s\n", cmdStr)
+	fmt.Fprintf(os.Stderr, "\nRunning: %s\n", cmdStr)
 
 	cmd := exec.CommandContext(ctx, "sh", "-c", cmdStr)
 	cmd.Dir = googleapisDir

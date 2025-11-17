@@ -17,7 +17,6 @@ package librarian
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/language"
@@ -84,140 +83,36 @@ func runGenerate(ctx context.Context, name string, newLibrary bool) error {
 		return err
 	}
 
-	// Generate each API in the library
-	for apiPath, serviceConfigPath := range library.APIServiceConfigs {
-		// Check if API is excluded
-		excluded, err := config.IsAPIExcluded(cfg.Language, apiPath)
-		if err != nil {
-			return fmt.Errorf("failed to check if API is excluded: %w", err)
-		}
-		if excluded {
-			fmt.Printf("  ⊘ %s (excluded)\n", apiPath)
-			continue
-		}
-
-		// Generate the library
-		if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary); err != nil {
-			return err
-		}
+	// Check one_library_per mode
+	if cfg.Default == nil || cfg.Default.Generate == nil || cfg.Default.Generate.OneLibraryPer == "" {
+		return fmt.Errorf("one_library_per must be set in librarian.yaml under default.generate.one_library_per")
 	}
 
-	return nil
+	return generateLibrary(ctx, cfg, googleapisDir, library, cfg.Default.Generate.OneLibraryPer, newLibrary)
 }
 
-// generateLibraryForAPI generates a library for the given API path.
-func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDir, apiPath, serviceConfigPath string, newLibrary bool) error {
-	// Check for name override first
-	nameOverride := cfg.GetNameOverride(apiPath)
-
-	// Derive the library name from API path (for matching libraries in generate.all mode)
-	derivedName := deriveLibraryName(apiPath)
-
-	var library *config.Library
-	for _, lib := range cfg.Libraries {
-		// Try matching in order of priority:
-		// 1. If there's a name override, match by override name
-		// 2. Match by explicit API field (for backward compatibility)
-		// 3. Match in APIs array (for multi-version libraries)
-		// 4. Match by derived name (for generate.all mode where api field is omitted)
-		if nameOverride != "" && lib.Name == nameOverride {
-			library = lib
-			break
-		} else if lib.API == apiPath {
-			library = lib
-			break
-		} else if containsAPI(lib.APIs, apiPath) {
-			library = lib
-			break
-		} else if lib.Name == derivedName {
-			library = lib
-			break
-		}
-	}
-
-	if library == nil {
-		if cfg.Default.Generate == nil || !cfg.Default.Generate.All {
-			return fmt.Errorf("library %q not found in configuration and generate.all is false", apiPath)
-		}
-
-		library = &config.Library{
-			API: apiPath,
-		}
-	}
-
-	// Ensure API field is set (in case library was found by name override without explicit api field)
-	if library.API == "" {
-		library.API = apiPath
-	}
-
-	// Ensure name is set on the library
-	if nameOverride != "" {
-		library.Name = nameOverride
-	} else if library.Name == "" {
-		// Derive name from API path using config method
-		library.Name = cfg.GetLibraryName(apiPath)
-	}
-
-	// Apply version from versions map if not already set in library
-	if library.Version == "" && cfg.Versions != nil {
-		libraryName := library.Name
-		if libraryName == "" {
-			libraryName = deriveLibraryName(library.API)
-		}
-		if version, ok := cfg.Versions[libraryName]; ok {
-			library.Version = version
-		}
-	}
-
-	applyDefaults(library, cfg.Default)
-
-	// Check if generation is disabled for this library
+// generateLibrary prepares and generates a library.
+func generateLibrary(ctx context.Context, cfg *config.Config, googleapisDir string, library *config.Library, oneLibraryPer string, newLibrary bool) error {
+	// Check if generation is disabled
 	if library.Generate != nil && library.Generate.Disabled {
-		fmt.Printf("  ⊘ %s (generation disabled)\n", apiPath)
+		fmt.Printf("  ⊘ %s (generation disabled)\n", library.Name)
 		return nil
 	}
 
+	// Generate the library
 	if newLibrary {
-		if err := language.Create(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+		if err := language.Create(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, "", cfg.Default.Output); err != nil {
 			return err
 		}
 	} else {
-		if err := language.Generate(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+		if err := language.Generate(ctx, oneLibraryPer, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir); err != nil {
 			return err
 		}
 	}
 
-	fmt.Printf("  ✓ %s\n", apiPath)
+	// Print success for each API
+	for apiPath := range library.APIServiceConfigs {
+		fmt.Printf("  ✓ %s\n", apiPath)
+	}
 	return nil
-}
-
-// deriveLibraryName derives a library name from an API path.
-// For example: "google/api/cloudquotas/v1" -> "google-api-cloudquotas-v1".
-func deriveLibraryName(apiPath string) string {
-	return strings.ReplaceAll(apiPath, "/", "-")
-}
-
-// containsAPI checks if an API path is in the APIs slice.
-func containsAPI(apis []string, apiPath string) bool {
-	for _, api := range apis {
-		if api == apiPath {
-			return true
-		}
-	}
-	return false
-}
-
-func applyDefaults(library *config.Library, defaults *config.Default) {
-	if defaults.Generate != nil {
-		if library.Transport == "" {
-			library.Transport = defaults.Generate.Transport
-		}
-		if library.ReleaseLevel == "" {
-			library.ReleaseLevel = defaults.Generate.ReleaseLevel
-		}
-		if library.RestNumericEnums == nil {
-			b := defaults.Generate.RestNumericEnums
-			library.RestNumericEnums = &b
-		}
-	}
 }

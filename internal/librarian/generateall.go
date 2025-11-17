@@ -58,12 +58,16 @@ func runGenerateAll(ctx context.Context) error {
 
 	// Generate each library
 	for _, lib := range libraries {
-		// Generate each API in the library
-		for apiPath, serviceConfigPath := range lib.APIServiceConfigs {
-			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, false); err != nil {
-				fmt.Printf("  ✗ %s: %v\n", apiPath, err)
-				return err
-			}
+		// Use FindLibraryByName to ensure defaults are applied
+		preparedLib, err := config.FindLibraryByName(cfg, lib.Name, googleapisDir)
+		if err != nil {
+			fmt.Printf("  ✗ %s: %v\n", lib.Name, err)
+			return err
+		}
+
+		if err := generateLibrary(ctx, cfg, googleapisDir, preparedLib, oneLibraryPer, false); err != nil {
+			fmt.Printf("  ✗ %s: %v\n", lib.Name, err)
+			return err
 		}
 	}
 	return nil
