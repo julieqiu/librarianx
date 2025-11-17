@@ -15,20 +15,34 @@
 package python
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/googleapis/librarian/internal/config"
 )
 
-// CreateChangelogFiles replicates the changelog creation and update steps
-// from the Python `handle_configure` function.
-// It updates the global CHANGELOG.md and creates library-specific CHANGELOG.md files.
-func CreateChangelogFiles(libraryID, outputDir, repoDir string, newLibraryConfig map[string]interface{}) error {
+// Create creates a new Python client library.
+// It creates changelog files for the new library.
+func Create(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+	// Get current working directory as repoDir
+	repoDir, err := os.Getwd()
+	if err != nil {
+		return fmt.Errorf("failed to get current directory: %w", err)
+	}
+
 	// 1. Update global CHANGELOG.md
 	globalChangelogSrc := filepath.Join(repoDir, "CHANGELOG.md")
-	globalChangelogDest := filepath.Join(outputDir, "CHANGELOG.md")
+	globalChangelogDest := filepath.Join(defaultOutput, "CHANGELOG.md")
+
+	// Create library config for changelog update
+	newLibraryConfig := map[string]interface{}{
+		"id":      library.Name,
+		"version": library.Version,
+	}
 
 	// The Python function calls _update_global_changelog with a list containing only the new library config.
 	allLibraries := []map[string]interface{}{newLibraryConfig}
@@ -38,7 +52,7 @@ func CreateChangelogFiles(libraryID, outputDir, repoDir string, newLibraryConfig
 
 	// 2. Create a `CHANGELOG.md` for the new library
 	// 3. Create a `docs/CHANGELOG.md` file for the new library
-	if err := createNewChangelogForLibrary(libraryID, outputDir); err != nil {
+	if err := createNewChangelogForLibrary(library.Name, defaultOutput); err != nil {
 		return fmt.Errorf("failed to create new library changelogs: %w", err)
 	}
 
