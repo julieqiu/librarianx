@@ -107,16 +107,21 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 		libraries = append(libraries, lib)
 	}
 
-	// Determine output path based on language
+	// Determine output path and repo based on language
 	outputPath := "{name}"
+	repo := ""
 	if language == "python" {
 		outputPath = "packages/{name}/"
+		repo = "googleapis/google-cloud-python"
+	} else if language == "go" {
+		repo = "googleapis/google-cloud-go"
 	}
 
 	// Create config with defaults
 	cfg := &config.Config{
 		Version:   "v1",
 		Language:  language,
+		Repo:      repo,
 		Libraries: libraries,
 		Default: &config.Default{
 			Output: outputPath,

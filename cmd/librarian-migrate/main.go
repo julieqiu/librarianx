@@ -57,6 +57,12 @@ func run() error {
 	if err != nil {
 		return fmt.Errorf("failed to detect language: %w", err)
 	}
+
+	// Only support Python and Go
+	if language != "python" && language != "go" {
+		return fmt.Errorf("unsupported language: %s (only python and go are supported)", language)
+	}
+
 	fmt.Fprintf(os.Stderr, "Detected language: %s\n", language)
 
 	// Read all legacy configuration sources
@@ -179,10 +185,11 @@ func runYamlfmt(path string) error {
 }
 
 // detectLanguage detects the programming language from the repository path.
+// Only supports Python and Go.
 func detectLanguage(repoPath string) (string, error) {
 	// Extract language from repository name
-	// Check longer names first to avoid false matches (e.g., "go" in "googleapis")
-	languages := []string{"python", "rust", "dart", "java", "node", "ruby", "php", "go"}
+	// Check python first, then go (check longer names first to avoid false matches)
+	languages := []string{"python", "go"}
 
 	lowerPath := strings.ToLower(repoPath)
 	for _, lang := range languages {
@@ -192,7 +199,7 @@ func detectLanguage(repoPath string) (string, error) {
 		}
 	}
 
-	return "", fmt.Errorf("could not detect language from repository path: %s", repoPath)
+	return "", fmt.Errorf("could not detect language from repository path: %s (only python and go are supported)", repoPath)
 }
 
 // sortConfig sorts all lists in the config for reproducible output.
