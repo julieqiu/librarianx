@@ -100,23 +100,26 @@ func runGenerate(ctx context.Context, name string, newLibrary bool) error {
 			return fmt.Errorf("library %q has no APIs configured", name)
 		}
 
-		// Read service config overrides
-		overrides, err := config.ReadServiceConfigOverrides()
-		if err != nil {
-			return fmt.Errorf("failed to read service config overrides: %w", err)
+		// Populate service configs for the library
+		if err := config.PopulateServiceConfigs(library, googleapisDir); err != nil {
+			return err
 		}
 
 		// Generate each API
 		for _, apiPath := range apiPaths {
 			// Check if API is excluded
-			if overrides.IsExcluded(cfg.Language, apiPath) {
+			excluded, err := config.IsAPIExcluded(cfg.Language, apiPath)
+			if err != nil {
+				return fmt.Errorf("failed to check if API is excluded: %w", err)
+			}
+			if excluded {
 				fmt.Printf("  ⊘ %s (excluded)\n", apiPath)
 				continue
 			}
 
-			serviceConfigPath, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
-			if err != nil {
-				return err
+			serviceConfigPath, ok := library.APIServiceConfigs[apiPath]
+			if !ok {
+				return fmt.Errorf("no service config found for %s", apiPath)
 			}
 
 			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary); err != nil {
@@ -137,20 +140,26 @@ func runGenerate(ctx context.Context, name string, newLibrary bool) error {
 		return err
 	}
 
-	// Read service config overrides
-	overrides, err := config.ReadServiceConfigOverrides()
-	if err != nil {
-		return fmt.Errorf("failed to read service config overrides: %w", err)
-	}
-
 	// Check if API is excluded
-	if overrides.IsExcluded(cfg.Language, apiPath) {
+	excluded, err := config.IsAPIExcluded(cfg.Language, apiPath)
+	if err != nil {
+		return fmt.Errorf("failed to check if API is excluded: %w", err)
+	}
+	if excluded {
 		return fmt.Errorf("API %q is excluded from generation", apiPath)
 	}
 
-	serviceConfigPath, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
-	if err != nil {
+	// Create minimal library config and populate service configs
+	library = &config.Library{
+		API: apiPath,
+	}
+	if err := config.PopulateServiceConfigs(library, googleapisDir); err != nil {
 		return err
+	}
+
+	serviceConfigPath, ok := library.APIServiceConfigs[apiPath]
+	if !ok {
+		return fmt.Errorf("no service config found for %s", apiPath)
 	}
 
 	return generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary)

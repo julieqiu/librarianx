@@ -46,29 +46,3 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		return fmt.Errorf("unsupported language: %s", language)
 	}
 }
-
-// APIToGenerate represents an API to be generated.
-type APIToGenerate struct {
-	Path              string
-	ServiceConfigPath string
-}
-
-// GenerateAll generates all discovered APIs.
-func GenerateAll(ctx context.Context, language, repo string, defaults *config.Default, googleapisDir, defaultOutput string, apis []APIToGenerate) error {
-	for _, api := range apis {
-		// Create a minimal library config for this API
-		library := &config.Library{
-			API: api.Path,
-		}
-
-		// Add language-specific config if needed
-		if language == "rust" {
-			library.Rust = &config.RustCrate{}
-		}
-
-		if err := Generate(ctx, language, repo, library, defaults, googleapisDir, api.ServiceConfigPath, defaultOutput); err != nil {
-			return err
-		}
-	}
-	return nil
-}

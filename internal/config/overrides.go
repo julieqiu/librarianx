@@ -38,13 +38,22 @@ type ServiceConfigOverrides struct {
 	} `yaml:"excluded_apis"`
 }
 
-// ReadServiceConfigOverrides reads the embedded service_config_overrides.yaml file.
-func ReadServiceConfigOverrides() (*ServiceConfigOverrides, error) {
+// readServiceConfigOverrides reads the embedded service_config_overrides.yaml file.
+func readServiceConfigOverrides() (*ServiceConfigOverrides, error) {
 	var overrides ServiceConfigOverrides
 	if err := yaml.Unmarshal(serviceConfigOverridesYAML, &overrides); err != nil {
 		return nil, fmt.Errorf("failed to unmarshal service config overrides: %w", err)
 	}
 	return &overrides, nil
+}
+
+// IsAPIExcluded returns true if the given API path is excluded for the specified language.
+func IsAPIExcluded(language, apiPath string) (bool, error) {
+	overrides, err := readServiceConfigOverrides()
+	if err != nil {
+		return false, err
+	}
+	return overrides.IsExcluded(language, apiPath), nil
 }
 
 // IsExcluded returns true if the given API path matches any exclusion pattern for the specified language.

@@ -60,7 +60,11 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	if err != nil {
 		return fmt.Errorf("failed to backup keep files: %w", err)
 	}
-	defer os.RemoveAll(backupDir) // Clean up backup after we're done
+	defer func() {
+		if err := os.RemoveAll(backupDir); err != nil {
+			fmt.Fprintf(os.Stderr, "Warning: failed to cleanup backup directory: %v\n", err)
+		}
+	}()
 
 	// Create output directory
 	if err := os.MkdirAll(outdir, 0755); err != nil {
@@ -101,18 +105,12 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		}
 	}
 
-	// Discover service config overrides
-	overrides, err := config.ReadServiceConfigOverrides()
-	if err != nil {
-		return fmt.Errorf("failed to read service config overrides: %w", err)
-	}
-
 	// Generate each API with its own service config
 	for i, apiPath := range apiPaths {
-		// Discover the correct service config for this specific API
-		apiServiceConfig, err := findServiceConfigForAPI(googleapisDir, apiPath, overrides)
-		if err != nil {
-			return fmt.Errorf("failed to find service config for %s: %w", apiPath, err)
+		// Get the service config for this specific API
+		apiServiceConfig, ok := library.APIServiceConfigs[apiPath]
+		if !ok {
+			return fmt.Errorf("no service config found for %s", apiPath)
 		}
 
 		// Only generate unversioned package for the first (default) API
@@ -640,8 +638,12 @@ func copyReadmeToDocsDir(outdir string) error {
 // cleanupPostProcessingFiles removes files that shouldn't be in the final output.
 func cleanupPostProcessingFiles(outdir string) error {
 	// Remove directories
-	os.RemoveAll(filepath.Join(outdir, ".nox"))
-	os.RemoveAll(filepath.Join(outdir, "owl-bot-staging"))
+	if err := os.RemoveAll(filepath.Join(outdir, ".nox")); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove .nox: %w", err)
+	}
+	if err := os.RemoveAll(filepath.Join(outdir, "owl-bot-staging")); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove owl-bot-staging: %w", err)
+	}
 
 	// Remove CHANGELOG.md files (they should be symlinks, any generated copies are removed)
 	os.Remove(filepath.Join(outdir, "CHANGELOG.md"))
@@ -656,58 +658,4 @@ func cleanupPostProcessingFiles(outdir string) error {
 	}
 
 	return nil
-}
-
-// findServiceConfigForAPI discovers the service config YAML for a given API path.
-// It checks overrides first, then uses auto-discovery based on naming patterns.
-func findServiceConfigForAPI(googleapisDir, apiPath string, overrides *config.ServiceConfigOverrides) (string, error) {
-	// Check for override first
-	if overrides != nil {
-		if override := overrides.GetServiceConfig(apiPath); override != "" {
-			// Override path is relative to the API directory
-			parts := strings.Split(apiPath, "/")
-			// Go up to the parent directory for the override
-			parentDir := strings.Join(parts[:len(parts)-1], "/")
-			configPath := filepath.Join(googleapisDir, parentDir, override)
-
-			// Verify it exists
-			if _, err := os.Stat(configPath); err == nil {
-				return configPath, nil
-			}
-		}
-	}
-
-	// Auto-discovery: find service config using pattern
-	parts := strings.Split(apiPath, "/")
-	if len(parts) < 2 {
-		return "", fmt.Errorf("invalid API path: %q", apiPath)
-	}
-
-	version := parts[len(parts)-1]
-	dir := filepath.Join(googleapisDir, apiPath)
-
-	// Pattern: *_<version>.yaml (e.g., secretmanager_v1.yaml)
-	pattern := filepath.Join(dir, "*_"+version+".yaml")
-	matches, err := filepath.Glob(pattern)
-	if err != nil {
-		return "", err
-	}
-
-	// Filter out _gapic.yaml files
-	var configs []string
-	for _, m := range matches {
-		if !strings.HasSuffix(m, "_gapic.yaml") {
-			configs = append(configs, m)
-		}
-	}
-
-	if len(configs) == 0 {
-		return "", fmt.Errorf("no service config found for %q", apiPath)
-	}
-
-	if len(configs) > 1 {
-		return "", fmt.Errorf("multiple service configs found for %q: %v", apiPath, configs)
-	}
-
-	return configs[0], nil
 }

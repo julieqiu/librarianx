@@ -195,6 +195,11 @@ type Library struct {
 
 	// Dart contains Dart-specific library configuration.
 	Dart *DartPackage `yaml:"dart,omitempty"`
+
+	// APIServiceConfigs maps API paths to their service config file paths (runtime only, not serialized).
+	// For single-API libraries: map[API]serviceConfigPath
+	// For multi-API libraries: map[APIs[0]]path1, map[APIs[1]]path2, etc.
+	APIServiceConfigs map[string]string `yaml:"-"`
 }
 
 // LibraryGenerate contains per-library generate configuration.

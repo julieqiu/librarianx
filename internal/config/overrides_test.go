@@ -86,7 +86,7 @@ func TestServiceConfigOverrides_IsExcluded(t *testing.T) {
 }
 
 func TestServiceConfigOverrides_EmbeddedExclusions(t *testing.T) {
-	overrides, err := ReadServiceConfigOverrides()
+	overrides, err := readServiceConfigOverrides()
 	if err != nil {
 		t.Fatal(err)
 	}

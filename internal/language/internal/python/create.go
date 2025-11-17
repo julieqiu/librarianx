@@ -17,7 +17,6 @@ package python
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -61,7 +60,7 @@ func Create(ctx context.Context, library *config.Library, defaults *config.Defau
 
 // readTextFile is a helper function that reads a text file and returns its content.
 func readTextFile(path string) (string, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return "", err
 	}
@@ -75,7 +74,7 @@ func writeTextFile(path string, content string) error {
 	if err := os.MkdirAll(dir, 0755); err != nil {
 		return err
 	}
-	return ioutil.WriteFile(path, []byte(content), 0644)
+	return os.WriteFile(path, []byte(content), 0644)
 }
 
 // updateGlobalChangelog updates the versions of libraries in the main CHANGELOG.md.

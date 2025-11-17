@@ -187,6 +187,33 @@ type GoModule struct {
 
 	// HasLegacyGRPC indicates whether the go_proto_library rule uses the legacy gRPC plugin.
 	HasLegacyGRPC bool `yaml:"has_legacy_grpc,omitempty"`
+
+	// ModulePathVersion is the module path version suffix (e.g., "v2").
+	ModulePathVersion string `yaml:"module_path_version,omitempty"`
+
+	// DeleteGenerationOutputPaths specifies paths to delete after generation.
+	DeleteGenerationOutputPaths []string `yaml:"delete_generation_output_paths,omitempty"`
+
+	// APIs contains per-API Go-specific configuration.
+	APIs []GoAPI `yaml:"apis,omitempty"`
+}
+
+// GoAPI contains Go-specific configuration for a single API.
+type GoAPI struct {
+	// Path is the API path (e.g., "google/cloud/secretmanager/v1").
+	Path string `yaml:"path,omitempty"`
+
+	// ClientDirectory is the client output directory relative to the module root.
+	ClientDirectory string `yaml:"client_directory,omitempty"`
+
+	// DisableGapic disables GAPIC generation for this API.
+	DisableGapic bool `yaml:"disable_gapic,omitempty"`
+
+	// NestedProtos specifies additional proto files to include.
+	NestedProtos []string `yaml:"nested_protos,omitempty"`
+
+	// ProtoPackage specifies the proto package name override.
+	ProtoPackage string `yaml:"proto_package,omitempty"`
 }
 
 // DartPackage contains Dart-specific library configuration.

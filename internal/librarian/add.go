@@ -22,7 +22,6 @@ import (
 	"sort"
 
 	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/language"
 )
 
 // Add adds or updates library configuration in librarian.yaml.
@@ -46,7 +45,7 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 	if apiPath == "" {
 		// Derive from name
 		var err error
-		apiPath, err = language.DeriveAPIPath(oneLibraryPer, library.Name)
+		apiPath, err = config.DeriveAPIPath(oneLibraryPer, library.Name)
 		if err != nil {
 			return fmt.Errorf("failed to derive API path from name %q: %w", library.Name, err)
 		}
@@ -67,7 +66,7 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 	}
 
 	// Derive standard name from API path
-	derivedName, err := language.DeriveLibraryName(oneLibraryPer, apiPath)
+	derivedName, err := config.DeriveLibraryName(oneLibraryPer, apiPath)
 	if err != nil {
 		return fmt.Errorf("failed to derive library name: %w", err)
 	}

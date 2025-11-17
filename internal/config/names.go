@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package language
+package config
 
 import (
 	"fmt"
@@ -38,8 +38,8 @@ func DeriveLibraryName(oneLibraryPer, apiPath string) (string, error) {
 
 // DeriveAPIPath converts a library name to an API path based on one_library_per mode.
 // Note: service mode can only derive service path, not full path with version.
-// - "version": google-cloud-secretmanager-v1 → google/cloud/secretmanager/v1
-// - "service": google-cloud-secretmanager → google/cloud/secretmanager
+// - "version": google-cloud-secretmanager-v1 → google/cloud/secretmanager/v1.
+// - "service": google-cloud-secretmanager → google/cloud/secretmanager.
 func DeriveAPIPath(oneLibraryPer, libraryName string) (string, error) {
 	if oneLibraryPer != "version" && oneLibraryPer != "service" {
 		return "", fmt.Errorf("unsupported one_library_per mode: %q (must be \"version\" or \"service\")", oneLibraryPer)
