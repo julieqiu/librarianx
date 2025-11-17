@@ -31,7 +31,7 @@ import (
 // Generate generates a Python client library.
 // Files and directories specified in library.Keep will be preserved during regeneration.
 // If library.Keep is not specified, a default list of paths is used.
-func Generate(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+func Generate(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput, defaultAPI string) error {
 	// Determine output directory
 	outdir := library.Path
 	if outdir == "" {
@@ -72,11 +72,7 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	}
 
 	// Get API paths to generate
-	apiPaths := library.APIs
-	if len(apiPaths) == 0 && library.API != "" {
-		apiPaths = []string{library.API}
-	}
-
+	apiPaths := config.GetLibraryAPIs(library)
 	if len(apiPaths) == 0 {
 		return fmt.Errorf("no APIs specified for library %s", library.Name)
 	}
@@ -106,15 +102,9 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	}
 
 	// Generate each API with its own service config
-	for i, apiPath := range apiPaths {
-		// Get the service config for this specific API
-		apiServiceConfig, ok := library.APIServiceConfigs[apiPath]
-		if !ok {
-			return fmt.Errorf("no service config found for %s", apiPath)
-		}
-
-		// Only generate unversioned package for the first (default) API
-		isDefaultAPI := i == 0
+	for apiPath, apiServiceConfig := range library.APIServiceConfigs {
+		// Only generate unversioned package for the default (latest stable) API
+		isDefaultAPI := apiPath == defaultAPI
 
 		if err := generateAPI(ctx, apiPath, library, googleapisDir, apiServiceConfig, outdir, transport, restNumericEnums, isDefaultAPI); err != nil {
 			return fmt.Errorf("failed to generate API %s: %w", apiPath, err)

@@ -58,19 +58,8 @@ func runGenerateAll(ctx context.Context) error {
 
 	// Generate each library
 	for _, lib := range libraries {
-		// Get the API paths to generate
-		apiPaths := lib.APIs
-		if len(apiPaths) == 0 && lib.API != "" {
-			apiPaths = []string{lib.API}
-		}
-
 		// Generate each API in the library
-		for _, apiPath := range apiPaths {
-			serviceConfigPath, ok := lib.APIServiceConfigs[apiPath]
-			if !ok {
-				return fmt.Errorf("no service config found for %s", apiPath)
-			}
-
+		for apiPath, serviceConfigPath := range lib.APIServiceConfigs {
 			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, false); err != nil {
 				fmt.Printf("  ✗ %s: %v\n", apiPath, err)
 				return err

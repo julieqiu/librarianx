@@ -17,6 +17,8 @@ package language
 import (
 	"context"
 	"fmt"
+	"sort"
+	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
 	"github.com/googleapis/librarian/internal/language/internal/python"
@@ -41,8 +43,120 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	case "rust":
 		return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "python":
-		return python.Generate(ctx, language, repo, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+		defaultAPI := getDefaultAPI(library)
+		return python.Generate(ctx, language, repo, library, defaults, googleapisDir, serviceConfigPath, defaultOutput, defaultAPI)
 	default:
 		return fmt.Errorf("unsupported language: %s", language)
 	}
+}
+
+// getDefaultAPI returns the default API path for a library.
+// The default is the latest stable version, or if no stable versions exist, the latest pre-release.
+// Version ordering: v2, v1, v2beta1, v1beta1, v2alpha1, v1alpha1.
+func getDefaultAPI(lib *config.Library) string {
+	apis := config.GetLibraryAPIs(lib)
+	if len(apis) == 0 {
+		return ""
+	}
+	if len(apis) == 1 {
+		return apis[0]
+	}
+
+	// Sort APIs by version, latest stable first
+	sorted := sortAPIsByVersion(apis)
+	return sorted[0]
+}
+
+// sortAPIsByVersion sorts API paths by version in descending order.
+// Stable versions come before pre-release versions (beta, alpha).
+// Within each group, higher versions come first.
+func sortAPIsByVersion(apis []string) []string {
+	result := make([]string, len(apis))
+	copy(result, apis)
+
+	sort.Slice(result, func(i, j int) bool {
+		vi := parseVersion(result[i])
+		vj := parseVersion(result[j])
+
+		// Stable versions before pre-release
+		if vi.stable != vj.stable {
+			return vi.stable
+		}
+
+		// If both pre-release, beta before alpha
+		if !vi.stable {
+			if vi.prerelease != vj.prerelease {
+				return vi.prerelease > vj.prerelease
+			}
+		}
+
+		// Higher major version first
+		if vi.major != vj.major {
+			return vi.major > vj.major
+		}
+
+		// Higher pre-release number first
+		if !vi.stable {
+			return vi.prereleaseNum > vj.prereleaseNum
+		}
+
+		return false
+	})
+
+	return result
+}
+
+type version struct {
+	major         int
+	stable        bool
+	prerelease    int // 2=beta, 1=alpha, 0=other
+	prereleaseNum int
+}
+
+func parseVersion(apiPath string) version {
+	// Extract version from API path (last segment)
+	parts := strings.Split(apiPath, "/")
+	if len(parts) == 0 {
+		return version{}
+	}
+
+	versionStr := parts[len(parts)-1]
+	if len(versionStr) < 2 || versionStr[0] != 'v' {
+		return version{}
+	}
+
+	v := version{stable: true}
+
+	// Parse version string (e.g., "v1", "v2beta1", "v1alpha1")
+	rest := versionStr[1:] // Remove 'v'
+
+	// Extract major version number
+	i := 0
+	for i < len(rest) && rest[i] >= '0' && rest[i] <= '9' {
+		v.major = v.major*10 + int(rest[i]-'0')
+		i++
+	}
+
+	if i < len(rest) {
+		// Has pre-release suffix
+		v.stable = false
+		suffix := rest[i:]
+
+		if strings.HasPrefix(suffix, "beta") {
+			v.prerelease = 2
+			suffix = suffix[4:]
+		} else if strings.HasPrefix(suffix, "alpha") {
+			v.prerelease = 1
+			suffix = suffix[5:]
+		}
+
+		// Extract pre-release number
+		for _, c := range suffix {
+			if c >= '0' && c <= '9' {
+				v.prereleaseNum = v.prereleaseNum*10 + int(c-'0')
+			}
+		}
+	}
+
+	return v
 }

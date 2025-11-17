@@ -17,8 +17,6 @@ package librarian
 import (
 	"context"
 	"fmt"
-	"os"
-	"path/filepath"
 	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
@@ -80,89 +78,31 @@ func runGenerate(ctx context.Context, name string, newLibrary bool) error {
 		return err
 	}
 
-	// First try to find the library by name in config
-	var library *config.Library
-	for _, lib := range cfg.Libraries {
-		if lib.Name == name {
-			library = lib
-			break
-		}
+	// Find or create library by name
+	library, err := config.FindLibraryByName(cfg, name, googleapisDir)
+	if err != nil {
+		return err
 	}
 
-	// If found, generate all its APIs
-	if library != nil {
-		apiPaths := library.APIs
-		if len(apiPaths) == 0 && library.API != "" {
-			apiPaths = []string{library.API}
+	// Generate each API in the library
+	for apiPath, serviceConfigPath := range library.APIServiceConfigs {
+		// Check if API is excluded
+		excluded, err := config.IsAPIExcluded(cfg.Language, apiPath)
+		if err != nil {
+			return fmt.Errorf("failed to check if API is excluded: %w", err)
+		}
+		if excluded {
+			fmt.Printf("  ⊘ %s (excluded)\n", apiPath)
+			continue
 		}
 
-		if len(apiPaths) == 0 {
-			return fmt.Errorf("library %q has no APIs configured", name)
-		}
-
-		// Populate service configs for the library
-		if err := config.PopulateServiceConfigs(library, googleapisDir); err != nil {
+		// Generate the library
+		if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary); err != nil {
 			return err
 		}
-
-		// Generate each API
-		for _, apiPath := range apiPaths {
-			// Check if API is excluded
-			excluded, err := config.IsAPIExcluded(cfg.Language, apiPath)
-			if err != nil {
-				return fmt.Errorf("failed to check if API is excluded: %w", err)
-			}
-			if excluded {
-				fmt.Printf("  ⊘ %s (excluded)\n", apiPath)
-				continue
-			}
-
-			serviceConfigPath, ok := library.APIServiceConfigs[apiPath]
-			if !ok {
-				return fmt.Errorf("no service config found for %s", apiPath)
-			}
-
-			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary); err != nil {
-				return err
-			}
-		}
-		return nil
 	}
 
-	// Fallback: treat name as API path (for Rust version-level libraries)
-	apiPath := strings.ReplaceAll(name, "-", "/")
-
-	// Validate API directory exists
-	apiDir := filepath.Join(googleapisDir, apiPath)
-	if _, err := os.Stat(apiDir); os.IsNotExist(err) {
-		return fmt.Errorf("library %q not found in config and API path %q not found in googleapis", name, apiPath)
-	} else if err != nil {
-		return err
-	}
-
-	// Check if API is excluded
-	excluded, err := config.IsAPIExcluded(cfg.Language, apiPath)
-	if err != nil {
-		return fmt.Errorf("failed to check if API is excluded: %w", err)
-	}
-	if excluded {
-		return fmt.Errorf("API %q is excluded from generation", apiPath)
-	}
-
-	// Create minimal library config and populate service configs
-	library = &config.Library{
-		API: apiPath,
-	}
-	if err := config.PopulateServiceConfigs(library, googleapisDir); err != nil {
-		return err
-	}
-
-	serviceConfigPath, ok := library.APIServiceConfigs[apiPath]
-	if !ok {
-		return fmt.Errorf("no service config found for %s", apiPath)
-	}
-
-	return generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary)
+	return nil
 }
 
 // generateLibraryForAPI generates a library for the given API path.

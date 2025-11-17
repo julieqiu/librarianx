@@ -274,3 +274,91 @@ func PopulateServiceConfigs(lib *Library, googleapisDir string) error {
 
 	return nil
 }
+
+// FindLibraryByName finds a library by name in the config and prepares it for generation.
+// Returns the library with service configs populated, ready for generation.
+// If not found in config, tries to create a library from the API path (fallback for version-mode languages).
+func FindLibraryByName(cfg *Config, name, googleapisDir string) (*Library, error) {
+	// Try to find the library by name in config
+	var library *Library
+	for _, lib := range cfg.Libraries {
+		if lib.Name == name {
+			library = lib
+			break
+		}
+	}
+
+	// If found in config, validate and populate
+	if library != nil {
+		// Validate library has APIs configured
+		apiPaths := GetLibraryAPIs(library)
+		if len(apiPaths) == 0 {
+			return nil, fmt.Errorf("library %q has no APIs configured", name)
+		}
+
+		// Populate service configs for the library
+		if err := PopulateServiceConfigs(library, googleapisDir); err != nil {
+			return nil, err
+		}
+
+		return library, nil
+	}
+
+	// Fallback: create library from API path (for version-mode languages like Rust)
+	// Get one_library_per mode to derive API path
+	if cfg.Default == nil || cfg.Default.Generate == nil || cfg.Default.Generate.OneLibraryPer == "" {
+		return nil, fmt.Errorf("library %q not found in config and one_library_per not set", name)
+	}
+	oneLibraryPer := cfg.Default.Generate.OneLibraryPer
+
+	// Derive API path from library name
+	apiPath, err := DeriveAPIPath(oneLibraryPer, name)
+	if err != nil {
+		return nil, fmt.Errorf("failed to derive API path from name %q: %w", name, err)
+	}
+
+	// Create library from API path
+	library, err = CreateLibraryFromAPIPath(name, apiPath, googleapisDir)
+	if err != nil {
+		return nil, err
+	}
+
+	return library, nil
+}
+
+// CreateLibraryFromAPIPath creates a library from an API path (fallback when library not in config).
+// This is used for version-mode languages where libraries are named after their API paths.
+func CreateLibraryFromAPIPath(name, apiPath, googleapisDir string) (*Library, error) {
+	// Validate API directory exists in googleapis
+	apiDir := filepath.Join(googleapisDir, apiPath)
+	if _, err := os.Stat(apiDir); os.IsNotExist(err) {
+		return nil, fmt.Errorf("library %q not found in config and API path %q not found in googleapis", name, apiPath)
+	} else if err != nil {
+		return nil, fmt.Errorf("failed to check API directory: %w", err)
+	}
+
+	// Create minimal library config
+	library := &Library{
+		Name: name,
+		API:  apiPath,
+	}
+
+	// Populate service configs
+	if err := PopulateServiceConfigs(library, googleapisDir); err != nil {
+		return nil, err
+	}
+
+	return library, nil
+}
+
+// GetLibraryAPIs returns all API paths for a library.
+// Handles both single-API (library.API) and multi-API (library.APIs) libraries.
+func GetLibraryAPIs(lib *Library) []string {
+	if len(lib.APIs) > 0 {
+		return lib.APIs
+	}
+	if lib.API != "" {
+		return []string{lib.API}
+	}
+	return nil
+}
