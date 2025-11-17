@@ -134,12 +134,12 @@ func TestServiceConfigOverrides_EmbeddedExclusions(t *testing.T) {
 		})
 	}
 
-	// Test that Python does not have these exclusions
+	// Test that Python does not have Rust-only exclusions
 	t.Run("python not excluded", func(t *testing.T) {
 		pythonNotExcluded := []string{
-			"google/actions/sdk/v2",
-			"google/cloud/videointelligence/v1",
-			"google/firestore/v1",
+			"google/ads/googleads/v1",
+			"google/analytics/data/v1",
+			"google/apps/meet/v2",
 		}
 		for _, path := range pythonNotExcluded {
 			if overrides.IsExcluded("python", path) {
