@@ -80,7 +80,7 @@ func runGenerateAll(ctx context.Context) error {
 
 	// Generate with progress reporting
 	for _, api := range apisToGenerate {
-		if err := generateLibraryForAPI(ctx, cfg, googleapisDir, api.Path, api.ServiceConfigPath); err != nil {
+		if err := generateLibraryForAPI(ctx, cfg, googleapisDir, api.Path, api.ServiceConfigPath, false); err != nil {
 			fmt.Printf("  ✗ %s: %v\n", api.Path, err)
 			return err
 		}

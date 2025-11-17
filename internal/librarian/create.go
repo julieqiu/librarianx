@@ -32,11 +32,7 @@ func createCommand() *cli.Command {
 				return fmt.Errorf("create requires a library name argument")
 			}
 			name := cmd.Args().Get(0)
-			return runCreate(ctx, name)
+			return runGenerate(ctx, name, true)
 		},
 	}
-}
-
-func runCreate(ctx context.Context, name string) error {
-	return runGenerate(ctx, name)
 }

@@ -89,7 +89,7 @@ func updateGlobalChangelog(changelogSrc, changelogDest string, allLibraries []ma
 
 		// Regex pattern to find and replace the version: `[library_id]==version]`
 		// Example: `[google-cloud-language]==1.2.3]`
-		// patternStr := fmt.Sprintf("(\[%s)(==)([\\d\\.]+)(\])", regexp.QuoteMeta(libraryID))
+		patternStr := fmt.Sprintf(`(\[%s)(==)([\d\.]+)(\])`, regexp.QuoteMeta(libraryID))
 		re := regexp.MustCompile(patternStr)
 		replacement := fmt.Sprintf("$1==%s$4", version)
 		newContent = re.ReplaceAllString(newContent, replacement)

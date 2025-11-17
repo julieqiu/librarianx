@@ -27,12 +27,24 @@ import (
 	sidekick "github.com/googleapis/librarian/internal/sidekick/sidekick"
 )
 
-// Generate generates a Rust client library.
-func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+func Create(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	if err := sidekick.VerifyRustTools(); err != nil {
 		return err
 	}
+	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
+	if _, err := os.Stat(outdir); os.IsNotExist(err) {
+		if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
+			return err
+		}
+	}
+	if err := Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput); err != nil {
+		return err
+	}
+	return sidekick.PostGenerate(outdir)
+}
 
+// Generate generates a Rust client library.
+func Generate(ctx context.Context, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	if defaults.Rust != nil {
 		if library.Rust == nil {
 			library.Rust = &config.RustCrate{}
@@ -44,13 +56,6 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 		library.Rust.PackageDependencies = mergePackageDependencies(defaults.Rust.PackageDependencies, library.Rust.PackageDependencies)
 	}
 
-	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
-	if _, err := os.Stat(outdir); os.IsNotExist(err) {
-		if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
-			return err
-		}
-	}
-
 	sidekickConfig, err := toSidekickConfig(library, googleapisDir, serviceConfigPath)
 	if err != nil {
 		return err
@@ -59,10 +64,14 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	if err != nil {
 		return err
 	}
-	if err := sidekickrust.Generate(model, outdir, sidekickConfig); err != nil {
-		return err
+
+	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
+	if _, err := os.Stat(outdir); os.IsNotExist(err) {
+		if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
+			return err
+		}
 	}
-	return sidekick.PostGenerate(outdir)
+	return sidekickrust.Generate(model, outdir, sidekickConfig)
 }
 
 func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig string) (*sidekickconfig.Config, error) {

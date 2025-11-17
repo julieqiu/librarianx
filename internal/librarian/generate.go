@@ -55,12 +55,12 @@ Generate all APIs:
 				return fmt.Errorf("generate requires a library name argument or --all flag")
 			}
 			name := cmd.Args().Get(0)
-			return runGenerate(ctx, name)
+			return runGenerate(ctx, name, false)
 		},
 	}
 }
 
-func runGenerate(ctx context.Context, name string) error {
+func runGenerate(ctx context.Context, name string, newLibrary bool) error {
 	cfg, err := config.Read(configPath)
 	if err != nil {
 		return err
@@ -119,7 +119,7 @@ func runGenerate(ctx context.Context, name string) error {
 				return err
 			}
 
-			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath); err != nil {
+			if err := generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary); err != nil {
 				return err
 			}
 		}
@@ -153,11 +153,11 @@ func runGenerate(ctx context.Context, name string) error {
 		return err
 	}
 
-	return generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath)
+	return generateLibraryForAPI(ctx, cfg, googleapisDir, apiPath, serviceConfigPath, newLibrary)
 }
 
 // generateLibraryForAPI generates a library for the given API path.
-func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDir, apiPath, serviceConfigPath string) error {
+func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDir, apiPath, serviceConfigPath string, newLibrary bool) error {
 	// Check for name override first
 	nameOverride := cfg.GetNameOverride(apiPath)
 
@@ -228,8 +228,14 @@ func generateLibraryForAPI(ctx context.Context, cfg *config.Config, googleapisDi
 		return nil
 	}
 
-	if err := language.Generate(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
-		return err
+	if newLibrary {
+		if err := language.Create(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+			return err
+		}
+	} else {
+		if err := language.Generate(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, serviceConfigPath, cfg.Default.Output); err != nil {
+			return err
+		}
 	}
 
 	fmt.Printf("  ✓ %s\n", apiPath)

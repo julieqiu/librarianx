@@ -23,6 +23,17 @@ import (
 	"github.com/googleapis/librarian/internal/language/internal/rust"
 )
 
+func Create(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+	switch language {
+	case "rust":
+		return rust.Create(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+	// case "python":
+	// return python.Create(ctx, language, repo, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
+	default:
+		return fmt.Errorf("unsupported language: %s", language)
+	}
+}
+
 // Generate generates a client library for the specified language.
 func Generate(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	switch language {

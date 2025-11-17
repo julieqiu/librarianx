@@ -41,7 +41,7 @@ func TestGenerateLibraryForAPI_Disabled(t *testing.T) {
 	}
 
 	// This should return nil without error, skipping generation
-	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/test/v1", "/fake/service.yaml")
+	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/test/v1", "/fake/service.yaml", false)
 	if err != nil {
 		t.Errorf("generateLibraryForAPI with disabled library should return nil, got error: %v", err)
 	}
@@ -70,7 +70,7 @@ func TestGenerateLibraryForAPI_NameOverride(t *testing.T) {
 	}
 
 	// Should find library by name override and skip because it's disabled
-	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/api/apikeys/v2", "/fake/service.yaml")
+	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/api/apikeys/v2", "/fake/service.yaml", false)
 	if err != nil {
 		t.Errorf("generateLibraryForAPI should handle name override, got error: %v", err)
 	}
@@ -96,7 +96,7 @@ func TestGenerateLibraryForAPI_DerivedName(t *testing.T) {
 	}
 
 	// Should find library by derived name (google/api/cloudquotas/v1 -> google-api-cloudquotas-v1)
-	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/api/cloudquotas/v1", "/fake/service.yaml")
+	err := generateLibraryForAPI(context.Background(), cfg, "/fake/googleapis", "google/api/cloudquotas/v1", "/fake/service.yaml", false)
 	if err != nil {
 		t.Errorf("generateLibraryForAPI should match by derived name, got error: %v", err)
 	}
