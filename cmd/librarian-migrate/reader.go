@@ -44,10 +44,7 @@ func (r *Reader) ReadAll() (*LegacyState, *LegacyConfig, *BuildBazelData, *Legac
 		return nil, nil, nil, nil, fmt.Errorf("failed to read config.yaml: %w", err)
 	}
 
-	buildData, err := r.readBuildBazel(state)
-	if err != nil {
-		return nil, nil, nil, nil, fmt.Errorf("failed to read BUILD.bazel: %w", err)
-	}
+	buildData := r.readBuildBazel(state)
 
 	generatorInput, err := r.readGeneratorInput()
 	if err != nil {
@@ -95,9 +92,9 @@ func (r *Reader) readConfig() (*LegacyConfig, error) {
 }
 
 // readBuildBazel reads BUILD.bazel files from googleapis for each library.
-func (r *Reader) readBuildBazel(state *LegacyState) (*BuildBazelData, error) {
+func (r *Reader) readBuildBazel(state *LegacyState) *BuildBazelData {
 	if r.GoogleapisPath == "" {
-		return &BuildBazelData{Libraries: make(map[string]*BuildLibrary)}, nil
+		return &BuildBazelData{Libraries: make(map[string]*BuildLibrary)}
 	}
 
 	data := &BuildBazelData{Libraries: make(map[string]*BuildLibrary)}
@@ -132,7 +129,7 @@ func (r *Reader) readBuildBazel(state *LegacyState) (*BuildBazelData, error) {
 		data.Libraries[lib.ID] = buildLib
 	}
 
-	return data, nil
+	return data
 }
 
 // readGeneratorInput reads files from .librarian/generator-input/.

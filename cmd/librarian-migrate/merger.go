@@ -20,15 +20,23 @@ import (
 	"strings"
 
 	"github.com/googleapis/librarian/internal/config"
+	"gopkg.in/yaml.v3"
 )
 
 // merge combines data from all sources and returns a config.Config.
-func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazelData, language string) (*config.Config, error) {
+func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazelData, generatorInput *LegacyGeneratorInputData, language string) *config.Config {
 	// Create a map of config overrides for quick lookup
 	configMap := make(map[string]*LegacyConfigLibrary)
 	for i := range legacyConfig.Libraries {
 		lib := &legacyConfig.Libraries[i]
 		configMap[lib.ID] = lib
+	}
+
+	// Parse generator-input data (repo-config.yaml for Go)
+	repoConfig, err := parseRepoConfig(generatorInput)
+	if err != nil {
+		// Log warning but continue - generator input is optional
+		fmt.Fprintf(os.Stderr, "Warning: failed to parse repo-config.yaml: %v\n", err)
 	}
 
 	// Merge each library and track tag formats for default identification
@@ -84,6 +92,18 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 			}
 		}
 
+		// Merge generator-input (repo-config.yaml) data for Go
+		if language == "go" && repoConfig != nil {
+			if moduleConfig, ok := repoConfig.Modules[stateLib.ID]; ok {
+				if lib.Go == nil {
+					lib.Go = &config.GoModule{}
+				}
+				lib.Go.ModulePathVersion = moduleConfig.ModulePathVersion
+				lib.Go.DeleteGenerationOutputPaths = moduleConfig.DeleteGenerationOutputPaths
+				lib.Go.APIs = moduleConfig.APIs
+			}
+		}
+
 		libraries = append(libraries, lib)
 	}
 
@@ -117,7 +137,7 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 	// Identify and populate common defaults
 	identifyDefaults(cfg, tagFormats)
 
-	return cfg, nil
+	return cfg
 }
 
 // identifyDefaults identifies common patterns across libraries to extract as defaults.
@@ -199,4 +219,58 @@ func filterKeepPatterns(patterns []string, libraryName string) []string {
 		}
 	}
 	return filtered
+}
+
+// RepoConfig represents the structure of repo-config.yaml from generator-input.
+type RepoConfig struct {
+	Modules map[string]*RepoModule
+}
+
+// RepoModule represents a module entry in repo-config.yaml.
+type RepoModule struct {
+	ModulePathVersion           string         `yaml:"module_path_version"`
+	DeleteGenerationOutputPaths []string       `yaml:"delete_generation_output_paths"`
+	APIs                        []config.GoAPI `yaml:"apis"`
+}
+
+// parseRepoConfig parses repo-config.yaml from generator-input data.
+func parseRepoConfig(generatorInput *LegacyGeneratorInputData) (*RepoConfig, error) {
+	if generatorInput == nil || len(generatorInput.Files) == 0 {
+		return nil, nil
+	}
+
+	// Look for repo-config.yaml
+	content, ok := generatorInput.Files["repo-config.yaml"]
+	if !ok {
+		return nil, nil
+	}
+
+	// Parse the YAML structure
+	var rawConfig struct {
+		Modules []struct {
+			Name                        string         `yaml:"name"`
+			ModulePathVersion           string         `yaml:"module_path_version"`
+			DeleteGenerationOutputPaths []string       `yaml:"delete_generation_output_paths"`
+			APIs                        []config.GoAPI `yaml:"apis"`
+		} `yaml:"modules"`
+	}
+
+	if err := yaml.Unmarshal(content, &rawConfig); err != nil {
+		return nil, fmt.Errorf("failed to unmarshal repo-config.yaml: %w", err)
+	}
+
+	// Convert to map for easier lookup
+	repoConfig := &RepoConfig{
+		Modules: make(map[string]*RepoModule),
+	}
+
+	for _, module := range rawConfig.Modules {
+		repoConfig.Modules[module.Name] = &RepoModule{
+			ModulePathVersion:           module.ModulePathVersion,
+			DeleteGenerationOutputPaths: module.DeleteGenerationOutputPaths,
+			APIs:                        module.APIs,
+		}
+	}
+
+	return repoConfig, nil
 }

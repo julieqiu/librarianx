@@ -75,10 +75,7 @@ func run() error {
 
 	// Merge all sources into config.Config
 	fmt.Fprintf(os.Stderr, "Merging configuration sources...\n")
-	cfg, err := merge(state, config, buildData, language)
-	if err != nil {
-		return fmt.Errorf("failed to merge configuration: %w", err)
-	}
+	cfg := merge(state, config, buildData, generatorInput, language)
 
 	// Deduplicate fields that match defaults
 	fmt.Fprintf(os.Stderr, "Deduplicating library-specific fields...\n")
