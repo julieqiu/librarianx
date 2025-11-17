@@ -33,7 +33,7 @@ type Reader struct {
 }
 
 // ReadAll reads all configuration sources and returns the parsed data.
-func (r *Reader) ReadAll() (*LegacyState, *LegacyConfig, *BuildBazelData, *LegacyGeneratorInputData, error) {
+func (r *Reader) ReadAll(language string) (*LegacyState, *LegacyConfig, *BuildBazelData, *LegacyGeneratorInputData, error) {
 	state, err := r.readState()
 	if err != nil {
 		return nil, nil, nil, nil, fmt.Errorf("failed to read state.yaml: %w", err)
@@ -44,7 +44,7 @@ func (r *Reader) ReadAll() (*LegacyState, *LegacyConfig, *BuildBazelData, *Legac
 		return nil, nil, nil, nil, fmt.Errorf("failed to read config.yaml: %w", err)
 	}
 
-	buildData := r.readBuildBazel(state)
+	buildData := r.readBuildBazel(state, language)
 
 	generatorInput, err := r.readGeneratorInput()
 	if err != nil {
@@ -92,7 +92,7 @@ func (r *Reader) readConfig() (*LegacyConfig, error) {
 }
 
 // readBuildBazel reads BUILD.bazel files from googleapis for each library.
-func (r *Reader) readBuildBazel(state *LegacyState) *BuildBazelData {
+func (r *Reader) readBuildBazel(state *LegacyState, language string) *BuildBazelData {
 	if r.GoogleapisPath == "" {
 		return &BuildBazelData{Libraries: make(map[string]*BuildLibrary)}
 	}
@@ -108,7 +108,7 @@ func (r *Reader) readBuildBazel(state *LegacyState) *BuildBazelData {
 		apiPath := lib.APIs[0].Path
 
 		// Use the new config.ReadBuildBazel function
-		bazelConfig, err := config.ReadBuildBazel(r.GoogleapisPath, apiPath)
+		bazelConfig, err := config.ReadBuildBazel(r.GoogleapisPath, apiPath, language)
 		if err != nil {
 			// Log warning but continue
 			fmt.Fprintf(os.Stderr, "Warning: failed to parse BUILD.bazel for %s: %v\n", apiPath, err)
@@ -124,6 +124,9 @@ func (r *Reader) readBuildBazel(state *LegacyState) *BuildBazelData {
 			GRPCServiceConfig: bazelConfig.GRPCServiceConfig,
 			RestNumericEnums:  bazelConfig.RestNumericEnums,
 			IsProtoOnly:       bazelConfig.IsProtoOnly,
+			ImportPath:        bazelConfig.ImportPath,
+			Metadata:          bazelConfig.Metadata,
+			ReleaseLevel:      bazelConfig.ReleaseLevel,
 		}
 
 		data.Libraries[lib.ID] = buildLib

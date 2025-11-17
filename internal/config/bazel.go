@@ -36,16 +36,26 @@ type BazelConfig struct {
 	// RestNumericEnums indicates whether to use numeric enums in REST.
 	RestNumericEnums bool
 
-	// OptArgs contains additional generator options.
+	// OptArgs contains additional generator options (Python-specific).
 	OptArgs []string
 
 	// IsProtoOnly indicates this API has no GAPIC rule (proto-only library).
 	IsProtoOnly bool
+
+	// Go-specific fields
+	// ImportPath is the Go package import path from go_gapic_library.
+	ImportPath string
+
+	// Metadata indicates whether to generate gapic_metadata.json (Go).
+	Metadata bool
+
+	// ReleaseLevel is the release level (e.g., "ga", "beta", "alpha") (Go).
+	ReleaseLevel string
 }
 
 // ReadBuildBazel reads and parses a BUILD.bazel file for the given API path.
 // Returns BazelConfig with extracted configuration, or an error if the file cannot be read.
-func ReadBuildBazel(googleapisDir, apiPath string) (*BazelConfig, error) {
+func ReadBuildBazel(googleapisDir, apiPath, language string) (*BazelConfig, error) {
 	buildFilePath := filepath.Join(googleapisDir, apiPath, "BUILD.bazel")
 
 	content, err := os.ReadFile(buildFilePath)
@@ -53,11 +63,19 @@ func ReadBuildBazel(googleapisDir, apiPath string) (*BazelConfig, error) {
 		return nil, fmt.Errorf("failed to read BUILD.bazel: %w", err)
 	}
 
-	return parseBuildBazel(string(content))
+	return parseBuildBazel(string(content), language)
 }
 
-// parseBuildBazel parses BUILD.bazel content and extracts py_gapic_library configuration.
-func parseBuildBazel(content string) (*BazelConfig, error) {
+// parseBuildBazel parses BUILD.bazel content and extracts language-specific GAPIC library configuration.
+func parseBuildBazel(content, language string) (*BazelConfig, error) {
+	if language == "go" {
+		return parseBuildBazelGo(content)
+	}
+	return parseBuildBazelPython(content)
+}
+
+// parseBuildBazelPython parses BUILD.bazel content and extracts py_gapic_library configuration.
+func parseBuildBazelPython(content string) (*BazelConfig, error) {
 	config := &BazelConfig{}
 
 	// Look for py_gapic_library rule
@@ -90,6 +108,54 @@ func parseBuildBazel(content string) (*BazelConfig, error) {
 
 	// Extract opt_args
 	config.OptArgs = extractListValue(match, "opt_args")
+
+	return config, nil
+}
+
+// parseBuildBazelGo parses BUILD.bazel content and extracts go_gapic_library configuration.
+func parseBuildBazelGo(content string) (*BazelConfig, error) {
+	config := &BazelConfig{}
+
+	// Look for go_gapic_library rule
+	goGapicPattern := regexp.MustCompile(`go_gapic_library\s*\([^)]+\)`)
+	match := goGapicPattern.FindString(content)
+
+	if match == "" {
+		// No go_gapic_library rule found - this is a proto-only library
+		config.IsProtoOnly = true
+		return config, nil
+	}
+
+	// Extract grpc_service_config
+	if val := extractStringValue(match, "grpc_service_config"); val != "" {
+		config.GRPCServiceConfig = val
+	}
+
+	// Extract service_yaml
+	if val := extractStringValue(match, "service_yaml"); val != "" {
+		config.ServiceYAML = val
+	}
+
+	// Extract transport
+	if val := extractStringValue(match, "transport"); val != "" {
+		config.Transport = val
+	}
+
+	// Extract rest_numeric_enums
+	config.RestNumericEnums = extractBoolValue(match, "rest_numeric_enums")
+
+	// Extract importpath
+	if val := extractStringValue(match, "importpath"); val != "" {
+		config.ImportPath = val
+	}
+
+	// Extract metadata
+	config.Metadata = extractBoolValue(match, "metadata")
+
+	// Extract release_level
+	if val := extractStringValue(match, "release_level"); val != "" {
+		config.ReleaseLevel = val
+	}
 
 	return config, nil
 }

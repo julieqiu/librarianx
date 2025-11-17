@@ -109,7 +109,7 @@ type BuildLibrary struct {
 	// Transport is the transport protocol (grpc, rest, grpc+rest).
 	Transport string
 
-	// OptArgs are additional generator options.
+	// OptArgs are additional generator options (Python-specific).
 	OptArgs []string
 
 	// ServiceYAML is the service config file.
@@ -123,6 +123,16 @@ type BuildLibrary struct {
 
 	// IsProtoOnly indicates this API has no GAPIC rule (proto-only library).
 	IsProtoOnly bool
+
+	// Go-specific fields
+	// ImportPath is the Go package import path from go_gapic_library.
+	ImportPath string
+
+	// Metadata indicates whether to generate gapic_metadata.json (Go).
+	Metadata bool
+
+	// ReleaseLevel is the release level (e.g., "ga", "beta", "alpha") (Go).
+	ReleaseLevel string
 }
 
 // LegacyGeneratorInputData represents parsed data from .librarian/generator-input/.

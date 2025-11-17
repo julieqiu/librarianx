@@ -72,7 +72,7 @@ func run() error {
 	}
 
 	fmt.Fprintf(os.Stderr, "Reading legacy configuration from %s...\n", repoPath)
-	state, config, buildData, generatorInput, err := reader.ReadAll()
+	state, config, buildData, generatorInput, err := reader.ReadAll(language)
 	if err != nil {
 		return fmt.Errorf("failed to read legacy configuration: %w", err)
 	}

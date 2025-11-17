@@ -80,15 +80,34 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 		if buildLib, ok := buildData.Libraries[stateLib.ID]; ok {
 			lib.Transport = buildLib.Transport
 			lib.GRPCServiceConfig = buildLib.GRPCServiceConfig
-			if len(buildLib.OptArgs) > 0 || buildLib.IsProtoOnly {
-				if lib.Python == nil {
-					lib.Python = &config.PythonPackage{}
-				}
-				lib.Python.OptArgs = buildLib.OptArgs
-				lib.Python.IsProtoOnly = buildLib.IsProtoOnly
-			}
 			if buildLib.RestNumericEnums {
 				lib.RestNumericEnums = &buildLib.RestNumericEnums
+			}
+
+			// Merge language-specific fields
+			if language == "python" {
+				if len(buildLib.OptArgs) > 0 || buildLib.IsProtoOnly {
+					if lib.Python == nil {
+						lib.Python = &config.PythonPackage{}
+					}
+					lib.Python.OptArgs = buildLib.OptArgs
+					lib.Python.IsProtoOnly = buildLib.IsProtoOnly
+				}
+			} else if language == "go" {
+				if buildLib.ImportPath != "" || buildLib.Metadata {
+					if lib.Go == nil {
+						lib.Go = &config.GoModule{}
+					}
+					if buildLib.ImportPath != "" {
+						lib.Go.ImportPath = buildLib.ImportPath
+					}
+					if buildLib.Metadata {
+						lib.Go.Metadata = buildLib.Metadata
+					}
+				}
+				if buildLib.ReleaseLevel != "" {
+					lib.ReleaseLevel = buildLib.ReleaseLevel
+				}
 			}
 		}
 
