@@ -1134,6 +1134,7 @@ versions:
   google-apps-events-subscriptions: 0.3.0
   google-apps-script-type: 0.4.0
   google-cloud-access-approval: 1.17.0
+  google-cloud-access-context-manager: 0.3.0
   google-cloud-alloydb-connectors: 0.2.0
   google-cloud-api-gateway: 1.13.0
   google-cloud-api-keys: 0.6.0
@@ -1143,6 +1144,7 @@ versions:
   google-cloud-appengine-logging: 1.7.0
   google-cloud-artifact-registry: 1.17.0
   google-cloud-assured-workloads: 2.1.0
+  google-cloud-audit-log: 0.4.0
   google-cloud-automl: 2.17.0
   google-cloud-bare-metal-solution: 1.11.0
   google-cloud-beyondcorp-appconnections: 0.5.0
@@ -1166,6 +1168,7 @@ versions:
   google-cloud-channel: 1.24.0
   google-cloud-commerce-consumer-procurement: 0.3.0
   google-cloud-common: 1.7.0
+  google-cloud-compute-v1beta: 0.3.0
   google-cloud-contact-center-insights: 1.24.0
   google-cloud-container: 2.61.0
   google-cloud-containeranalysis: 2.19.0
@@ -1264,4 +1267,5 @@ versions:
   google-shopping-merchant-reports: 1.1.0
   google-shopping-merchant-reviews: 0.3.0
   google-shopping-type: 1.1.0
+  googleapis-common-protos: 1.71.0
   grafeas: 1.16.0
