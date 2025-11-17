@@ -110,10 +110,11 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 	// Determine output path and repo based on language
 	outputPath := "{name}"
 	repo := ""
-	if language == "python" {
+	switch language {
+	case "python":
 		outputPath = "packages/{name}/"
 		repo = "googleapis/google-cloud-python"
-	} else if language == "go" {
+	case "go":
 		repo = "googleapis/google-cloud-go"
 	}
 
