@@ -99,10 +99,7 @@ func run() error {
 
 	// Discover versions from packages
 	fmt.Fprintf(os.Stderr, "Discovering package versions...\n")
-	versions, err := discoverVersions(repoPath, cfg, state, language)
-	if err != nil {
-		return fmt.Errorf("failed to discover versions: %w", err)
-	}
+	versions := discoverVersions(cfg, state)
 	if len(versions) > 0 {
 		cfg.Versions = versions
 		fmt.Fprintf(os.Stderr, "Found %d package versions\n", len(versions))
@@ -409,7 +406,7 @@ func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string,
 }
 
 // discoverVersions discovers package versions from .librarian/state.yaml.
-func discoverVersions(repoPath string, cfg *config.Config, state *LegacyState, language string) (map[string]string, error) {
+func discoverVersions(cfg *config.Config, state *LegacyState) map[string]string {
 	versions := make(map[string]string)
 
 	// Get all library names from the config
@@ -433,5 +430,5 @@ func discoverVersions(repoPath string, cfg *config.Config, state *LegacyState, l
 		}
 	}
 
-	return versions, nil
+	return versions
 }

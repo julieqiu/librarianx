@@ -85,7 +85,8 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 			}
 
 			// Merge language-specific fields
-			if language == "python" {
+			switch language {
+			case "python":
 				if len(buildLib.OptArgs) > 0 || buildLib.IsProtoOnly {
 					if lib.Python == nil {
 						lib.Python = &config.PythonPackage{}
@@ -93,7 +94,7 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 					lib.Python.OptArgs = buildLib.OptArgs
 					lib.Python.IsProtoOnly = buildLib.IsProtoOnly
 				}
-			} else if language == "go" {
+			case "go":
 				if buildLib.ImportPath != "" || buildLib.Metadata {
 					if lib.Go == nil {
 						lib.Go = &config.GoModule{}

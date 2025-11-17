@@ -19,7 +19,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/googleapis/librarian/internal/config"
 	"gopkg.in/yaml.v3"
 )
 
@@ -107,8 +106,8 @@ func (r *Reader) readBuildBazel(state *LegacyState, language string) *BuildBazel
 		// Use the first API to locate the BUILD.bazel file
 		apiPath := lib.APIs[0].Path
 
-		// Use the new config.ReadBuildBazel function
-		bazelConfig, err := config.ReadBuildBazel(r.GoogleapisPath, apiPath, language)
+		// Use ReadBuildBazel function
+		bazelConfig, err := ReadBuildBazel(r.GoogleapisPath, apiPath, language)
 		if err != nil {
 			// Log warning but continue
 			fmt.Fprintf(os.Stderr, "Warning: failed to parse BUILD.bazel for %s: %v\n", apiPath, err)

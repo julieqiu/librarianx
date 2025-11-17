@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package main
 
 import (
 	"fmt"
@@ -20,6 +20,8 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+
+	"github.com/googleapis/librarian/internal/config"
 )
 
 // BazelConfig contains configuration extracted from BUILD.bazel files.
@@ -230,7 +232,7 @@ func (b *BazelConfig) GetServiceYAMLPath(googleapisDir, apiPath string) string {
 
 // MergeWithLibrary merges BUILD.bazel config with library config.
 // Library config takes precedence over BUILD.bazel config.
-func (b *BazelConfig) MergeWithLibrary(lib *Library, defaults *Default) {
+func (b *BazelConfig) MergeWithLibrary(lib *config.Library) {
 	// Transport: library > BUILD.bazel > defaults
 	if lib.Transport == "" && b.Transport != "" {
 		lib.Transport = b.Transport
@@ -244,7 +246,7 @@ func (b *BazelConfig) MergeWithLibrary(lib *Library, defaults *Default) {
 	// OptArgs: merge BUILD.bazel opt_args with library Python.OptArgs
 	if len(b.OptArgs) > 0 {
 		if lib.Python == nil {
-			lib.Python = &PythonPackage{}
+			lib.Python = &config.PythonPackage{}
 		}
 		// Append BUILD.bazel opt_args to library opt_args (library takes precedence)
 		seen := make(map[string]bool)

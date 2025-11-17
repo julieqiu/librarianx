@@ -12,13 +12,14 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package config
+package main
 
 import (
 	"os"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/googleapis/librarian/internal/config"
 )
 
 func TestParseBuildBazel(t *testing.T) {
@@ -116,7 +117,7 @@ py_gapic_library(
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got, err := parseBuildBazel(test.content)
+			got, err := parseBuildBazel(test.content, "python")
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -154,8 +155,8 @@ func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 	for _, test := range []struct {
 		name  string
 		bazel *BazelConfig
-		lib   *Library
-		want  *Library
+		lib   *config.Library
+		want  *config.Library
 	}{
 
 		{
@@ -163,10 +164,10 @@ func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 			bazel: &BazelConfig{
 				Transport: "grpc+rest",
 			},
-			lib: &Library{
+			lib: &config.Library{
 				Name: "test-lib",
 			},
-			want: &Library{
+			want: &config.Library{
 				Name:      "test-lib",
 				Transport: "grpc+rest",
 			},
@@ -176,11 +177,11 @@ func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 			bazel: &BazelConfig{
 				Transport: "grpc+rest",
 			},
-			lib: &Library{
+			lib: &config.Library{
 				Name:      "test-lib",
 				Transport: "grpc",
 			},
-			want: &Library{
+			want: &config.Library{
 				Name:      "test-lib",
 				Transport: "grpc",
 			},
@@ -190,12 +191,12 @@ func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 			bazel: &BazelConfig{
 				OptArgs: []string{"warehouse-package-name=test-package"},
 			},
-			lib: &Library{
+			lib: &config.Library{
 				Name: "test-lib",
 			},
-			want: &Library{
+			want: &config.Library{
 				Name: "test-lib",
-				Python: &PythonPackage{
+				Python: &config.PythonPackage{
 					OptArgs: []string{"warehouse-package-name=test-package"},
 				},
 			},
@@ -205,15 +206,15 @@ func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 			bazel: &BazelConfig{
 				OptArgs: []string{"warehouse-package-name=test-package"},
 			},
-			lib: &Library{
+			lib: &config.Library{
 				Name: "test-lib",
-				Python: &PythonPackage{
+				Python: &config.PythonPackage{
 					OptArgs: []string{"custom-arg=value"},
 				},
 			},
-			want: &Library{
+			want: &config.Library{
 				Name: "test-lib",
-				Python: &PythonPackage{
+				Python: &config.PythonPackage{
 					OptArgs: []string{"custom-arg=value", "warehouse-package-name=test-package"},
 				},
 			},
@@ -223,15 +224,15 @@ func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 			bazel: &BazelConfig{
 				OptArgs: []string{"arg=value"},
 			},
-			lib: &Library{
+			lib: &config.Library{
 				Name: "test-lib",
-				Python: &PythonPackage{
+				Python: &config.PythonPackage{
 					OptArgs: []string{"arg=value"},
 				},
 			},
-			want: &Library{
+			want: &config.Library{
 				Name: "test-lib",
-				Python: &PythonPackage{
+				Python: &config.PythonPackage{
 					OptArgs: []string{"arg=value"},
 				},
 			},
@@ -241,17 +242,17 @@ func TestBazelConfig_MergeWithLibrary(t *testing.T) {
 			bazel: &BazelConfig{
 				RestNumericEnums: true,
 			},
-			lib: &Library{
+			lib: &config.Library{
 				Name: "test-lib",
 			},
-			want: &Library{
+			want: &config.Library{
 				Name:             "test-lib",
 				RestNumericEnums: boolPtr(true),
 			},
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			test.bazel.MergeWithLibrary(test.lib, nil)
+			test.bazel.MergeWithLibrary(test.lib)
 
 			if diff := cmp.Diff(test.want, test.lib); diff != "" {
 				t.Errorf("mismatch (-want +got):\n%s", diff)
@@ -271,7 +272,7 @@ func TestReadBuildBazel_RealFile(t *testing.T) {
 		t.Skip("googleapis directory not found")
 	}
 
-	config, err := ReadBuildBazel(googleapisDir, "google/cloud/secretmanager/v1")
+	config, err := ReadBuildBazel(googleapisDir, "google/cloud/secretmanager/v1", "python")
 	if err != nil {
 		t.Fatal(err)
 	}
