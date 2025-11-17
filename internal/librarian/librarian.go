@@ -42,6 +42,7 @@ func Run(ctx context.Context, args []string) error {
 			createCommand(),
 			generateCommand(),
 			releaseCommand(),
+			fmtCommand(),
 			versionCommand(),
 		},
 	}
