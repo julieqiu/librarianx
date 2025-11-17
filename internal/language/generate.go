@@ -17,6 +17,7 @@ package language
 import (
 	"context"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -108,6 +109,7 @@ func getDefaultAPI(lib *config.Library) string {
 
 	// Sort APIs by version, latest stable first
 	sorted := sortAPIsByVersion(apis)
+	fmt.Fprintf(os.Stderr, "Selecting default API for %s from %v: %s\n", lib.Name, sorted, sorted[0])
 	return sorted[0]
 }
 
