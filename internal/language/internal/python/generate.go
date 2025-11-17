@@ -570,6 +570,7 @@ func fixJSONFile(path, correctPackageName string) error {
 // runIsort runs the isort import sorter on Python files in the output directory.
 // The --fss flag forces strict alphabetical sorting within sections.
 func runIsort(outdir string) error {
+	fmt.Fprintf(os.Stderr, "\nRunning: isort --fss %s\n", outdir)
 	cmd := exec.Command("isort", "--fss", outdir)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -581,6 +582,7 @@ func runIsort(outdir string) error {
 // runBlackFormatter runs the black code formatter on Python files in the output directory.
 // Black enforces double quotes and consistent Python formatting.
 func runBlackFormatter(outdir string) error {
+	fmt.Fprintf(os.Stderr, "\nRunning: black %s\n", outdir)
 	cmd := exec.Command("black", outdir)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
