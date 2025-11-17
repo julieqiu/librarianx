@@ -87,8 +87,10 @@ libraries:
   - name: google-ads-admanager
     transport: rest
     rest_numeric_enums: true
+    grpc_service_config: admanager_grpc_service_config.json
   - name: google-ads-marketingplatform-admin
     rest_numeric_enums: true
+    grpc_service_config: marketingplatform_admin_v1alpha_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=marketingplatform_admin
@@ -99,6 +101,7 @@ libraries:
       - tests/unit/gapic/card_v1/test_card.py
   - name: google-apps-chat
     rest_numeric_enums: true
+    grpc_service_config: chat_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.apps.card.v1
@@ -106,6 +109,7 @@ libraries:
         - warehouse-package-name=google-apps-chat
   - name: google-apps-events-subscriptions
     rest_numeric_enums: true
+    grpc_service_config: subscriptions_v1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=events_subscriptions
@@ -130,6 +134,7 @@ libraries:
     transport: grpc
   - name: google-cloud-access-approval
     rest_numeric_enums: true
+    grpc_service_config: accessapproval_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-access-approval
@@ -138,16 +143,19 @@ libraries:
       - google/identity/accesscontextmanager/type
       - google/identity/accesscontextmanager/v1
     rest_numeric_enums: true
+    grpc_service_config: accesscontextmanager_grpc_service_config.json
   - name: google-cloud-alloydb-connectors
     keep:
       - tests/unit/gapic/connectors_v1/test_connectors.py
   - name: google-cloud-api-gateway
     rest_numeric_enums: true
+    grpc_service_config: apigateway_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-api-gateway
   - name: google-cloud-api-keys
     rest_numeric_enums: true
+    grpc_service_config: apikeys_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=api_keys
@@ -156,11 +164,13 @@ libraries:
   - name: google-cloud-apigee-connect
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: connection_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-apigee-connect
   - name: google-cloud-apigee-registry
     rest_numeric_enums: true
+    grpc_service_config: apigeeregistry_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=apigee_registry
@@ -168,6 +178,7 @@ libraries:
         - warehouse-package-name=google-cloud-apigee-registry
   - name: google-cloud-appengine-admin
     rest_numeric_enums: true
+    grpc_service_config: appengine_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=appengine_admin
@@ -184,6 +195,7 @@ libraries:
         - warehouse-package-name=google-cloud-appengine-logging
   - name: google-cloud-artifact-registry
     rest_numeric_enums: true
+    grpc_service_config: artifactregistry_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=artifactregistry
@@ -191,6 +203,7 @@ libraries:
         - warehouse-package-name=google-cloud-artifact-registry
   - name: google-cloud-assured-workloads
     rest_numeric_enums: true
+    grpc_service_config: assuredworkloads_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-assured-workloads
@@ -202,8 +215,10 @@ libraries:
       - tests/unit/test_gcs_client_v1beta1.py
       - tests/unit/test_tables_client_v1beta1.py
     rest_numeric_enums: true
+    grpc_service_config: automl_grpc_service_config.json
   - name: google-cloud-bare-metal-solution
     rest_numeric_enums: true
+    grpc_service_config: baremetalsolution_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bare_metal_solution
@@ -211,6 +226,7 @@ libraries:
         - warehouse-package-name=google-cloud-bare-metal-solution
   - name: google-cloud-beyondcorp-appconnections
     rest_numeric_enums: true
+    grpc_service_config: beyondcorp-appconnections_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=beyondcorp_appconnections
@@ -218,6 +234,7 @@ libraries:
         - warehouse-package-name=google-cloud-beyondcorp-appconnections
   - name: google-cloud-beyondcorp-appconnectors
     rest_numeric_enums: true
+    grpc_service_config: beyondcorp-appconnectors_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=beyondcorp_appconnectors
@@ -225,6 +242,7 @@ libraries:
         - warehouse-package-name=google-cloud-beyondcorp-appconnectors
   - name: google-cloud-beyondcorp-appgateways
     rest_numeric_enums: true
+    grpc_service_config: beyondcorp-appgateways_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=beyondcorp_appgateways
@@ -232,6 +250,7 @@ libraries:
         - warehouse-package-name=google-cloud-beyondcorp-appgateways
   - name: google-cloud-beyondcorp-clientconnectorservices
     rest_numeric_enums: true
+    grpc_service_config: beyondcorp-clientconnectorservices_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=beyondcorp_clientconnectorservices
@@ -239,6 +258,7 @@ libraries:
         - warehouse-package-name=google-cloud-beyondcorp-clientconnectorservices
   - name: google-cloud-beyondcorp-clientgateways
     rest_numeric_enums: true
+    grpc_service_config: beyondcorp-clientgateways_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=beyondcorp_clientgateways
@@ -246,24 +266,28 @@ libraries:
         - warehouse-package-name=google-cloud-beyondcorp-clientgateways
   - name: google-cloud-bigquery-analyticshub
     transport: grpc
+    grpc_service_config: analyticshub_v1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_analyticshub
         - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-biglake
     rest_numeric_enums: true
+    grpc_service_config: biglake_v1alpha1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_biglake
         - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-connection
     rest_numeric_enums: true
+    grpc_service_config: bigqueryconnection_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_connection
         - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-data-exchange
     transport: grpc
+    grpc_service_config: analyticshub_v1beta1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_data_exchange
@@ -271,12 +295,14 @@ libraries:
         - warehouse-package-name=google-cloud-bigquery-data-exchange
   - name: google-cloud-bigquery-datapolicies
     rest_numeric_enums: true
+    grpc_service_config: datapolicies_v2beta1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_datapolicies
         - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-datatransfer
     rest_numeric_enums: true
+    grpc_service_config: bigquerydatatransfer_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_datatransfer
@@ -292,12 +318,14 @@ libraries:
         - warehouse-package-name=google-cloud-bigquery-logging
   - name: google-cloud-bigquery-migration
     transport: grpc
+    grpc_service_config: bigquerymigration_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_migration
         - python-gapic-namespace=google.cloud
   - name: google-cloud-bigquery-reservation
     rest_numeric_enums: true
+    grpc_service_config: bigqueryreservation_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_reservation
@@ -325,23 +353,27 @@ libraries:
       - testing/.gitignore
       - tests/unit/.*.py
     transport: grpc
+    grpc_service_config: bigquerystorage_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=bigquery_storage
         - python-gapic-namespace=google.cloud
   - name: google-cloud-binary-authorization
     rest_numeric_enums: true
+    grpc_service_config: binaryauthorization_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-binary-authorization
   - name: google-cloud-build
     rest_numeric_enums: true
+    grpc_service_config: cloudbuild_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-namespace=google.cloud.devtools
         - warehouse-package-name=google-cloud-build
   - name: google-cloud-certificate-manager
     rest_numeric_enums: true
+    grpc_service_config: certificatemanager_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=certificate_manager
@@ -350,8 +382,10 @@ libraries:
   - name: google-cloud-channel
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: cloudchannel_grpc_service_config.json
   - name: google-cloud-commerce-consumer-procurement
     rest_numeric_enums: true
+    grpc_service_config: commerceconsumerprocurement_v1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=commerce_consumer_procurement
@@ -367,6 +401,7 @@ libraries:
         - warehouse-package-name=google-cloud-compute-v1beta
   - name: google-cloud-contact-center-insights
     rest_numeric_enums: true
+    grpc_service_config: contactcenterinsights_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=contact_center_insights
@@ -374,6 +409,7 @@ libraries:
         - warehouse-package-name=google-cloud-contact-center-insights
   - name: google-cloud-container
     rest_numeric_enums: true
+    grpc_service_config: container_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-namespace=google.cloud
@@ -382,36 +418,43 @@ libraries:
     keep:
       - tests/unit/test_get_grafeas_client.py
     rest_numeric_enums: true
+    grpc_service_config: containeranalysis_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-namespace=google.cloud.devtools
         - warehouse-package-name=google-cloud-containeranalysis
   - name: google-cloud-contentwarehouse
     rest_numeric_enums: true
+    grpc_service_config: contentwarehouse_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.cloud.documentai.v1
   - name: google-cloud-data-fusion
     rest_numeric_enums: true
+    grpc_service_config: datafusion_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=data_fusion
         - python-gapic-namespace=google.cloud
         - warehouse-package-name=google-cloud-data-fusion
   - name: google-cloud-data-qna
+    grpc_service_config: dataqna_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-data-qna
   - name: google-cloud-datacatalog
     transport: grpc
+    grpc_service_config: datacatalog_grpc_service_config.json
   - name: google-cloud-datacatalog-lineage
     rest_numeric_enums: true
+    grpc_service_config: lineage_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=datacatalog_lineage
         - python-gapic-namespace=google.cloud
   - name: google-cloud-dataflow-client
     rest_numeric_enums: true
+    grpc_service_config: dataflow_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=dataflow
@@ -420,13 +463,16 @@ libraries:
   - name: google-cloud-datalabeling
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: datalabeling_grpc_service_config.json
   - name: google-cloud-dataproc-metastore
     rest_numeric_enums: true
+    grpc_service_config: metastore_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-dataproc-metastore
   - name: google-cloud-dialogflow-cx
     rest_numeric_enums: true
+    grpc_service_config: dialogflow_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=dialogflowcx
@@ -434,22 +480,26 @@ libraries:
         - warehouse-package-name=google-cloud-dialogflow-cx
   - name: google-cloud-dlp
     rest_numeric_enums: true
+    grpc_service_config: dlp_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-namespace=google.cloud
   - name: google-cloud-dms
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: library_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-dms
   - name: google-cloud-documentai
     rest_numeric_enums: true
+    grpc_service_config: documentai_v1beta3_grpc_service_config.json
     python:
       opt_args:
         - autogen-snippets
   - name: google-cloud-essential-contacts
     rest_numeric_enums: true
+    grpc_service_config: essentialcontacts_v1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=essential_contacts
@@ -457,6 +507,7 @@ libraries:
         - warehouse-package-name=google-cloud-essential-contacts
   - name: google-cloud-eventarc-publishing
     rest_numeric_enums: true
+    grpc_service_config: eventarcpublishing_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=eventarc_publishing
@@ -464,11 +515,13 @@ libraries:
         - warehouse-package-name=google-cloud-eventarc-publishing
   - name: google-cloud-filestore
     rest_numeric_enums: true
+    grpc_service_config: file_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.cloud.common
   - name: google-cloud-gke-backup
     rest_numeric_enums: true
+    grpc_service_config: gkebackup_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=gke_backup
@@ -476,6 +529,7 @@ libraries:
         - warehouse-package-name=google-cloud-gke-backup
   - name: google-cloud-gke-connect-gateway
     transport: rest
+    grpc_service_config: connectgateway_v1beta1_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-gke-connect-gateway
@@ -486,10 +540,12 @@ libraries:
       - google/cloud/gkehub_v1/configmanagement_v1
       - google/cloud/gkehub_v1/multiclusteringress_v1
     rest_numeric_enums: true
+    grpc_service_config: v1_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-gke-hub
   - name: google-cloud-gke-multicloud
+    grpc_service_config: gkemulticloud_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=gke_multicloud
@@ -497,6 +553,7 @@ libraries:
         - warehouse-package-name=google-cloud-gke-multicloud
   - name: google-cloud-gsuiteaddons
     rest_numeric_enums: true
+    grpc_service_config: gsuiteaddons_grpc_service_config.json
     python:
       opt_args:
         - |-
@@ -518,6 +575,7 @@ libraries:
       - google/iam/v3
       - google/iam/v3beta
     rest_numeric_enums: true
+    grpc_service_config: iam_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=iam
@@ -534,6 +592,7 @@ libraries:
         - warehouse-package-name=google-cloud-iam-logging
   - name: google-cloud-kms-inventory
     rest_numeric_enums: true
+    grpc_service_config: kmsinventory_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.cloud.kms.v1
@@ -541,11 +600,13 @@ libraries:
         - python-gapic-namespace=google.cloud
   - name: google-cloud-life-sciences
     rest_numeric_enums: true
+    grpc_service_config: lifesciences_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-life-sciences
   - name: google-cloud-maintenance-api
     rest_numeric_enums: true
+    grpc_service_config: maintenance_v1beta_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=maintenance_api
@@ -553,11 +614,13 @@ libraries:
   - name: google-cloud-managed-identities
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: managedidentities_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-managed-identities
   - name: google-cloud-managedkafka-schemaregistry
     rest_numeric_enums: true
+    grpc_service_config: managedkafka_schemaregistry_v1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=managedkafka_schemaregistry
@@ -565,12 +628,14 @@ libraries:
   - name: google-cloud-media-translation
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: mediatranslation_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-media-translation
   - name: google-cloud-memorystore
     transport: rest
     rest_numeric_enums: true
+    grpc_service_config: memorystore_v1beta_grpc_service_config.json
   - name: google-cloud-monitoring
     keep:
       - docs/query.rst
@@ -580,6 +645,7 @@ libraries:
       - tests/unit/test_query.py
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: monitoring_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-namespace=google.cloud
@@ -588,6 +654,7 @@ libraries:
       - packages/google-cloud-monitoring-dashboards/google/monitoring
       - tests/unit/gapic/dashboard_v1
     rest_numeric_enums: true
+    grpc_service_config: dashboards_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=monitoring_dashboard
@@ -596,6 +663,7 @@ libraries:
   - name: google-cloud-monitoring-metrics-scopes
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: metricsscopes_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=monitoring_metrics_scope
@@ -604,11 +672,13 @@ libraries:
   - name: google-cloud-network-connectivity
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: networkconnectivity_v1_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-network-connectivity
   - name: google-cloud-network-management
     rest_numeric_enums: true
+    grpc_service_config: networkmanagement_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=network_management
@@ -616,6 +686,7 @@ libraries:
         - warehouse-package-name=google-cloud-network-management
   - name: google-cloud-network-security
     rest_numeric_enums: true
+    grpc_service_config: networksecurity_v1alpha1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=network_security
@@ -623,6 +694,7 @@ libraries:
         - warehouse-package-name=google-cloud-network-security
   - name: google-cloud-network-services
     rest_numeric_enums: true
+    grpc_service_config: networkservices_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=network_services
@@ -630,6 +702,7 @@ libraries:
         - warehouse-package-name=google-cloud-network-services
   - name: google-cloud-orchestration-airflow
     rest_numeric_enums: true
+    grpc_service_config: composer_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-orchestration-airflow
@@ -640,6 +713,7 @@ libraries:
       - tests/unit/test_packaging.py
   - name: google-cloud-os-config
     rest_numeric_enums: true
+    grpc_service_config: osconfig_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-os-config
@@ -648,44 +722,52 @@ libraries:
       - docs/oslogin_v1/common/types.rst
       - google/cloud/oslogin_v1/common
     rest_numeric_enums: true
+    grpc_service_config: oslogin_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.cloud.oslogin.common
         - warehouse-package-name=google-cloud-os-login
   - name: google-cloud-phishing-protection
     rest_numeric_enums: true
+    grpc_service_config: phishingprotection_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-phishing-protection
   - name: google-cloud-policy-troubleshooter
     rest_numeric_enums: true
+    grpc_service_config: checker_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-policy-troubleshooter
   - name: google-cloud-policysimulator
     rest_numeric_enums: true
+    grpc_service_config: policysimulator_v1_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.cloud.orgpolicy.v2
   - name: google-cloud-policytroubleshooter-iam
     rest_numeric_enums: true
+    grpc_service_config: policytroubleshooter_v3_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=policytroubleshooter_iam
         - python-gapic-namespace=google.cloud
   - name: google-cloud-private-ca
     rest_numeric_enums: true
+    grpc_service_config: privateca_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-private-ca
   - name: google-cloud-private-catalog
     rest_numeric_enums: true
+    grpc_service_config: cloudprivatecatalog_grpc_service_config.json
     python:
       opt_args:
         - autogen-snippets
         - warehouse-package-name=google-cloud-private-catalog
   - name: google-cloud-quotas
     rest_numeric_enums: true
+    grpc_service_config: cloudquotas_v1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-namespace=google.cloud
@@ -693,27 +775,32 @@ libraries:
   - name: google-cloud-recaptcha-enterprise
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: recaptchaenterprise_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-recaptcha-enterprise
   - name: google-cloud-recommendations-ai
     rest_numeric_enums: true
+    grpc_service_config: recommendationengine_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-recommendations-ai
   - name: google-cloud-redis-cluster
     rest_numeric_enums: true
+    grpc_service_config: redis_cluster_v1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=redis_cluster
         - python-gapic-namespace=google.cloud
   - name: google-cloud-resource-manager
     rest_numeric_enums: true
+    grpc_service_config: cloudresourcemanager_v3_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-resource-manager
   - name: google-cloud-saasplatform-saasservicemgmt
     rest_numeric_enums: true
+    grpc_service_config: saasservicemgmt_v1beta1_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=saasplatform_saasservicemgmt
@@ -724,14 +811,13 @@ libraries:
       - google/cloud/secretmanager/v1beta2
       - google/cloud/secrets/v1beta1
     rest_numeric_enums: true
+    grpc_service_config: secretmanager_grpc_service_config.json
     python:
       opt_args:
-        - python-gapic-name=secretmanager
-        - python-gapic-namespace=google.cloud
         - warehouse-package-name=google-cloud-secret-manager
-      api_description: "Stores, manages, and secures access to application secrets."
   - name: google-cloud-service-control
     rest_numeric_enums: true
+    grpc_service_config: servicecontrol_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=servicecontrol
@@ -739,11 +825,13 @@ libraries:
         - warehouse-package-name=google-cloud-service-control
   - name: google-cloud-service-directory
     rest_numeric_enums: true
+    grpc_service_config: servicedirectory_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-service-directory
   - name: google-cloud-service-management
     rest_numeric_enums: true
+    grpc_service_config: servicemanagement_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=servicemanagement
@@ -751,6 +839,7 @@ libraries:
         - warehouse-package-name=google-cloud-service-management
   - name: google-cloud-service-usage
     rest_numeric_enums: true
+    grpc_service_config: serviceusage_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=service_usage
@@ -770,8 +859,10 @@ libraries:
       - google/cloud/speech_v1/helpers.py
       - tests/unit/test_helpers.py
     rest_numeric_enums: true
+    grpc_service_config: speech_grpc_service_config.json
   - name: google-cloud-storage-control
     rest_numeric_enums: true
+    grpc_service_config: storage_control_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=storage_control
@@ -779,6 +870,7 @@ libraries:
         - warehouse-package-name=google-cloud-storage-control
   - name: google-cloud-storage-transfer
     rest_numeric_enums: true
+    grpc_service_config: storagetransfer_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=storage_transfer
@@ -788,14 +880,18 @@ libraries:
     keep:
       - snippets/README.md
     rest_numeric_enums: true
+    grpc_service_config: cloudtasks_grpc_service_config.json
   - name: google-cloud-telcoautomation
     keep:
       - snippets/README.md
     rest_numeric_enums: true
+    grpc_service_config: telcoautomation_v1_grpc_service_config.json
   - name: google-cloud-tpu
     transport: grpc
+    grpc_service_config: tpu_grpc_service_config.json
   - name: google-cloud-trace
     rest_numeric_enums: true
+    grpc_service_config: cloudtrace_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=trace
@@ -807,11 +903,13 @@ libraries:
       - google/cloud/translate_v2
       - tests/unit/v2
     rest_numeric_enums: true
+    grpc_service_config: translate_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=translate
   - name: google-cloud-video-live-stream
     rest_numeric_enums: true
+    grpc_service_config: livestream_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=live_stream
@@ -820,19 +918,23 @@ libraries:
   - name: google-cloud-videointelligence
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: videointelligence_grpc_service_config.json
   - name: google-cloud-vision
     keep:
       - google/cloud/vision_helpers
       - tests/unit/test_decorators.py
       - tests/unit/test_helpers.py
     rest_numeric_enums: true
+    grpc_service_config: vision_grpc_service_config.json
   - name: google-cloud-vm-migration
     rest_numeric_enums: true
+    grpc_service_config: vmmigration_v1_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-vm-migration
   - name: google-cloud-vpc-access
     rest_numeric_enums: true
+    grpc_service_config: vpcaccess_grpc_service_config.json
     python:
       opt_args:
         - warehouse-package-name=google-cloud-vpc-access
@@ -843,24 +945,28 @@ libraries:
       - google/cloud/workflows/v1
       - google/cloud/workflows/v1beta
     transport: grpc
+    grpc_service_config: executions_grpc_service_config.json
   - name: google-geo-type
     keep:
       - tests/unit/gapic/type/test_type.py
     transport: grpc
   - name: google-maps-addressvalidation
     rest_numeric_enums: true
+    grpc_service_config: addressvalidation_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.geo.type
   - name: google-maps-fleetengine
     transport: grpc
     rest_numeric_enums: true
+    grpc_service_config: fleetengine_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.geo.type
         - python-gapic-namespace=google.maps
   - name: google-maps-fleetengine-delivery
     rest_numeric_enums: true
+    grpc_service_config: fleetengine_delivery_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.geo.type
@@ -868,6 +974,7 @@ libraries:
         - python-gapic-namespace=google.maps
   - name: google-maps-places
     rest_numeric_enums: true
+    grpc_service_config: places_grpc_service_config.json
     python:
       opt_args:
         - autogen-snippets=False
@@ -876,18 +983,22 @@ libraries:
     keep:
       - samples/README.rst
     rest_numeric_enums: true
+    grpc_service_config: routeoptimization_v1_grpc_service_config.json
   - name: google-maps-routing
     rest_numeric_enums: true
+    grpc_service_config: library_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.geo.type
   - name: google-shopping-css
     rest_numeric_enums: true
+    grpc_service_config: css_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
   - name: google-shopping-merchant-accounts
     rest_numeric_enums: true
+    grpc_service_config: accounts_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -895,12 +1006,14 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-conversions
     rest_numeric_enums: true
+    grpc_service_config: conversions_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=merchant_conversions
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-datasources
     rest_numeric_enums: true
+    grpc_service_config: datasources_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -908,6 +1021,7 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-inventories
     rest_numeric_enums: true
+    grpc_service_config: inventories_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -915,6 +1029,7 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-issueresolution
     rest_numeric_enums: true
+    grpc_service_config: issueresolution_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -922,6 +1037,7 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-lfp
     rest_numeric_enums: true
+    grpc_service_config: lfp_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -929,12 +1045,14 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-notifications
     rest_numeric_enums: true
+    grpc_service_config: notifications_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=merchant_notifications
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-ordertracking
     rest_numeric_enums: true
+    grpc_service_config: ordertracking_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -942,6 +1060,7 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-products
     rest_numeric_enums: true
+    grpc_service_config: products_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -949,12 +1068,14 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-productstudio
     rest_numeric_enums: true
+    grpc_service_config: productstudio_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=merchant_productstudio
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-promotions
     rest_numeric_enums: true
+    grpc_service_config: promotions_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -962,12 +1083,14 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-quota
     rest_numeric_enums: true
+    grpc_service_config: quota_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-name=merchant_quota
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-reports
     rest_numeric_enums: true
+    grpc_service_config: reports_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -975,6 +1098,7 @@ libraries:
         - python-gapic-namespace=google.shopping
   - name: google-shopping-merchant-reviews
     rest_numeric_enums: true
+    grpc_service_config: reviews_grpc_service_config.json
     python:
       opt_args:
         - proto-plus-deps=google.shopping.type
@@ -997,6 +1121,7 @@ libraries:
       - grafeas/grafeas/__init__.py
       - grafeas/grafeas/grafeas_v1/types.py
     rest_numeric_enums: true
+    grpc_service_config: grafeas_grpc_service_config.json
     python:
       opt_args:
         - python-gapic-namespace=grafeas
