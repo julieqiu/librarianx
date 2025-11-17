@@ -35,12 +35,18 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 		return fmt.Errorf("library name is required")
 	}
 
+	// Get one_library_per mode from config
+	if cfg.Default == nil || cfg.Default.Generate == nil || cfg.Default.Generate.OneLibraryPer == "" {
+		return fmt.Errorf("one_library_per must be set in librarian.yaml under default.generate.one_library_per")
+	}
+	oneLibraryPer := cfg.Default.Generate.OneLibraryPer
+
 	// Determine API path
 	apiPath := library.API
 	if apiPath == "" {
 		// Derive from name
 		var err error
-		apiPath, err = language.DeriveAPIPath(cfg.Language, library.Name)
+		apiPath, err = language.DeriveAPIPath(oneLibraryPer, library.Name)
 		if err != nil {
 			return fmt.Errorf("failed to derive API path from name %q: %w", library.Name, err)
 		}
@@ -61,7 +67,7 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 	}
 
 	// Derive standard name from API path
-	derivedName, err := language.DeriveLibraryName(cfg.Language, apiPath)
+	derivedName, err := language.DeriveLibraryName(oneLibraryPer, apiPath)
 	if err != nil {
 		return fmt.Errorf("failed to derive library name: %w", err)
 	}

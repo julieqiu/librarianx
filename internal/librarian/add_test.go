@@ -34,6 +34,11 @@ func TestAdd(t *testing.T) {
 
 	cfg := &config.Config{
 		Language: "rust",
+		Default: &config.Default{
+			Generate: &config.DefaultGenerate{
+				OneLibraryPer: "version",
+			},
+		},
 	}
 
 	library := &config.Library{
@@ -67,6 +72,11 @@ func TestAdd_WithNameOverride(t *testing.T) {
 
 	cfg := &config.Config{
 		Language: "rust",
+		Default: &config.Default{
+			Generate: &config.DefaultGenerate{
+				OneLibraryPer: "version",
+			},
+		},
 	}
 
 	library := &config.Library{
@@ -95,6 +105,11 @@ func TestAdd_AlreadyExists(t *testing.T) {
 
 	cfg := &config.Config{
 		Language: "rust",
+		Default: &config.Default{
+			Generate: &config.DefaultGenerate{
+				OneLibraryPer: "version",
+			},
+		},
 		Versions: map[string]string{
 			"google-cloud-secretmanager-v1": "1.0.0",
 		},
