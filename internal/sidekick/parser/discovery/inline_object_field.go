@@ -17,7 +17,7 @@ package discovery
 import (
 	"fmt"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 )
 
 func maybeInlineObjectField(model *api.API, parent *api.Message, name string, input *schema) (*api.Field, error) {

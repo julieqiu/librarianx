@@ -19,7 +19,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 func getLastTag(config *config.Release) (string, error) {

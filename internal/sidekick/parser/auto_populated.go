@@ -15,7 +15,7 @@
 package parser
 
 import (
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 	"google.golang.org/genproto/googleapis/api/serviceconfig"
 )
 

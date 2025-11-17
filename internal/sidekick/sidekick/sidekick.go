@@ -20,7 +20,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 var cmdSidekick = newCommand(

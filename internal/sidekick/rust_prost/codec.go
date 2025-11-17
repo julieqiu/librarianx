@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 type codec struct {

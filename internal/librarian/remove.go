@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 )
 
 // Remove removes a library from all sections of librarian.yaml.

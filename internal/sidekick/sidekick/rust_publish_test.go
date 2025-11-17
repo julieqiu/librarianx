@@ -17,7 +17,7 @@ package sidekick
 import (
 	"testing"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 func TestRustPublish(t *testing.T) {

@@ -17,7 +17,7 @@ package discovery
 import (
 	"fmt"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 )
 
 func makeMessageEnum(model *api.API, message *api.Message, name string, schema *schema) error {

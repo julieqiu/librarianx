@@ -23,8 +23,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/config"
-	rustrelease "github.com/googleapis/librarian/internal/sidekick/rust_release"
+	"github.com/julieqiu/librarianx/internal/config"
+	rustrelease "github.com/julieqiu/librarianx/internal/sidekick/rust_release"
 	"github.com/pelletier/go-toml/v2"
 )
 

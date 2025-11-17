@@ -19,7 +19,7 @@ import (
 	"log/slog"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 // PatchDocumentation overrides the documentation of the API model with the provided configuration.

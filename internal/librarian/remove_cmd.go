@@ -18,7 +18,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 	"github.com/urfave/cli/v3"
 )
 

@@ -22,7 +22,7 @@ import (
 	"os"
 	"path"
 
-	"github.com/googleapis/librarian/internal/sidekick/license"
+	"github.com/julieqiu/librarianx/internal/sidekick/license"
 	toml "github.com/pelletier/go-toml/v2"
 )
 

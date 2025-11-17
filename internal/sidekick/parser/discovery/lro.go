@@ -18,8 +18,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
-	"github.com/googleapis/librarian/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
 )
 
 func lroAnnotations(model *api.API, cfg *config.Config) error {

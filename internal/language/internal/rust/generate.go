@@ -22,11 +22,11 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/config"
-	sidekickconfig "github.com/googleapis/librarian/internal/sidekick/config"
-	"github.com/googleapis/librarian/internal/sidekick/parser"
-	sidekickrust "github.com/googleapis/librarian/internal/sidekick/rust"
-	sidekick "github.com/googleapis/librarian/internal/sidekick/sidekick"
+	"github.com/julieqiu/librarianx/internal/config"
+	sidekickconfig "github.com/julieqiu/librarianx/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/parser"
+	sidekickrust "github.com/julieqiu/librarianx/internal/sidekick/rust"
+	sidekick "github.com/julieqiu/librarianx/internal/sidekick/sidekick"
 )
 
 // Create creates a new Rust client library.

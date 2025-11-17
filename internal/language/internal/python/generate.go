@@ -25,7 +25,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 )
 
 // Generate generates a Python client library.

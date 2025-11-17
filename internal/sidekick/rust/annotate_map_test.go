@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 )
 
 func TestMapKeyAnnotations(t *testing.T) {

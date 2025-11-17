@@ -21,7 +21,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 )
 
 // Add adds or updates library configuration in librarian.yaml.

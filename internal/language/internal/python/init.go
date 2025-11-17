@@ -15,7 +15,7 @@
 package python
 
 import (
-	"github.com/googleapis/librarian/internal/config"
+	"github.com/julieqiu/librarianx/internal/config"
 )
 
 // ConfigDefault initializes a default Python config.

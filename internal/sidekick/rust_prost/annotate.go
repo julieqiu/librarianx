@@ -18,11 +18,11 @@ package rust_prost
 import (
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
-	"github.com/googleapis/librarian/internal/sidekick/config"
-	"github.com/googleapis/librarian/internal/sidekick/license"
-	"github.com/googleapis/librarian/internal/sidekick/protobuf"
-	"github.com/googleapis/librarian/internal/sidekick/rust"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/config"
+	"github.com/julieqiu/librarianx/internal/sidekick/license"
+	"github.com/julieqiu/librarianx/internal/sidekick/protobuf"
+	"github.com/julieqiu/librarianx/internal/sidekick/rust"
 )
 
 type modelAnnotations struct {

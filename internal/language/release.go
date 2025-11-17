@@ -18,8 +18,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/googleapis/librarian/internal/config"
-	"github.com/googleapis/librarian/internal/language/internal/rust"
+	"github.com/julieqiu/librarianx/internal/config"
+	"github.com/julieqiu/librarianx/internal/language/internal/rust"
 )
 
 // Release bumps versions for the given language.

@@ -23,10 +23,10 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
-	"github.com/googleapis/librarian/internal/sidekick/language"
-	"github.com/googleapis/librarian/internal/sidekick/license"
 	"github.com/iancoleman/strcase"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/language"
+	"github.com/julieqiu/librarianx/internal/sidekick/license"
 )
 
 var omitGeneration = map[string]string{

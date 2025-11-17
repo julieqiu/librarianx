@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/googleapis/librarian/internal/sidekick/api"
+	"github.com/julieqiu/librarianx/internal/sidekick/api"
 )
 
 func addServiceRecursive(model *api.API, doc *document, resource *resource) error {
