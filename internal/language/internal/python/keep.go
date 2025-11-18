@@ -21,46 +21,34 @@ import (
 	"strings"
 )
 
-// defaultKeepPaths returns the default list of files/directories to preserve during regeneration.
-// The library name will be substituted for {name} in the paths.
-func defaultKeepPaths(libraryName string) []string {
-	paths := []string{
-		"packages/{name}/CHANGELOG.md",
-		"docs/CHANGELOG.md",
-		"docs/README.rst",
-		"docs/index.rst",
-		"samples/README.txt",
-		"scripts/client-post-processing/",
-		"samples/snippets/README.rst",
-		"tests/system/",
-		"tests/unit/gapic/type/test_type.py",
-	}
-
-	result := make([]string, len(paths))
-	for i, p := range paths {
-		result[i] = strings.ReplaceAll(p, "{name}", libraryName)
-	}
-	return result
+// defaultKeepPaths is the default list of files/directories to preserve during regeneration.
+var defaultKeepPaths = []string{
+	"CHANGELOG.md",
+	"docs/CHANGELOG.md",
+	"docs/README.rst",
+	"docs/index.rst",
+	"samples/README.txt",
+	"samples/snippets/README.rst",
+	"scripts/",
+	"tests/system/",
+	"tests/unit/gapic/type/test_type.py",
 }
 
 // cleanOutputDirectory deletes everything in the output directory except files listed in keepPaths.
-// If keepPaths is empty, uses defaultKeepPaths for the library.
 func cleanOutputDirectory(outdir string, keepPaths []string, libraryName string) error {
 	// Check if directory exists
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		return nil
 	}
 
-	// Use default keep paths if none specified
-	if len(keepPaths) == 0 {
-		keepPaths = defaultKeepPaths(libraryName)
-	}
-
 	// Build map of paths to keep (normalized to absolute paths)
 	keepMap := make(map[string]bool)
 	for _, keepPath := range keepPaths {
 		absKeepPath := filepath.Join(outdir, keepPath)
-		keepMap[absKeepPath] = true
+		// Check if any file exists with this prefix
+		if hasFileWithPrefix(outdir, keepPath) {
+			keepMap[absKeepPath] = true
+		}
 	}
 
 	// Walk directory and delete everything not in keep list
@@ -84,6 +72,42 @@ func cleanOutputDirectory(outdir string, keepPaths []string, libraryName string)
 	}
 
 	return nil
+}
+
+// hasFileWithPrefix checks if any file exists in the directory with the given prefix.
+func hasFileWithPrefix(dir, prefix string) bool {
+	fullPath := filepath.Join(dir, prefix)
+
+	// Check if exact path exists
+	if _, err := os.Stat(fullPath); err == nil {
+		return true
+	}
+
+	// Check if it's a directory prefix - walk the directory to find files
+	parentDir := filepath.Dir(fullPath)
+	if _, err := os.Stat(parentDir); os.IsNotExist(err) {
+		return false
+	}
+
+	// Walk the parent directory to find any files matching the prefix
+	found := false
+	filepath.Walk(parentDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return nil
+		}
+		relPath, err := filepath.Rel(dir, path)
+		if err != nil {
+			return nil
+		}
+		// Check if this path has the prefix
+		if strings.HasPrefix(relPath, prefix) {
+			found = true
+			return filepath.SkipAll
+		}
+		return nil
+	})
+
+	return found
 }
 
 // shouldKeep checks if a path should be kept based on the keep map.

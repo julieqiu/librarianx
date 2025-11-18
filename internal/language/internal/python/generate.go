@@ -76,18 +76,6 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		restNumericEnums = *library.RestNumericEnums
 	}
 
-	// Generate .repo-metadata.json BEFORE running protoc so it can use it for README generation
-	// Only generate once (not per API) to avoid the last API overwriting it
-	metadataPath := filepath.Join(outdir, ".repo-metadata.json")
-	if serviceConfigPath != "" && repo != "" {
-		// Only generate if it doesn't exist yet (for multi-API libraries called multiple times)
-		if _, err := os.Stat(metadataPath); os.IsNotExist(err) {
-			if err := config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths); err != nil {
-				return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
-			}
-		}
-	}
-
 	// Generate each API with its own service config
 	for apiPath, apiServiceConfig := range library.APIServiceConfigs {
 		// Only generate unversioned package for the default (latest stable) API
@@ -98,29 +86,31 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 		}
 	}
 
-	// Fix generated files that have incorrect package names
-	// For beta versions (v1beta1, v1beta2), use historical package name without hyphen
-	betaPackageName := strings.ReplaceAll(library.Name, "-secret-manager", "-secretmanager")
-	if err := fixGeneratedPackageNames(outdir, library.Name, betaPackageName); err != nil {
-		return fmt.Errorf("failed to fix package names in generated files: %w", err)
+	// Copy files needed for post processing (e.g., .repo-metadata.json, scripts)
+	if err := copyFilesNeededForPostProcessing(outdir, library, repo); err != nil {
+		return fmt.Errorf("failed to copy files for post processing: %w", err)
 	}
 
-	// Run isort to sort imports, then black to format code
-	if err := runIsort(outdir); err != nil {
-		return fmt.Errorf("failed to run isort: %w", err)
+	// Generate .repo-metadata.json from service config
+	if serviceConfigPath != "" && repo != "" {
+		if err := generateRepoMetadataFile(outdir, library, language, repo, serviceConfigPath, googleapisDir, apiPaths); err != nil {
+			return fmt.Errorf("failed to generate .repo-metadata.json: %w", err)
+		}
 	}
-	if err := runBlackFormatter(outdir); err != nil {
-		return fmt.Errorf("failed to run black formatter: %w", err)
+
+	// Run post processor (synthtool/owlbot)
+	if err := runPostProcessor(outdir, library.Name); err != nil {
+		return fmt.Errorf("failed to run post processor: %w", err)
 	}
 
 	// Copy README.rst to docs/README.rst
-	if err := copyReadmeToDocsDir(outdir); err != nil {
+	if err := copyReadmeToDocsDir(outdir, library.Name); err != nil {
 		return fmt.Errorf("failed to copy README to docs: %w", err)
 	}
 
 	// Clean up files that shouldn't be in the final output
-	if err := cleanupPostProcessingFiles(outdir); err != nil {
-		return fmt.Errorf("failed to cleanup post-processing files: %w", err)
+	if err := cleanUpFilesAfterPostProcessing(outdir, library.Name); err != nil {
+		return fmt.Errorf("failed to cleanup after post processing: %w", err)
 	}
 
 	return nil
@@ -401,9 +391,10 @@ func runBlackFormatter(outdir string) error {
 
 // copyReadmeToDocsDir copies README.rst to docs/README.rst.
 // This handles symlinks properly by reading content and writing a real file.
-func copyReadmeToDocsDir(outdir string) error {
-	sourcePath := filepath.Join(outdir, "README.rst")
-	docsPath := filepath.Join(outdir, "docs")
+func copyReadmeToDocsDir(outdir, libraryName string) error {
+	pathToLibrary := filepath.Join(outdir, "packages", libraryName)
+	sourcePath := filepath.Join(pathToLibrary, "README.rst")
+	docsPath := filepath.Join(pathToLibrary, "docs")
 	destPath := filepath.Join(docsPath, "README.rst")
 
 	// If source doesn't exist, nothing to copy
@@ -451,6 +442,188 @@ func cleanupPostProcessingFiles(outdir string) error {
 
 	// Remove client-post-processing YAML files
 	scriptsPath := filepath.Join(outdir, "scripts", "client-post-processing")
+	if yamlFiles, err := filepath.Glob(filepath.Join(scriptsPath, "*.yaml")); err == nil {
+		for _, f := range yamlFiles {
+			os.Remove(f)
+		}
+	}
+
+	return nil
+}
+
+// copyFilesNeededForPostProcessing copies files needed during post processing.
+// This includes .repo-metadata.json and client-post-processing scripts from the input directory.
+func copyFilesNeededForPostProcessing(outdir string, library *config.Library, repo string) error {
+	if repo == "" {
+		return nil
+	}
+
+	inputDir := filepath.Join(repo, ".librarian", "generator-input")
+	if _, err := os.Stat(inputDir); os.IsNotExist(err) {
+		// No input directory, nothing to copy
+		return nil
+	}
+
+	pathToLibrary := filepath.Join("packages", library.Name)
+	sourceDir := filepath.Join(inputDir, pathToLibrary)
+
+	// Copy files from input/packages/{library_name} to output, excluding client-post-processing
+	if _, err := os.Stat(sourceDir); err == nil {
+		if err := copyDirExcluding(sourceDir, outdir, "client-post-processing"); err != nil {
+			return fmt.Errorf("failed to copy input files: %w", err)
+		}
+	}
+
+	// Create scripts/client-post-processing directory
+	scriptsDir := filepath.Join(outdir, pathToLibrary, "scripts", "client-post-processing")
+	if err := os.MkdirAll(scriptsDir, 0755); err != nil {
+		return fmt.Errorf("failed to create scripts directory: %w", err)
+	}
+
+	// Copy relevant client-post-processing YAML files
+	postProcessingDir := filepath.Join(inputDir, "client-post-processing")
+	yamlFiles, err := filepath.Glob(filepath.Join(postProcessingDir, "*.yaml"))
+	if err != nil {
+		return nil // If glob fails, just skip
+	}
+
+	for _, yamlFile := range yamlFiles {
+		// Read the file to check if it applies to this library
+		content, err := os.ReadFile(yamlFile)
+		if err != nil {
+			continue
+		}
+
+		// Check if the file references this library's path
+		if strings.Contains(string(content), pathToLibrary+"/") {
+			destPath := filepath.Join(scriptsDir, filepath.Base(yamlFile))
+			if err := copyFile(yamlFile, destPath); err != nil {
+				return fmt.Errorf("failed to copy post-processing file %s: %w", yamlFile, err)
+			}
+		}
+	}
+
+	return nil
+}
+
+// copyDirExcluding copies a directory tree, excluding files/dirs matching the exclude pattern.
+func copyDirExcluding(src, dst, exclude string) error {
+	return filepath.Walk(src, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// Skip excluded directories
+		if info.IsDir() && info.Name() == exclude {
+			return filepath.SkipDir
+		}
+
+		// Calculate relative path
+		relPath, err := filepath.Rel(src, path)
+		if err != nil {
+			return err
+		}
+
+		dstPath := filepath.Join(dst, relPath)
+
+		if info.IsDir() {
+			return os.MkdirAll(dstPath, info.Mode())
+		}
+
+		return copyFile(path, dstPath)
+	})
+}
+
+// copyFile copies a single file from src to dst.
+func copyFile(src, dst string) error {
+	sourceFile, err := os.Open(src)
+	if err != nil {
+		return err
+	}
+	defer sourceFile.Close()
+
+	destFile, err := os.Create(dst)
+	if err != nil {
+		return err
+	}
+	defer destFile.Close()
+
+	if _, err := destFile.ReadFrom(sourceFile); err != nil {
+		return err
+	}
+
+	// Copy file permissions
+	sourceInfo, err := os.Stat(src)
+	if err != nil {
+		return err
+	}
+	return os.Chmod(dst, sourceInfo.Mode())
+}
+
+// generateRepoMetadataFile generates the .repo-metadata.json file from service config.
+func generateRepoMetadataFile(outdir string, library *config.Library, language, repo, serviceConfigPath, googleapisDir string, apiPaths []string) error {
+	metadataPath := filepath.Join(outdir, ".repo-metadata.json")
+	if _, err := os.Stat(metadataPath); err == nil {
+		// Skip if already exists (copied from input)
+		return nil
+	}
+	return config.GenerateRepoMetadata(library, language, repo, serviceConfigPath, outdir, apiPaths)
+}
+
+// runPostProcessor runs the synthtool post processor on the output directory.
+func runPostProcessor(outdir, libraryName string) error {
+	pathToLibrary := filepath.Join("packages", libraryName)
+
+	fmt.Fprintf(os.Stderr, "\nRunning Python post-processor...\n")
+
+	// Run python_mono_repo.owlbot_main
+	cmd := exec.Command("python3", "-c", fmt.Sprintf(`
+from synthtool.languages import python_mono_repo
+python_mono_repo.owlbot_main(%q)
+`, pathToLibrary))
+	cmd.Dir = outdir
+	cmd.Stdout = os.Stderr
+	cmd.Stderr = os.Stderr
+
+	if err := cmd.Run(); err != nil {
+		return fmt.Errorf("post processor failed: %w", err)
+	}
+
+	// If there is no noxfile, run isort and black
+	noxfilePath := filepath.Join(outdir, pathToLibrary, "noxfile.py")
+	if _, err := os.Stat(noxfilePath); os.IsNotExist(err) {
+		if err := runIsort(outdir); err != nil {
+			return err
+		}
+		if err := runBlackFormatter(outdir); err != nil {
+			return err
+		}
+	}
+
+	fmt.Fprintf(os.Stderr, "Python post-processor ran successfully.\n")
+	return nil
+}
+
+// cleanUpFilesAfterPostProcessing cleans up files after post processing.
+func cleanUpFilesAfterPostProcessing(outdir, libraryName string) error {
+	pathToLibrary := filepath.Join(outdir, "packages", libraryName)
+
+	// Remove .nox directory
+	if err := os.RemoveAll(filepath.Join(pathToLibrary, ".nox")); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove .nox: %w", err)
+	}
+
+	// Remove owl-bot-staging
+	if err := os.RemoveAll(filepath.Join(outdir, "owl-bot-staging")); err != nil && !os.IsNotExist(err) {
+		return fmt.Errorf("failed to remove owl-bot-staging: %w", err)
+	}
+
+	// Remove CHANGELOG.md files
+	os.Remove(filepath.Join(pathToLibrary, "CHANGELOG.md"))
+	os.Remove(filepath.Join(pathToLibrary, "docs", "CHANGELOG.md"))
+
+	// Remove client-post-processing YAML files
+	scriptsPath := filepath.Join(pathToLibrary, "scripts", "client-post-processing")
 	if yamlFiles, err := filepath.Glob(filepath.Join(scriptsPath, "*.yaml")); err == nil {
 		for _, f := range yamlFiles {
 			os.Remove(f)
