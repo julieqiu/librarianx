@@ -28,9 +28,15 @@ import (
 	"strings"
 )
 
+// Latest returns the latest commit SHA on the default branch for the given repo.
+func Latest(repo string) (string, error) {
+	apiURL := fmt.Sprintf("https://api.github.com/repos/%s/commits/HEAD", repo)
+	return latestCommit(apiURL)
+}
+
 // LatestGoogleapis returns the latest commit SHA on master for googleapis/googleapis.
 func LatestGoogleapis() (string, error) {
-	return latestCommit("https://api.github.com/repos/googleapis/googleapis/commits/master")
+	return Latest("googleapis/googleapis")
 }
 
 func latestCommit(url string) (string, error) {

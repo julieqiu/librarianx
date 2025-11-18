@@ -18,8 +18,8 @@ import (
 	"github.com/julieqiu/librarianx/internal/config"
 )
 
-// ConfigDefault initializes a default Python config.
-func ConfigDefault() *config.Default {
+// Init initializes a default Python config.
+func Init() *config.Default {
 	return &config.Default{
 		Output: "packages/{name}/",
 		Generate: &config.DefaultGenerate{

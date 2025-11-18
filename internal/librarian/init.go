@@ -73,16 +73,11 @@ func runInit(lang, version string) (err error) {
 		return err
 	}
 
-	cfg := &config.Config{
-		Language: lang,
-		Version:  version,
-		Sources: &config.Sources{
-			Googleapis: &config.Source{
-				Commit: commit,
-			},
-		},
+	cfg, err := config.New(lang, version, commit, "")
+	if err != nil {
+		return err
 	}
-	cfg.Default, err = language.ConfigDefault(lang)
+	cfg.Default, err = language.Init(lang)
 	if err != nil {
 		return err
 	}

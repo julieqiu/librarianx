@@ -18,14 +18,20 @@ import (
 	"fmt"
 
 	"github.com/julieqiu/librarianx/internal/config"
+	"github.com/julieqiu/librarianx/internal/language/internal/python"
 	"github.com/julieqiu/librarianx/internal/language/internal/rust"
 )
 
-// ConfigDefault initializes a default Rust config.
-func ConfigDefault(language string) (*config.Default, error) {
+// Init initializes a default config for the given language.
+func Init(language string) (*config.Default, error) {
 	switch language {
 	case "rust":
-		return rust.ConfigDefault(), nil
+		if err := rust.SetupWorkspace("."); err != nil {
+			return nil, err
+		}
+		return rust.Init(), nil
+	case "python":
+		return python.Init(), nil
 	}
 	return nil, fmt.Errorf("not supported: %q", language)
 }
