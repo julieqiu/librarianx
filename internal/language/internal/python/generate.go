@@ -18,7 +18,6 @@ package python
 import (
 	"context"
 	"fmt"
-	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -49,22 +48,10 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	}
 	fmt.Println(outdir)
 
-	// Get keep paths - use library.Keep if specified, otherwise use defaults
-	keepPaths := library.Keep
-	if len(keepPaths) == 0 {
-		keepPaths = defaultKeepPaths(library.Name)
+	// Clean output directory before generation
+	if err := cleanOutputDirectory(outdir, library.Keep, library.Name); err != nil {
+		return fmt.Errorf("failed to clean output directory: %w", err)
 	}
-
-	// Backup files in keep list before generation
-	backupDir, err := backupKeepFiles(outdir, keepPaths)
-	if err != nil {
-		return fmt.Errorf("failed to backup keep files: %w", err)
-	}
-	defer func() {
-		if err := os.RemoveAll(backupDir); err != nil {
-			fmt.Fprintf(os.Stderr, "Warning: failed to cleanup backup directory: %v\n", err)
-		}
-	}()
 
 	// Create output directory
 	if err := os.MkdirAll(outdir, 0755); err != nil {
@@ -134,163 +121,6 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	// Clean up files that shouldn't be in the final output
 	if err := cleanupPostProcessingFiles(outdir); err != nil {
 		return fmt.Errorf("failed to cleanup post-processing files: %w", err)
-	}
-
-	// Restore backed up files
-	if err := restoreKeepFiles(backupDir, outdir, keepPaths); err != nil {
-		return fmt.Errorf("failed to restore keep files: %w", err)
-	}
-
-	return nil
-}
-
-// backupKeepFiles backs up files/directories in the keep list to a temporary directory.
-// Returns the backup directory path.
-func backupKeepFiles(outdir string, keepPaths []string) (string, error) {
-	// Create temporary backup directory
-	backupDir, err := os.MkdirTemp("", "librarian-keep-*")
-	if err != nil {
-		return "", fmt.Errorf("failed to create backup directory: %w", err)
-	}
-
-	// Backup each keep path
-	for _, keepPath := range keepPaths {
-		srcPath := filepath.Join(outdir, keepPath)
-
-		// Skip if path doesn't exist
-		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-			continue
-		}
-
-		// Create backup path
-		dstPath := filepath.Join(backupDir, keepPath)
-
-		// Create parent directory for backup
-		if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
-			return backupDir, fmt.Errorf("failed to create backup parent directory: %w", err)
-		}
-
-		// Copy file or directory
-		if err := copyPath(srcPath, dstPath); err != nil {
-			return backupDir, fmt.Errorf("failed to backup %s: %w", keepPath, err)
-		}
-	}
-
-	return backupDir, nil
-}
-
-// restoreKeepFiles restores backed up files from the backup directory to the output directory.
-func restoreKeepFiles(backupDir, outdir string, keepPaths []string) error {
-	for _, keepPath := range keepPaths {
-		srcPath := filepath.Join(backupDir, keepPath)
-
-		// Skip if backup doesn't exist
-		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
-			continue
-		}
-
-		dstPath := filepath.Join(outdir, keepPath)
-
-		// Remove generated version if it exists
-		if err := os.RemoveAll(dstPath); err != nil {
-			return fmt.Errorf("failed to remove generated %s: %w", keepPath, err)
-		}
-
-		// Create parent directory
-		if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
-			return fmt.Errorf("failed to create parent directory: %w", err)
-		}
-
-		// Restore from backup
-		if err := copyPath(srcPath, dstPath); err != nil {
-			return fmt.Errorf("failed to restore %s: %w", keepPath, err)
-		}
-	}
-
-	return nil
-}
-
-// copyPath copies a file or directory from src to dst.
-func copyPath(src, dst string) error {
-	// Use Lstat instead of Stat to detect symlinks without following them
-	srcInfo, err := os.Lstat(src)
-	if err != nil {
-		return err
-	}
-
-	// Handle symlinks specially - copy the symlink itself, not the target
-	if srcInfo.Mode()&os.ModeSymlink != 0 {
-		return copySymlink(src, dst)
-	}
-
-	if srcInfo.IsDir() {
-		return copyDir(src, dst)
-	}
-	return copyFile(src, dst)
-}
-
-// copyFile copies a single file from src to dst.
-func copyFile(src, dst string) error {
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return err
-	}
-	defer srcFile.Close()
-
-	dstFile, err := os.Create(dst)
-	if err != nil {
-		return err
-	}
-	defer dstFile.Close()
-
-	if _, err := io.Copy(dstFile, srcFile); err != nil {
-		return err
-	}
-
-	// Copy file mode
-	srcInfo, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-	return os.Chmod(dst, srcInfo.Mode())
-}
-
-// copySymlink copies a symlink from src to dst, preserving the link target.
-func copySymlink(src, dst string) error {
-	// Read the symlink target
-	target, err := os.Readlink(src)
-	if err != nil {
-		return err
-	}
-
-	// Create the symlink at the destination
-	return os.Symlink(target, dst)
-}
-
-// copyDir recursively copies a directory from src to dst.
-func copyDir(src, dst string) error {
-	srcInfo, err := os.Stat(src)
-	if err != nil {
-		return err
-	}
-
-	if err := os.MkdirAll(dst, srcInfo.Mode()); err != nil {
-		return err
-	}
-
-	entries, err := os.ReadDir(src)
-	if err != nil {
-		return err
-	}
-
-	for _, entry := range entries {
-		srcPath := filepath.Join(src, entry.Name())
-		dstPath := filepath.Join(dst, entry.Name())
-
-		// Use copyPath to handle symlinks, directories, and files
-		if err := copyPath(srcPath, dstPath); err != nil {
-			return err
-		}
 	}
 
 	return nil
@@ -392,28 +222,6 @@ func generateAPI(ctx context.Context, apiPath string, library *config.Library, g
 	}
 
 	return nil
-}
-
-// defaultKeepPaths returns the default list of files/directories to preserve during regeneration.
-// The library name will be substituted for {name} in the paths.
-func defaultKeepPaths(libraryName string) []string {
-	paths := []string{
-		"packages/{name}/CHANGELOG.md",
-		"docs/CHANGELOG.md",
-		"docs/README.rst",
-		"docs/index.rst",
-		"samples/README.txt",
-		"scripts/client-post-processing/",
-		"samples/snippets/README.rst",
-		"tests/system/",
-		"tests/unit/gapic/type/test_type.py",
-	}
-
-	result := make([]string, len(paths))
-	for i, p := range paths {
-		result[i] = strings.ReplaceAll(p, "{name}", libraryName)
-	}
-	return result
 }
 
 // fixGeneratedPackageNames fixes package names in generated files that protoc generates incorrectly.

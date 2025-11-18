@@ -99,7 +99,7 @@ func generateLibrary(ctx context.Context, cfg *config.Config, googleapisDir stri
 		return nil
 	}
 
-	// Generate the library
+	// Generate the library (cleanup happens inside language-specific Generate functions)
 	if newLibrary {
 		if err := language.Create(ctx, cfg.Language, cfg.Repo, library, cfg.Default, googleapisDir, "", cfg.Default.Output); err != nil {
 			return err
