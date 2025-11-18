@@ -219,6 +219,19 @@ type LibraryPublish struct {
 	Disabled bool `yaml:"disabled,omitempty"`
 }
 
+// New returns a new Config with language-specific defaults.
+func New(lang, version, googleapisCommit, discoveryCommit string) (*Config, error) {
+	return &Config{
+		Version:  version,
+		Language: lang,
+		Sources: &Sources{
+			Googleapis: &Source{
+				Commit: googleapisCommit,
+			},
+		},
+	}, nil
+}
+
 // Read reads the configuration from a file.
 func Read(path string) (*Config, error) {
 	data, err := os.ReadFile(path)

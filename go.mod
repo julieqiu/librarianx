@@ -9,6 +9,7 @@ require (
 	github.com/go-git/go-git/v5 v5.16.3
 	github.com/google/go-cmp v0.7.0
 	github.com/iancoleman/strcase v0.3.0
+	github.com/otiai10/copy v1.14.1
 	github.com/pb33f/libopenapi v0.28.2
 	github.com/pelletier/go-toml/v2 v2.2.4
 	github.com/urfave/cli/v3 v3.6.0
@@ -28,9 +29,11 @@ require (
 	github.com/go-git/gcfg v1.5.1-0.20230307220236-3a3c6141e376 // indirect
 	github.com/go-git/go-billy/v5 v5.6.2 // indirect
 	github.com/jbenet/go-context v0.0.0-20150711004518-d14ea06fba99 // indirect
+	github.com/otiai10/mint v1.6.3 // indirect
 	github.com/pb33f/jsonpath v0.1.2 // indirect
 	github.com/pb33f/ordered-map/v2 v2.3.0 // indirect
 	golang.org/x/net v0.44.0 // indirect
+	golang.org/x/sync v0.17.0 // indirect
 	golang.org/x/sys v0.36.0 // indirect
 	golang.org/x/text v0.29.0 // indirect
 	google.golang.org/grpc v1.75.1 // indirect

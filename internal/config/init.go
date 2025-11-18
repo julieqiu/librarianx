@@ -12,35 +12,64 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package rust
+package config
 
-import (
-	"github.com/julieqiu/librarianx/internal/config"
-)
+import "fmt"
 
-// Init initializes a default Rust config.
-func Init() *config.Default {
-	return &config.Default{
+// Init initializes a default config for the given language.
+func Init(language string) (*Default, error) {
+	switch language {
+	case "rust":
+		return initRust(), nil
+	case "python":
+		return initPython(), nil
+	}
+	return nil, fmt.Errorf("not supported: %q", language)
+}
+
+// initPython initializes a default Python config.
+func initPython() *Default {
+	return &Default{
+		Output: "packages/{name}/",
+		Generate: &DefaultGenerate{
+			All:              true,
+			OneLibraryPer:    "service",
+			Transport:        "grpc+rest",
+			RestNumericEnums: true,
+			ReleaseLevel:     "stable",
+		},
+
+		Release: &DefaultRelease{
+			TagFormat: "{name}/v{version}",
+			Remote:    "origin",
+			Branch:    "main",
+		},
+	}
+}
+
+// initRust initializes a default Rust config.
+func initRust() *Default {
+	return &Default{
 		Output: "src/generated/",
-		Generate: &config.DefaultGenerate{
+		Generate: &DefaultGenerate{
 			All:           true,
-			OneLibraryPer: "channel",
+			OneLibraryPer: "version",
 			ReleaseLevel:  "stable",
 		},
 
-		Release: &config.DefaultRelease{
+		Release: &DefaultRelease{
 			TagFormat: "{name}/v{version}",
 			Remote:    "upstream",
 			Branch:    "main",
 		},
 
-		Rust: &config.RustDefault{
+		Rust: &RustDefault{
 			DisabledRustdocWarnings: []string{
 				"redundant_explicit_links",
 				"broken_intra_doc_links",
 			},
 
-			PackageDependencies: []*config.RustPackageDependency{
+			PackageDependencies: []*RustPackageDependency{
 				{
 					Name:    "api",
 					Package: "google-cloud-api",
