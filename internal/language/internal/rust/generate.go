@@ -58,6 +58,12 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 	}
 
 	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
+
+	// Clean output directory before generation
+	if err := cleanOutputDirectory(outdir, library.Keep); err != nil {
+		return fmt.Errorf("failed to clean output directory: %w", err)
+	}
+
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
 			return err
