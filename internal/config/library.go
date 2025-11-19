@@ -91,7 +91,7 @@ func ensureLibraryHasAPIs(cfg *Config, library *Library, name string) error {
 	if err != nil {
 		return fmt.Errorf("library %q has no APIs configured and failed to derive API path: %w", name, err)
 	}
-	library.API = apiPath
+	library.Channel = apiPath
 	return nil
 }
 
@@ -171,8 +171,8 @@ func createLibraryFromAPIPath(name, apiPath, googleapisDir string) (*Library, er
 
 	// Create minimal library config
 	library := &Library{
-		Name: name,
-		API:  apiPath,
+		Name:    name,
+		Channel: apiPath,
 	}
 
 	// Populate service configs
@@ -186,11 +186,11 @@ func createLibraryFromAPIPath(name, apiPath, googleapisDir string) (*Library, er
 // GetLibraryAPIs returns all API paths for a library.
 // Handles both single-API (library.API) and multi-API (library.APIs) libraries.
 func GetLibraryAPIs(lib *Library) []string {
-	if len(lib.APIs) > 0 {
-		return lib.APIs
+	if len(lib.Channels) > 0 {
+		return lib.Channels
 	}
-	if lib.API != "" {
-		return []string{lib.API}
+	if lib.Channel != "" {
+		return []string{lib.Channel}
 	}
 	return nil
 }

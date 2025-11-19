@@ -7,7 +7,7 @@ sources:
 default:
   output: '{name}'
   generate:
-    all: true
+    auto: true
     one_library_per: api
     transport: grpc+rest
     rest_numeric_enums: true
@@ -36,7 +36,7 @@ libraries:
       import_path: cloud.google.com/go/advisorynotifications/apiv1;advisorynotifications
       metadata: true
   - name: ai
-    apis:
+    channels:
       - google/ai/generativelanguage/v1
       - google/ai/generativelanguage/v1alpha
       - google/ai/generativelanguage/v1beta
@@ -56,7 +56,7 @@ libraries:
       import_path: cloud.google.com/go/aiplatform/apiv1;aiplatform
       metadata: true
   - name: alloydb
-    apis:
+    channels:
       - google/cloud/alloydb/connectors/v1
       - google/cloud/alloydb/connectors/v1alpha
       - google/cloud/alloydb/connectors/v1beta
@@ -70,7 +70,7 @@ libraries:
       import_path: cloud.google.com/go/alloydb/apiv1;alloydb
       metadata: true
   - name: analytics
-    api: google/analytics/admin/v1alpha
+    channel: google/analytics/admin/v1alpha
     rest_numeric_enums: true
     release_level: alpha
     grpc_service_config: admin_grpc_service_config.json
@@ -128,7 +128,7 @@ libraries:
       import_path: cloud.google.com/go/apphub/apiv1;apphub
       metadata: true
   - name: apps
-    apis:
+    channels:
       - google/apps/events/subscriptions/v1
       - google/apps/events/subscriptions/v1beta
       - google/apps/meet/v2
@@ -140,7 +140,7 @@ libraries:
       import_path: cloud.google.com/go/apps/events/subscriptions/apiv1;subscriptions
       metadata: true
   - name: area120
-    api: google/area120/tables/v1alpha1
+    channel: google/area120/tables/v1alpha1
     rest_numeric_enums: true
     release_level: alpha
     grpc_service_config: tables_grpc_service_config.json
@@ -197,7 +197,7 @@ libraries:
       import_path: cloud.google.com/go/batch/apiv1;batch
       metadata: true
   - name: beyondcorp
-    apis:
+    channels:
       - google/cloud/beyondcorp/appconnections/v1
       - google/cloud/beyondcorp/appconnectors/v1
       - google/cloud/beyondcorp/appgateways/v1
@@ -210,7 +210,7 @@ libraries:
       import_path: cloud.google.com/go/beyondcorp/appconnections/apiv1;appconnections
       metadata: true
   - name: bigquery
-    apis:
+    channels:
       - google/cloud/bigquery/analyticshub/v1
       - google/cloud/bigquery/biglake/v1
       - google/cloud/bigquery/biglake/v1alpha1
@@ -240,7 +240,7 @@ libraries:
       import_path: cloud.google.com/go/bigquery/analyticshub/apiv1;analyticshub
       metadata: true
   - name: bigquery/v2
-    api: google/cloud/bigquery/v2
+    channel: google/cloud/bigquery/v2
     release_level: alpha
     release:
       disabled: true
@@ -252,7 +252,7 @@ libraries:
         - path: google/cloud/bigquery/v2
           client_directory: v2/apiv2
   - name: bigtable
-    apis:
+    channels:
       - google/bigtable/admin/v2
       - google/bigtable/v2
     transport: grpc
@@ -268,7 +268,7 @@ libraries:
         - path: google/bigtable/admin/v2
           disable_gapic: true
   - name: billing
-    apis:
+    channels:
       - google/cloud/billing/budgets/v1
       - google/cloud/billing/budgets/v1beta1
       - google/cloud/billing/v1
@@ -360,7 +360,7 @@ libraries:
       import_path: cloud.google.com/go/cloudquotas/apiv1;cloudquotas
       metadata: true
   - name: cloudtasks
-    apis:
+    channels:
       - google/cloud/tasks/v2
       - google/cloud/tasks/v2beta2
       - google/cloud/tasks/v2beta3
@@ -378,7 +378,7 @@ libraries:
         - path: google/cloud/tasks/v2beta3
           client_directory: apiv2beta3
   - name: commerce
-    api: google/cloud/commerce/consumer/procurement/v1
+    channel: google/cloud/commerce/consumer/procurement/v1
     rest_numeric_enums: true
     release_level: ga
     grpc_service_config: commerceconsumerprocurement_v1_grpc_service_config.json
@@ -438,7 +438,7 @@ libraries:
           nested_protos:
             - grafeas/grafeas.proto
   - name: datacatalog
-    apis:
+    channels:
       - google/cloud/datacatalog/lineage/v1
       - google/cloud/datacatalog/v1
       - google/cloud/datacatalog/v1beta1
@@ -500,7 +500,7 @@ libraries:
       import_path: cloud.google.com/go/dataqna/apiv1alpha;dataqna
       metadata: true
   - name: datastore
-    apis:
+    channels:
       - google/datastore/admin/v1
       - google/datastore/v1
     rest_numeric_enums: true
@@ -545,7 +545,7 @@ libraries:
       import_path: cloud.google.com/go/devicestreaming/apiv1;devicestreaming
       metadata: true
   - name: dialogflow
-    apis:
+    channels:
       - google/cloud/dialogflow/cx/v3
       - google/cloud/dialogflow/cx/v3beta1
       - google/cloud/dialogflow/v2
@@ -598,7 +598,7 @@ libraries:
       import_path: cloud.google.com/go/edgenetwork/apiv1;edgenetwork
       metadata: true
   - name: errorreporting
-    api: google/devtools/clouderrorreporting/v1beta1
+    channel: google/devtools/clouderrorreporting/v1beta1
     rest_numeric_enums: true
     release_level: beta
     release:
@@ -618,7 +618,7 @@ libraries:
       import_path: cloud.google.com/go/essentialcontacts/apiv1;essentialcontacts
       metadata: true
   - name: eventarc
-    apis:
+    channels:
       - google/cloud/eventarc/publishing/v1
       - google/cloud/eventarc/v1
     rest_numeric_enums: true
@@ -642,7 +642,7 @@ libraries:
       import_path: cloud.google.com/go/financialservices/apiv1;financialservices
       metadata: true
   - name: firestore
-    apis:
+    channels:
       - google/firestore/admin/v1
       - google/firestore/v1
     rest_numeric_enums: true
@@ -678,7 +678,7 @@ libraries:
       import_path: cloud.google.com/go/gkebackup/apiv1;gkebackup
       metadata: true
   - name: gkeconnect
-    apis:
+    channels:
       - google/cloud/gkeconnect/gateway/v1
       - google/cloud/gkeconnect/gateway/v1beta1
     transport: rest
@@ -716,7 +716,7 @@ libraries:
       import_path: cloud.google.com/go/gsuiteaddons/apiv1;gsuiteaddons
       metadata: true
   - name: iam
-    apis:
+    channels:
       - google/iam/credentials/v1
       - google/iam/v1
       - google/iam/v2
@@ -756,7 +756,7 @@ libraries:
       import_path: cloud.google.com/go/iot/apiv1;iot
       metadata: true
   - name: kms
-    apis:
+    channels:
       - google/cloud/kms/inventory/v1
       - google/cloud/kms/v1
     rest_numeric_enums: true
@@ -821,7 +821,7 @@ libraries:
       import_path: cloud.google.com/go/lustre/apiv1;lustre
       metadata: true
   - name: maintenance
-    api: google/cloud/maintenance/api/v1beta
+    channel: google/cloud/maintenance/api/v1beta
     rest_numeric_enums: true
     release_level: beta
     grpc_service_config: maintenance_v1beta_grpc_service_config.json
@@ -837,7 +837,7 @@ libraries:
       import_path: cloud.google.com/go/managedidentities/apiv1;managedidentities
       metadata: true
   - name: managedkafka
-    apis:
+    channels:
       - google/cloud/managedkafka/schemaregistry/v1
       - google/cloud/managedkafka/v1
     rest_numeric_enums: true
@@ -847,7 +847,7 @@ libraries:
       import_path: cloud.google.com/go/managedkafka/apiv1;managedkafka
       metadata: true
   - name: maps
-    apis:
+    channels:
       - google/maps/addressvalidation/v1
       - google/maps/areainsights/v1
       - google/maps/fleetengine/delivery/v1
@@ -912,7 +912,7 @@ libraries:
       import_path: cloud.google.com/go/modelarmor/apiv1;modelarmor
       metadata: true
   - name: monitoring
-    apis:
+    channels:
       - google/monitoring/dashboard/v1
       - google/monitoring/metricsscope/v1
       - google/monitoring/v3
@@ -984,7 +984,7 @@ libraries:
       import_path: cloud.google.com/go/oracledatabase/apiv1;oracledatabase
       metadata: true
   - name: orchestration
-    api: google/cloud/orchestration/airflow/service/v1
+    channel: google/cloud/orchestration/airflow/service/v1
     rest_numeric_enums: true
     release_level: ga
     grpc_service_config: composer_grpc_service_config.json
@@ -992,7 +992,7 @@ libraries:
       import_path: cloud.google.com/go/orchestration/airflow/service/apiv1;service
       metadata: true
   - name: osconfig
-    apis:
+    channels:
       - google/cloud/osconfig/agentendpoint/v1
       - google/cloud/osconfig/agentendpoint/v1beta
       - google/cloud/osconfig/v1
@@ -1005,7 +1005,7 @@ libraries:
       import_path: cloud.google.com/go/osconfig/agentendpoint/apiv1;agentendpoint
       metadata: true
   - name: oslogin
-    apis:
+    channels:
       - google/cloud/oslogin/common
       - google/cloud/oslogin/v1
       - google/cloud/oslogin/v1beta
@@ -1043,7 +1043,7 @@ libraries:
       import_path: cloud.google.com/go/policysimulator/apiv1;policysimulator
       metadata: true
   - name: policytroubleshooter
-    apis:
+    channels:
       - google/cloud/policytroubleshooter/iam/v3
       - google/cloud/policytroubleshooter/v1
     rest_numeric_enums: true
@@ -1066,7 +1066,7 @@ libraries:
       import_path: cloud.google.com/go/privilegedaccessmanager/apiv1;privilegedaccessmanager
       metadata: true
   - name: pubsub/v2
-    api: google/pubsub/v1
+    channel: google/pubsub/v1
     rest_numeric_enums: true
     release_level: ga
     release:
@@ -1117,7 +1117,7 @@ libraries:
       import_path: cloud.google.com/go/recommender/apiv1;recommender
       metadata: true
   - name: redis
-    apis:
+    channels:
       - google/cloud/redis/cluster/v1
       - google/cloud/redis/v1
       - google/cloud/redis/v1beta1
@@ -1150,7 +1150,7 @@ libraries:
       import_path: cloud.google.com/go/run/apiv2;run
       metadata: true
   - name: saasplatform
-    api: google/cloud/saasplatform/saasservicemgmt/v1beta1
+    channel: google/cloud/saasplatform/saasservicemgmt/v1beta1
     rest_numeric_enums: true
     release_level: beta
     grpc_service_config: saasservicemgmt_v1beta1_grpc_service_config.json
@@ -1179,7 +1179,7 @@ libraries:
       import_path: cloud.google.com/go/securesourcemanager/apiv1;securesourcemanager
       metadata: true
   - name: security
-    apis:
+    channels:
       - google/cloud/security/privateca/v1
       - google/cloud/security/publicca/v1
       - google/cloud/security/publicca/v1beta1
@@ -1190,7 +1190,7 @@ libraries:
       import_path: cloud.google.com/go/security/privateca/apiv1;privateca
       metadata: true
   - name: securitycenter
-    apis:
+    channels:
       - google/cloud/securitycenter/settings/v1beta1
       - google/cloud/securitycenter/v1
       - google/cloud/securitycenter/v1beta1
@@ -1257,7 +1257,7 @@ libraries:
       import_path: cloud.google.com/go/shell/apiv1;shell
       metadata: true
   - name: shopping
-    apis:
+    channels:
       - google/shopping/css/v1
       - google/shopping/merchant/accounts/v1
       - google/shopping/merchant/accounts/v1beta
@@ -1293,7 +1293,7 @@ libraries:
       import_path: cloud.google.com/go/shopping/css/apiv1;css
       metadata: true
   - name: spanner
-    apis:
+    channels:
       - google/spanner/adapter/v1
       - google/spanner/admin/database/v1
       - google/spanner/admin/instance/v1
@@ -1315,7 +1315,7 @@ libraries:
       import_path: cloud.google.com/go/speech/apiv1;speech
       metadata: true
   - name: storage
-    apis:
+    channels:
       - google/storage/control/v2
       - google/storage/v2
     rest_numeric_enums: true
@@ -1350,7 +1350,7 @@ libraries:
       import_path: cloud.google.com/go/storagetransfer/apiv1;storagetransfer
       metadata: true
   - name: streetview
-    api: google/streetview/publish/v1
+    channel: google/streetview/publish/v1
     rest_numeric_enums: true
     release_level: beta
     grpc_service_config: streetview_publish_grpc_service_config.json
@@ -1394,7 +1394,7 @@ libraries:
       import_path: cloud.google.com/go/tpu/apiv1;tpu
       metadata: true
   - name: trace
-    apis:
+    channels:
       - google/devtools/cloudtrace/v1
       - google/devtools/cloudtrace/v2
     rest_numeric_enums: true
@@ -1416,8 +1416,15 @@ libraries:
       apis:
         - path: google/cloud/translate/v3
           proto_package: google.cloud.translation.v3
+  - name: vectorsearch
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: vectorsearch_v1beta_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/vectorsearch/apiv1beta;vectorsearch
+      metadata: true
   - name: video
-    apis:
+    channels:
       - google/cloud/video/livestream/v1
       - google/cloud/video/stitcher/v1
       - google/cloud/video/transcoder/v1
@@ -1487,7 +1494,7 @@ libraries:
       import_path: cloud.google.com/go/websecurityscanner/apiv1;websecurityscanner
       metadata: true
   - name: workflows
-    apis:
+    channels:
       - google/cloud/workflows/executions/v1
       - google/cloud/workflows/executions/v1beta
       - google/cloud/workflows/v1
@@ -1656,7 +1663,7 @@ versions:
   shopping: 1.3.0
   spanner: 1.86.1
   speech: 1.28.1
-  storage: 1.57.1
+  storage: 1.57.2
   storagebatchoperations: 0.1.1
   storageinsights: 1.2.1
   storagetransfer: 1.13.1

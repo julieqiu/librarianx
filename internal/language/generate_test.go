@@ -29,13 +29,13 @@ func TestGetDefaultAPI(t *testing.T) {
 	}{
 		{
 			name: "single API",
-			lib:  &config.Library{API: "google/cloud/secretmanager/v1"},
+			lib:  &config.Library{Channel: "google/cloud/secretmanager/v1"},
 			want: "google/cloud/secretmanager/v1",
 		},
 		{
 			name: "multiple APIs - highest stable",
 			lib: &config.Library{
-				APIs: []string{
+				Channels: []string{
 					"google/cloud/secretmanager/v1",
 					"google/cloud/secretmanager/v2",
 					"google/cloud/secretmanager/v1beta1",
@@ -46,7 +46,7 @@ func TestGetDefaultAPI(t *testing.T) {
 		{
 			name: "only beta versions",
 			lib: &config.Library{
-				APIs: []string{
+				Channels: []string{
 					"google/cloud/secretmanager/v1beta1",
 					"google/cloud/secretmanager/v2beta1",
 				},
@@ -56,7 +56,7 @@ func TestGetDefaultAPI(t *testing.T) {
 		{
 			name: "stable before beta",
 			lib: &config.Library{
-				APIs: []string{
+				Channels: []string{
 					"google/cloud/secretmanager/v2beta1",
 					"google/cloud/secretmanager/v1",
 				},
@@ -65,7 +65,7 @@ func TestGetDefaultAPI(t *testing.T) {
 		},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			got := getDefaultAPI(test.lib)
+			got := getDefaultChannel(test.lib)
 			if got != test.want {
 				t.Errorf("getDefaultAPI() = %q, want %q", got, test.want)
 			}

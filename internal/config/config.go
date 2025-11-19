@@ -127,17 +127,17 @@ type Library struct {
 	// Name is the library name (e.g., "secretmanager", "storage").
 	Name string `yaml:"name,omitempty"`
 
-	// API specifies which googleapis API to generate from (for generated libraries).
-	// Can be a string (protobuf API path) or an APIObject (for discovery APIs).
-	// If both API and APIs are empty, this is a handwritten library.
-	API string `yaml:"api,omitempty"`
-
 	// Version is the library version.
 	Version string `yaml:"version,omitempty"`
 
-	// APIs specifies multiple API versions to bundle into one library (for multi-version libraries).
+	// Channel specifies which googleapis Channel to generate from (for generated libraries).
+	// Can be a string (protobuf Channel path) or an APIObject (for discovery APIs).
+	// If both Channel and APIs are empty, this is a handwritten library.
+	Channel string `yaml:"channel,omitempty"`
+
+	// Channels specifies multiple API versions to bundle into one library (for multi-version libraries).
 	// Alternative to API field for libraries that bundle multiple versions.
-	APIs []string `yaml:"apis,omitempty"`
+	Channels []string `yaml:"channels,omitempty"`
 
 	// Generate contains per-library generate configuration.
 	Generate *LibraryGenerate `yaml:"generate,omitempty"`

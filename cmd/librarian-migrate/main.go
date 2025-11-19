@@ -151,9 +151,9 @@ func deduplicate(cfg *config.Config) {
 		}
 
 		// Simplify API/APIs field
-		if len(lib.APIs) == 1 {
-			lib.API = lib.APIs[0]
-			lib.APIs = nil
+		if len(lib.Channels) == 1 {
+			lib.Channel = lib.Channels[0]
+			lib.Channels = nil
 		}
 
 		// Remove empty Python section
@@ -204,7 +204,7 @@ func sortConfig(cfg *config.Config) {
 
 	// Sort fields within each library
 	for _, lib := range cfg.Libraries {
-		sort.Strings(lib.APIs)
+		sort.Strings(lib.Channels)
 		sort.Strings(lib.Keep)
 		if lib.Python != nil {
 			sort.Strings(lib.Python.OptArgs)
@@ -292,11 +292,11 @@ func buildLibraries(cfg *config.Config, googleapisAPIs []string, language string
 	// Create a map of API path to library for quick lookup
 	apiToLib := make(map[string]*config.Library)
 	for _, lib := range cfg.Libraries {
-		if lib.API != "" {
-			apiToLib[lib.API] = lib
-			explicitAPIs[lib.API] = true
+		if lib.Channel != "" {
+			apiToLib[lib.Channel] = lib
+			explicitAPIs[lib.Channel] = true
 		}
-		for _, api := range lib.APIs {
+		for _, api := range lib.Channels {
 			apiToLib[api] = lib
 			explicitAPIs[api] = true
 		}
@@ -357,18 +357,18 @@ func buildLibraries(cfg *config.Config, googleapisAPIs []string, language string
 				allAPIs = append(allAPIs, serviceToAPIs[service]...)
 			}
 			sort.Strings(allAPIs)
-			lib.APIs = allAPIs
-			lib.API = ""
+			lib.Channels = allAPIs
+			lib.Channel = ""
 			newLibraries = append(newLibraries, lib)
 			continue
 		}
 
 		// Get all APIs for this library (preserve what came from state.yaml)
 		var libAPIs []string
-		if len(lib.APIs) > 0 {
-			libAPIs = lib.APIs
-		} else if lib.API != "" {
-			libAPIs = []string{lib.API}
+		if len(lib.Channels) > 0 {
+			libAPIs = lib.Channels
+		} else if lib.Channel != "" {
+			libAPIs = []string{lib.Channel}
 		} else {
 			// Collect from services
 			for _, service := range services {
@@ -388,25 +388,25 @@ func buildLibraries(cfg *config.Config, googleapisAPIs []string, language string
 			if !nameMatchesConvention {
 				// Name doesn't match convention - MUST list with name + api/apis
 				if len(libAPIs) == 1 {
-					lib.API = libAPIs[0]
-					lib.APIs = nil
+					lib.Channel = libAPIs[0]
+					lib.Channels = nil
 				} else {
-					lib.APIs = libAPIs
-					lib.API = ""
+					lib.Channels = libAPIs
+					lib.Channel = ""
 				}
 				newLibraries = append(newLibraries, lib)
 			} else if hasExtraConfig {
 				// Name matches but has extra config - list without api/apis (auto-discovered)
-				lib.API = ""
-				lib.APIs = nil
+				lib.Channel = ""
+				lib.Channels = nil
 				newLibraries = append(newLibraries, lib)
 			}
 			// else: name matches and no extra config - omit entirely (auto-discovered)
 
 		} else if len(services) > 1 {
 			// Library covers multiple services - must list in libraries with explicit apis
-			lib.APIs = libAPIs
-			lib.API = ""
+			lib.Channels = libAPIs
+			lib.Channel = ""
 			newLibraries = append(newLibraries, lib)
 		}
 	}

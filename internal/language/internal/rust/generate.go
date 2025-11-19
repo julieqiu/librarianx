@@ -34,7 +34,7 @@ func Create(ctx context.Context, library *config.Library, defaults *config.Defau
 	if err := sidekick.VerifyRustTools(); err != nil {
 		return err
 	}
-	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
+	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.Channel, "google/"))
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		if err := sidekick.PrepareCargoWorkspace(outdir); err != nil {
 			return err
@@ -57,7 +57,7 @@ func Generate(ctx context.Context, library *config.Library, defaults *config.Def
 		return err
 	}
 
-	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.API, "google/"))
+	outdir := filepath.Join(defaultOutput, strings.TrimPrefix(library.Channel, "google/"))
 
 	// Clean output directory before generation
 	if err := cleanOutputDirectory(outdir, library.Keep); err != nil {
@@ -93,7 +93,7 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 			Language:            "rust",
 			SpecificationFormat: "protobuf",
 			ServiceConfig:       serviceConfig,
-			SpecificationSource: library.API,
+			SpecificationSource: library.Channel,
 		},
 		Source: map[string]string{
 			"googleapis-root": googleapisDir,
@@ -112,7 +112,7 @@ func toSidekickConfig(library *config.Library, googleapisDir, serviceConfig stri
 	var allOverrides []config.RustDocumentationOverride
 	// Filter global overrides to only include ones for this API
 	// Convert API path (e.g., "google/cloud/developerconnect/v1") to proto package prefix (e.g., ".google.cloud.developerconnect.v1.")
-	apiPrefix := "." + strings.ReplaceAll(library.API, "/", ".") + "."
+	apiPrefix := "." + strings.ReplaceAll(library.Channel, "/", ".") + "."
 	for _, override := range globalOverrides {
 		if strings.HasPrefix(override.ID, apiPrefix) {
 			allOverrides = append(allOverrides, override)

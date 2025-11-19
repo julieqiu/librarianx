@@ -56,7 +56,7 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 
 		// Extract API paths
 		for _, api := range stateLib.APIs {
-			lib.APIs = append(lib.APIs, api.Path)
+			lib.Channels = append(lib.Channels, api.Path)
 		}
 
 		// Track tag format for default identification

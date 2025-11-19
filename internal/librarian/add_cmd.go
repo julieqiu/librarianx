@@ -105,7 +105,7 @@ func runAdd(ctx context.Context, name, apiPath string, cmd *cli.Command) error {
 	}
 
 	if apiPath != "" {
-		library.API = apiPath
+		library.Channel = apiPath
 	}
 
 	if version := cmd.String("version"); version != "" {
@@ -147,8 +147,8 @@ func runAdd(ctx context.Context, name, apiPath string, cmd *cli.Command) error {
 	}
 
 	fmt.Printf("✓ Added %s to librarian.yaml\n", name)
-	if library.API != "" {
-		fmt.Printf("  API path: %s\n", library.API)
+	if library.Channel != "" {
+		fmt.Printf("  API path: %s\n", library.Channel)
 	}
 
 	return nil

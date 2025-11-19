@@ -60,10 +60,10 @@ func DiscoverLibraries(googleapisDir, lang, oneLibraryPer string) ([]*Library, e
 		// Add API to library
 		if oneLibraryPer == "channel" {
 			// Version mode: one API per library
-			lib.API = api.Path
+			lib.Channel = api.Path
 		} else {
 			// API mode: multiple APIs per library
-			lib.APIs = append(lib.APIs, api.Path)
+			lib.Channels = append(lib.Channels, api.Path)
 		}
 
 		// Store service config for this API
@@ -74,8 +74,8 @@ func DiscoverLibraries(googleapisDir, lang, oneLibraryPer string) ([]*Library, e
 	var libraries []*Library
 	for _, lib := range libMap {
 		// Sort APIs within each library for consistent output
-		if len(lib.APIs) > 1 {
-			sort.Strings(lib.APIs)
+		if len(lib.Channels) > 1 {
+			sort.Strings(lib.Channels)
 		}
 		libraries = append(libraries, lib)
 	}
@@ -258,9 +258,9 @@ func populateServiceConfigs(lib *Library, googleapisDir string) error {
 	}
 
 	// Get all API paths for this library
-	apiPaths := lib.APIs
-	if len(apiPaths) == 0 && lib.API != "" {
-		apiPaths = []string{lib.API}
+	apiPaths := lib.Channels
+	if len(apiPaths) == 0 && lib.Channel != "" {
+		apiPaths = []string{lib.Channel}
 	}
 
 	// Look up service config for each API

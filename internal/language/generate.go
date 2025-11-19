@@ -67,16 +67,17 @@ func Generate(ctx context.Context, oneLibraryPer, language, repo string, library
 	}
 }
 
-// generateAPI generates code for a single API using language-specific generators.
-// This is used internally by generateForAPI and generateForChannel.
-func generateAPI(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
+// generateChannel generates code for a single channel using language-specific
+// generators.  This is used internally by generateForAPI and
+// generateForChannel.
+func generateChannel(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	switch language {
 	case "go":
 		return golang.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "rust":
 		return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "python":
-		defaultAPI := getDefaultAPI(library)
+		defaultAPI := getDefaultChannel(library)
 		return python.Generate(ctx, language, repo, library, defaults, googleapisDir, serviceConfigPath, defaultOutput, defaultAPI)
 	default:
 		return fmt.Errorf("unsupported language: %s", language)
@@ -93,7 +94,7 @@ func generateForAPI(ctx context.Context, language, repo string, library *config.
 		break
 	}
 
-	return generateAPI(ctx, language, repo, library, defaults, googleapisDir, primaryServiceConfigPath, defaults.Output)
+	return generateChannel(ctx, language, repo, library, defaults, googleapisDir, primaryServiceConfigPath, defaults.Output)
 }
 
 // generateForChannel generates a separate library for each API version.
@@ -101,21 +102,21 @@ func generateForAPI(ctx context.Context, language, repo string, library *config.
 func generateForChannel(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir string) error {
 	for apiPath, serviceConfigPath := range library.APIServiceConfigs {
 		// Create a single-API library for this version
-		singleAPILibrary := *library
-		singleAPILibrary.API = apiPath
-		singleAPILibrary.APIServiceConfigs = map[string]string{apiPath: serviceConfigPath}
+		singleChannelLibrary := *library
+		singleChannelLibrary.Channel = apiPath
+		singleChannelLibrary.APIServiceConfigs = map[string]string{apiPath: serviceConfigPath}
 
-		if err := generateAPI(ctx, language, repo, &singleAPILibrary, defaults, googleapisDir, serviceConfigPath, defaults.Output); err != nil {
+		if err := generateChannel(ctx, language, repo, &singleChannelLibrary, defaults, googleapisDir, serviceConfigPath, defaults.Output); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-// getDefaultAPI returns the default API path for a library.
+// getDefaultChannel returns the default API path for a library.
 // The default is the latest stable version, or if no stable versions exist, the latest pre-release.
 // Version ordering: v2, v1, v2beta1, v1beta1, v2alpha1, v1alpha1.
-func getDefaultAPI(lib *config.Library) string {
+func getDefaultChannel(lib *config.Library) string {
 	apis := config.GetLibraryAPIs(lib)
 	if len(apis) == 0 {
 		return ""

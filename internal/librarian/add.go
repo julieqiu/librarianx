@@ -41,7 +41,7 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 	oneLibraryPer := cfg.Default.Generate.OneLibraryPer
 
 	// Determine API path
-	apiPath := library.API
+	apiPath := library.Channel
 	if apiPath == "" {
 		// Derive from name
 		var err error
@@ -49,7 +49,7 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 		if err != nil {
 			return fmt.Errorf("failed to derive API path from name %q: %w", library.Name, err)
 		}
-		library.API = apiPath
+		library.Channel = apiPath
 	}
 
 	// Verify API path exists in googleapis

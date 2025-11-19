@@ -296,14 +296,14 @@ func readSidekickFiles(files []string) (map[string]*config.Library, error) {
 		}
 
 		// Add API path
-		if lib.API == "" && len(lib.APIs) == 0 {
-			lib.API = apiPath
-		} else if lib.API != "" && lib.API != apiPath {
+		if lib.Channel == "" && len(lib.Channels) == 0 {
+			lib.Channel = apiPath
+		} else if lib.Channel != "" && lib.Channel != apiPath {
 			// Convert to multi-API library
-			lib.APIs = []string{lib.API, apiPath}
-			lib.API = ""
-		} else if len(lib.APIs) > 0 && !contains(lib.APIs, apiPath) {
-			lib.APIs = append(lib.APIs, apiPath)
+			lib.Channels = []string{lib.Channel, apiPath}
+			lib.Channel = ""
+		} else if len(lib.Channels) > 0 && !contains(lib.Channels, apiPath) {
+			lib.Channels = append(lib.Channels, apiPath)
 		}
 
 		// Set version from Cargo.toml (more authoritative than sidekick)
@@ -460,9 +460,9 @@ func buildConfig(libraries map[string]*config.Library, googleapisPath string, ro
 		}
 
 		// Get the API path for this library
-		apiPath := lib.API
-		if len(lib.APIs) > 0 {
-			apiPath = lib.APIs[0]
+		apiPath := lib.Channel
+		if len(lib.Channels) > 0 {
+			apiPath = lib.Channels[0]
 		}
 
 		// Derive expected library name from API path
@@ -481,7 +481,7 @@ func buildConfig(libraries map[string]*config.Library, googleapisPath string, ro
 		// 3. Library spans multiple APIs
 		nameMatchesConvention := lib.Name == expectedName
 
-		if !nameMatchesConvention || hasExtraConfig || len(lib.APIs) > 1 {
+		if !nameMatchesConvention || hasExtraConfig || len(lib.Channels) > 1 {
 			// Clear version from library (it goes in versions section)
 			libCopy := *lib
 			libCopy.Version = ""
