@@ -52,12 +52,6 @@ func run() error {
 
 	fmt.Fprintf(os.Stderr, "Reading sidekick.toml files from %s...\n", repoPath)
 
-	// Read existing librarian.yaml to preserve library-specific configuration and versions
-	existingConfig, err := readExistingLibrarian(repoPath)
-	if err != nil {
-		return fmt.Errorf("failed to read existing librarian.yaml: %w", err)
-	}
-
 	// Read root .sidekick.toml for defaults
 	rootDefaults, err := readRootSidekick(repoPath)
 	if err != nil {
@@ -79,7 +73,7 @@ func run() error {
 	}
 
 	// Build config
-	cfg := buildConfig(libraries, googleapisPath, rootDefaults, existingConfig)
+	cfg := buildConfig(libraries, googleapisPath, rootDefaults)
 
 	// Write output
 	if outputPath == "" {
@@ -119,10 +113,11 @@ type SidekickConfig struct {
 		SpecificationSource string `toml:"specification-source"`
 		ServiceConfig       string `toml:"service-config"`
 	} `toml:"general"`
-	Codec struct {
-		Version       string `toml:"version"`
-		CopyrightYear string `toml:"copyright-year"`
-	} `toml:"codec"`
+	Codec               map[string]interface{} `toml:"codec"` // Use map to capture all fields including package:*
+	PaginationOverrides []struct {
+		ID        string `toml:"id"`
+		ItemField string `toml:"item-field"`
+	} `toml:"pagination-overrides"`
 }
 
 // RootDefaults contains defaults extracted from root .sidekick.toml.
@@ -131,44 +126,6 @@ type RootDefaults struct {
 	PackageDependencies     []*config.RustPackageDependency
 	Remote                  string
 	Branch                  string
-}
-
-// ExistingConfig contains data from existing librarian.yaml.
-type ExistingConfig struct {
-	Libraries map[string]*config.Library
-	Versions  map[string]string
-}
-
-// readExistingLibrarian reads the existing librarian.yaml to preserve library-specific configuration and versions.
-func readExistingLibrarian(repoPath string) (*ExistingConfig, error) {
-	librarianPath := filepath.Join(repoPath, "librarian.yaml")
-	data, err := os.ReadFile(librarianPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			// No existing librarian.yaml, return empty config
-			return &ExistingConfig{
-				Libraries: make(map[string]*config.Library),
-				Versions:  make(map[string]string),
-			}, nil
-		}
-		return nil, err
-	}
-
-	var cfg config.Config
-	if err := yaml.Unmarshal(data, &cfg); err != nil {
-		return nil, err
-	}
-
-	// Build map of libraries by name
-	libraries := make(map[string]*config.Library)
-	for _, lib := range cfg.Libraries {
-		libraries[lib.Name] = lib
-	}
-
-	return &ExistingConfig{
-		Libraries: libraries,
-		Versions:  cfg.Versions,
-	}, nil
 }
 
 // readRootSidekick reads the root .sidekick.toml file and extracts defaults.
@@ -286,6 +243,7 @@ type CargoConfig struct {
 	Package struct {
 		Name    string `toml:"name"`
 		Version string `toml:"version"`
+		Publish interface{} `toml:"publish"` // Can be bool or array of strings
 	} `toml:"package"`
 }
 
@@ -351,8 +309,97 @@ func readSidekickFiles(files []string) (map[string]*config.Library, error) {
 		// Set version from Cargo.toml (more authoritative than sidekick)
 		if cargo.Package.Version != "" {
 			lib.Version = cargo.Package.Version
-		} else if sidekick.Codec.Version != "" && lib.Version == "" {
-			lib.Version = sidekick.Codec.Version
+		} else if version, ok := sidekick.Codec["version"].(string); ok && lib.Version == "" {
+			lib.Version = version
+		}
+
+		// Set publish disabled from Cargo.toml
+		if publishValue, ok := cargo.Package.Publish.(bool); ok && !publishValue {
+			if lib.Publish == nil {
+				lib.Publish = &config.LibraryPublish{}
+			}
+			lib.Publish.Disabled = true
+		}
+
+		// Parse library-level configuration
+		if copyrightYear, ok := sidekick.Codec["copyright-year"].(string); ok && copyrightYear != "" {
+			lib.CopyrightYear = copyrightYear
+		}
+
+		// Parse Rust-specific configuration from sidekick.toml codec section
+		perServiceFeatures, _ := sidekick.Codec["per-service-features"].(string)
+		disabledRustdocWarnings, _ := sidekick.Codec["disabled-rustdoc-warnings"].(string)
+		generateSetterSamples, _ := sidekick.Codec["generate-setter-samples"].(string)
+		nameOverrides, _ := sidekick.Codec["name-overrides"].(string)
+
+		// Parse package dependencies
+		var packageDeps []config.RustPackageDependency
+		for key, value := range sidekick.Codec {
+			if !strings.HasPrefix(key, "package:") {
+				continue
+			}
+			pkgName := strings.TrimPrefix(key, "package:")
+			pkgSpec, ok := value.(string)
+			if !ok {
+				continue
+			}
+
+			dep := parsePackageDependency(pkgName, pkgSpec)
+			if dep != nil {
+				packageDeps = append(packageDeps, *dep)
+			}
+		}
+
+		// Sort package dependencies by name for consistent output
+		sort.Slice(packageDeps, func(i, j int) bool {
+			return packageDeps[i].Name < packageDeps[j].Name
+		})
+
+		// Parse pagination overrides
+		var paginationOverrides []config.RustPaginationOverride
+		for _, po := range sidekick.PaginationOverrides {
+			paginationOverrides = append(paginationOverrides, config.RustPaginationOverride{
+				ID:        po.ID,
+				ItemField: po.ItemField,
+			})
+		}
+
+		// Set Rust-specific configuration
+		if perServiceFeatures != "" || disabledRustdocWarnings != "" || len(packageDeps) > 0 ||
+			generateSetterSamples != "" || len(paginationOverrides) > 0 || nameOverrides != "" {
+			if lib.Rust == nil {
+				lib.Rust = &config.RustCrate{}
+			}
+
+			// Per-service features
+			if perServiceFeatures == "true" {
+				lib.Rust.PerServiceFeatures = true
+			}
+
+			// Disabled rustdoc warnings (comma-separated string)
+			if disabledRustdocWarnings != "" {
+				lib.Rust.DisabledRustdocWarnings = strings.Split(disabledRustdocWarnings, ",")
+			}
+
+			// Package dependencies
+			if len(packageDeps) > 0 {
+				lib.Rust.PackageDependencies = packageDeps
+			}
+
+			// Generate setter samples
+			if generateSetterSamples == "true" {
+				lib.Rust.GenerateSetterSamples = true
+			}
+
+			// Pagination overrides
+			if len(paginationOverrides) > 0 {
+				lib.Rust.PaginationOverrides = paginationOverrides
+			}
+
+			// Name overrides (codec-level, for renaming types/services)
+			if nameOverrides != "" {
+				lib.Rust.NameOverrides = nameOverrides
+			}
 		}
 	}
 
@@ -366,7 +413,7 @@ func deriveLibraryName(apiPath string) string {
 }
 
 // buildConfig builds the complete config from libraries.
-func buildConfig(libraries map[string]*config.Library, googleapisPath string, rootDefaults *RootDefaults, existingConfig *ExistingConfig) *config.Config {
+func buildConfig(libraries map[string]*config.Library, googleapisPath string, rootDefaults *RootDefaults) *config.Config {
 	cfg := &config.Config{
 		Version:  "v1",
 		Language: "rust",
@@ -406,53 +453,10 @@ func buildConfig(libraries map[string]*config.Library, googleapisPath string, ro
 	var libList []*config.Library
 	versions := make(map[string]string)
 
-	// Start with existing versions
-	for name, version := range existingConfig.Versions {
-		versions[name] = version
-	}
-
 	for name, lib := range libraries {
-		// Track versions for ALL libraries (override existing if present)
+		// Track versions for ALL libraries
 		if lib.Version != "" {
 			versions[name] = lib.Version
-		}
-
-		// Merge with existing library configuration
-		if existingLib, exists := existingConfig.Libraries[name]; exists {
-			// Preserve existing configuration fields
-			if existingLib.Generate != nil {
-				lib.Generate = existingLib.Generate
-			}
-			if existingLib.Publish != nil {
-				lib.Publish = existingLib.Publish
-			}
-			if existingLib.CopyrightYear != "" {
-				lib.CopyrightYear = existingLib.CopyrightYear
-			}
-			if existingLib.Rust != nil {
-				if lib.Rust == nil {
-					lib.Rust = &config.RustCrate{}
-				}
-				// Merge Rust-specific config
-				if existingLib.Rust.PerServiceFeatures {
-					lib.Rust.PerServiceFeatures = true
-				}
-				if len(existingLib.Rust.DisabledRustdocWarnings) > 0 {
-					lib.Rust.DisabledRustdocWarnings = existingLib.Rust.DisabledRustdocWarnings
-				}
-				if len(existingLib.Rust.PackageDependencies) > 0 {
-					lib.Rust.PackageDependencies = existingLib.Rust.PackageDependencies
-				}
-				if existingLib.Rust.GenerateSetterSamples {
-					lib.Rust.GenerateSetterSamples = true
-				}
-				if len(existingLib.Rust.PaginationOverrides) > 0 {
-					lib.Rust.PaginationOverrides = existingLib.Rust.PaginationOverrides
-				}
-				if existingLib.Rust.NameOverrides != "" {
-					lib.Rust.NameOverrides = existingLib.Rust.NameOverrides
-				}
-			}
 		}
 
 		// Get the API path for this library
@@ -481,17 +485,6 @@ func buildConfig(libraries map[string]*config.Library, googleapisPath string, ro
 			// Clear version from library (it goes in versions section)
 			libCopy := *lib
 			libCopy.Version = ""
-			libList = append(libList, &libCopy)
-		}
-	}
-
-	// Add libraries from existing config that weren't found in sidekick files
-	for name, existingLib := range existingConfig.Libraries {
-		if _, found := libraries[name]; !found {
-			// This library exists in the config but not in sidekick files
-			// Preserve it as-is
-			libCopy := *existingLib
-			libCopy.Version = "" // Version goes in versions section
 			libList = append(libList, &libCopy)
 		}
 	}
