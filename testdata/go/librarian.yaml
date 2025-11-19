@@ -8,7 +8,7 @@ default:
   output: '{name}'
   generate:
     all: true
-    one_library_per: service
+    one_library_per: api
     transport: grpc+rest
     rest_numeric_enums: true
   release:
