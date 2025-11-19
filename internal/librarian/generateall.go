@@ -65,7 +65,7 @@ func runGenerateAll(ctx context.Context) error {
 			return err
 		}
 
-		if err := generateLibrary(ctx, cfg, googleapisDir, preparedLib, oneLibraryPer, false); err != nil {
+		if err := generateLibrary(ctx, cfg, googleapisDir, preparedLib, oneLibraryPer, false, false); err != nil {
 			fmt.Printf("  ✗ %s: %v\n", lib.Name, err)
 			return err
 		}

@@ -20,9 +20,8 @@ import (
 
 func TestInstallSynthtool(t *testing.T) {
 	cacheDir := t.TempDir()
-	commit := "6702a344265de050bceaff45d62358bb0023ba7d"
 
-	err := installSynthtool(t.Context(), cacheDir, commit)
+	err := installSynthtool(t.Context(), cacheDir, SynthtoolCommit)
 	if err != nil {
 		t.Fatal(err)
 	}

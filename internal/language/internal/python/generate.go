@@ -26,6 +26,49 @@ import (
 	"github.com/julieqiu/librarianx/internal/config"
 )
 
+// PostProcess runs only the synthtool post-processor on an existing library.
+func PostProcess(ctx context.Context, repo string, library *config.Library, defaults *config.Default) error {
+	// Determine output directory
+	outdir := library.Path
+	if outdir == "" {
+		if defaults != nil {
+			outdir = strings.ReplaceAll(defaults.Output, "{name}", library.Name)
+		}
+	}
+
+	// Convert to absolute path
+	var err error
+	outdir, err = filepath.Abs(outdir)
+	if err != nil {
+		return fmt.Errorf("failed to get absolute path for output directory: %w", err)
+	}
+
+	// Copy files needed for post processing (e.g., client-post-processing YAML files)
+	if err := copyFilesNeededForPostProcessing(outdir, library, repo); err != nil {
+		return fmt.Errorf("failed to copy files for post processing: %w", err)
+	}
+
+	// The post processor needs to run from the repository root
+	repoRoot := filepath.Dir(filepath.Dir(outdir))
+
+	// Run post processor
+	if err := runPostProcessor(repoRoot, library.Name); err != nil {
+		return fmt.Errorf("failed to run post processor: %w", err)
+	}
+
+	// Copy README.rst to docs/README.rst
+	if err := copyReadmeToDocsDir(outdir, library.Name); err != nil {
+		return fmt.Errorf("failed to copy README to docs: %w", err)
+	}
+
+	// Clean up files that shouldn't be in the final output
+	if err := cleanUpFilesAfterPostProcessing(outdir, library.Name); err != nil {
+		return fmt.Errorf("failed to cleanup after post processing: %w", err)
+	}
+
+	return nil
+}
+
 // Generate generates a Python client library.
 // Files and directories specified in library.Keep will be preserved during regeneration.
 // If library.Keep is not specified, a default list of paths is used.
@@ -98,7 +141,9 @@ func Generate(ctx context.Context, language, repo string, library *config.Librar
 	}
 
 	// Run post processor (synthtool/owlbot)
-	if err := runPostProcessor(outdir, library.Name); err != nil {
+	// The post processor needs to run from the repository root, not the package directory
+	repoRoot := filepath.Dir(filepath.Dir(outdir)) // Go up two levels from packages/libname to repo root
+	if err := runPostProcessor(repoRoot, library.Name); err != nil {
 		return fmt.Errorf("failed to run post processor: %w", err)
 	}
 
@@ -243,24 +288,31 @@ func copyFilesNeededForPostProcessing(outdir string, library *config.Library, re
 	}
 
 	// Copy relevant client-post-processing YAML files
-	postProcessingDir := filepath.Join(inputDir, "client-post-processing")
-	yamlFiles, err := filepath.Glob(filepath.Join(postProcessingDir, "*.yaml"))
-	if err != nil {
-		return nil // If glob fails, just skip
+	// Try both locations: .librarian/generator-input/client-post-processing and synthtool-input
+	postProcessingDirs := []string{
+		filepath.Join(inputDir, "client-post-processing"),
+		filepath.Join(repo, "synthtool-input"),
 	}
 
-	for _, yamlFile := range yamlFiles {
-		// Read the file to check if it applies to this library
-		content, err := os.ReadFile(yamlFile)
+	for _, postProcessingDir := range postProcessingDirs {
+		yamlFiles, err := filepath.Glob(filepath.Join(postProcessingDir, "*.yaml"))
 		if err != nil {
-			continue
+			continue // If glob fails, try next location
 		}
 
-		// Check if the file references this library's path
-		if strings.Contains(string(content), pathToLibrary+"/") {
-			destPath := filepath.Join(scriptsDir, filepath.Base(yamlFile))
-			if err := copyFile(yamlFile, destPath); err != nil {
-				return fmt.Errorf("failed to copy post-processing file %s: %w", yamlFile, err)
+		for _, yamlFile := range yamlFiles {
+			// Read the file to check if it applies to this library
+			content, err := os.ReadFile(yamlFile)
+			if err != nil {
+				continue
+			}
+
+			// Check if the file references this library's path
+			if strings.Contains(string(content), pathToLibrary+"/") {
+				destPath := filepath.Join(scriptsDir, filepath.Base(yamlFile))
+				if err := copyFile(yamlFile, destPath); err != nil {
+					return fmt.Errorf("failed to copy post-processing file %s: %w", yamlFile, err)
+				}
 			}
 		}
 	}
@@ -339,13 +391,15 @@ func runPostProcessor(outdir, libraryName string) error {
 	fmt.Fprintf(os.Stderr, "\nRunning Python post-processor...\n")
 
 	// Run python_mono_repo.owlbot_main
-	cmd := exec.Command("python3", "-c", fmt.Sprintf(`
+	pythonCode := fmt.Sprintf(`
 from synthtool.languages import python_mono_repo
 python_mono_repo.owlbot_main(%q)
-`, pathToLibrary))
+`, pathToLibrary)
+	cmd := exec.Command("python3", "-c", pythonCode)
 	cmd.Dir = outdir
 	cmd.Stdout = os.Stderr
 	cmd.Stderr = os.Stderr
+	fmt.Fprintf(os.Stderr, "Running: python3 -c %q\n", pythonCode)
 
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("post processor failed: %w", err)

@@ -17,7 +17,9 @@ package python
 import (
 	"context"
 	"fmt"
+	"os"
 	"os/exec"
+	"strings"
 
 	"github.com/julieqiu/librarianx/internal/fetch"
 )
@@ -32,8 +34,9 @@ func installSynthtool(ctx context.Context, cacheDir, commit string) error {
 		return fmt.Errorf("failed to download synthtool: %w", err)
 	}
 
-	cmd := exec.CommandContext(ctx, "pip3", "install", "--user", ".")
+	cmd := exec.CommandContext(ctx, "python3", "-m", "pip", "install", "--user", "--force-reinstall", "--break-system-packages", ".")
 	cmd.Dir = synthtoolDir
+	fmt.Fprintf(os.Stderr, "\nRunning: %s\n", strings.Join(cmd.Args, " "))
 	if err := cmd.Run(); err != nil {
 		return fmt.Errorf("failed to install synthtool: %w", err)
 	}

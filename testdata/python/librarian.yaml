@@ -809,7 +809,6 @@ libraries:
     apis:
       - google/cloud/secretmanager/v1
       - google/cloud/secretmanager/v1beta2
-      - google/cloud/secrets/v1beta1
     rest_numeric_enums: true
     grpc_service_config: secretmanager_grpc_service_config.json
     python:

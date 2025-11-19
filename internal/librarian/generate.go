@@ -43,6 +43,10 @@ Generate all APIs:
 				Name:  "all",
 				Usage: "generate all discovered APIs",
 			},
+			&cli.BoolFlag{
+				Name:  "post-process-only",
+				Usage: "run only the post-processor (synthtool) without regenerating code",
+			},
 		},
 		Action: func(ctx context.Context, cmd *cli.Command) error {
 			if cmd.Bool("all") {
@@ -52,12 +56,13 @@ Generate all APIs:
 				return fmt.Errorf("generate requires a library name argument or --all flag")
 			}
 			name := cmd.Args().Get(0)
-			return runGenerate(ctx, name, false)
+			postProcessOnly := cmd.Bool("post-process-only")
+			return runGenerate(ctx, name, false, postProcessOnly)
 		},
 	}
 }
 
-func runGenerate(ctx context.Context, name string, newLibrary bool) error {
+func runGenerate(ctx context.Context, name string, newLibrary, postProcessOnly bool) error {
 	cfg, err := config.Read(configPath)
 	if err != nil {
 		return err
@@ -88,14 +93,23 @@ func runGenerate(ctx context.Context, name string, newLibrary bool) error {
 		return fmt.Errorf("one_library_per must be set in librarian.yaml under default.generate.one_library_per")
 	}
 
-	return generateLibrary(ctx, cfg, googleapisDir, library, cfg.Default.Generate.OneLibraryPer, newLibrary)
+	return generateLibrary(ctx, cfg, googleapisDir, library, cfg.Default.Generate.OneLibraryPer, newLibrary, postProcessOnly)
 }
 
 // generateLibrary prepares and generates a library.
-func generateLibrary(ctx context.Context, cfg *config.Config, googleapisDir string, library *config.Library, oneLibraryPer string, newLibrary bool) error {
+func generateLibrary(ctx context.Context, cfg *config.Config, googleapisDir string, library *config.Library, oneLibraryPer string, newLibrary, postProcessOnly bool) error {
 	// Check if generation is disabled
 	if library.Generate != nil && library.Generate.Disabled {
 		fmt.Printf("  ⊘ %s (generation disabled)\n", library.Name)
+		return nil
+	}
+
+	// If post-process-only, skip code generation
+	if postProcessOnly {
+		if err := language.PostProcess(ctx, cfg.Language, cfg.Repo, library, cfg.Default); err != nil {
+			return err
+		}
+		fmt.Printf("  ✓ %s (post-processed)\n", library.Name)
 		return nil
 	}
 

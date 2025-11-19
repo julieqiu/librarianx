@@ -38,6 +38,18 @@ func Create(ctx context.Context, language, repo string, library *config.Library,
 	}
 }
 
+// PostProcess runs only the post-processing step (e.g., synthtool) for the specified language.
+func PostProcess(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default) error {
+	switch language {
+	case "python":
+		return python.PostProcess(ctx, repo, library, defaults)
+	case "rust":
+		return fmt.Errorf("post-processing not supported for rust")
+	default:
+		return fmt.Errorf("unsupported language: %s", language)
+	}
+}
+
 // Generate generates a library based on the one_library_per mode.
 // For "api" mode: generates once for all APIs in the library.
 // For "channel" mode: generates separately for each API version.
