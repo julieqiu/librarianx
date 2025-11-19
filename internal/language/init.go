@@ -19,6 +19,7 @@ import (
 	"fmt"
 
 	"github.com/julieqiu/librarianx/internal/config"
+	golang "github.com/julieqiu/librarianx/internal/language/internal/go"
 	"github.com/julieqiu/librarianx/internal/language/internal/python"
 	"github.com/julieqiu/librarianx/internal/language/internal/rust"
 )
@@ -27,6 +28,8 @@ import (
 // It returns the default config and updates cfg.Sources with language-specific sources.
 func Init(ctx context.Context, language, cacheDir string, cfg *config.Config) (*config.Default, error) {
 	switch language {
+	case "go":
+		return golang.Init(), nil
 	case "rust":
 		if err := rust.SetupWorkspace("."); err != nil {
 			return nil, err
