@@ -34,6 +34,7 @@ func Init(ctx context.Context, language, cacheDir string, cfg *config.Config) (*
 		if err := rust.SetupWorkspace("."); err != nil {
 			return nil, err
 		}
+		return rust.ConfigDefault(), nil
 	case "python":
 		defaults, pythonSources, err := python.Init(ctx, cacheDir)
 		if err != nil {
