@@ -32,7 +32,7 @@ func initPython() *Default {
 	return &Default{
 		Output: "packages/{name}/",
 		Generate: &DefaultGenerate{
-			All:              true,
+			Auto:             true,
 			OneLibraryPer:    "service",
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,
@@ -52,7 +52,7 @@ func initRust() *Default {
 	return &Default{
 		Output: "src/generated/",
 		Generate: &DefaultGenerate{
-			All:           true,
+			Auto:          true,
 			OneLibraryPer: "version",
 			ReleaseLevel:  "stable",
 		},

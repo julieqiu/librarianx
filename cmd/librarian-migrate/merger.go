@@ -147,7 +147,7 @@ func merge(state *LegacyState, legacyConfig *LegacyConfig, buildData *BuildBazel
 		Default: &config.Default{
 			Output: outputPath,
 			Generate: &config.DefaultGenerate{
-				All:              true,
+				Auto:             true,
 				OneLibraryPer:    "api",
 				RestNumericEnums: true,
 			},

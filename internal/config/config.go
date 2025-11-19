@@ -86,9 +86,9 @@ type Default struct {
 
 // DefaultGenerate contains default generation configuration.
 type DefaultGenerate struct {
-	// All generates all client libraries with default configurations
+	// Auto generates all client libraries with default configurations
 	// for the language, unless otherwise specified.
-	All bool `yaml:"all,omitempty"`
+	Auto bool `yaml:"auto,omitempty"`
 
 	// OneLibraryPer specifies packaging strategy: "api" or "channel".
 	// - "api": Bundle all versions of a service into one library (Python, Go default)

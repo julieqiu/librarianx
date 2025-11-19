@@ -241,8 +241,8 @@ func findSidekickFiles(repoPath string) ([]string, error) {
 // CargoConfig represents relevant fields from Cargo.toml.
 type CargoConfig struct {
 	Package struct {
-		Name    string `toml:"name"`
-		Version string `toml:"version"`
+		Name    string      `toml:"name"`
+		Version string      `toml:"version"`
 		Publish interface{} `toml:"publish"` // Can be bool or array of strings
 	} `toml:"package"`
 }
@@ -420,7 +420,7 @@ func buildConfig(libraries map[string]*config.Library, googleapisPath string, ro
 		Default: &config.Default{
 			Output: "src/generated/",
 			Generate: &config.DefaultGenerate{
-				All:           true,
+				Auto:          true,
 				OneLibraryPer: "channel",
 				ReleaseLevel:  "stable",
 			},

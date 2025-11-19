@@ -23,7 +23,7 @@ func Init() *config.Default {
 	return &config.Default{
 		Output: "{name}",
 		Generate: &config.DefaultGenerate{
-			All:              true,
+			Auto:             true,
 			OneLibraryPer:    "api",
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,

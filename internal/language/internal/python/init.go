@@ -56,7 +56,7 @@ func Init(ctx context.Context, cacheDir string) (*config.Default, *config.Python
 	defaults := &config.Default{
 		Output: "packages/{name}/",
 		Generate: &config.DefaultGenerate{
-			All:              true,
+			Auto:             true,
 			OneLibraryPer:    "api",
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,
@@ -118,7 +118,7 @@ func ConfigDefault() *config.Default {
 	return &config.Default{
 		Output: "packages/{name}/",
 		Generate: &config.DefaultGenerate{
-			All:              true,
+			Auto:             true,
 			OneLibraryPer:    "api",
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,
