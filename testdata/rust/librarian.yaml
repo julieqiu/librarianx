@@ -2,7 +2,7 @@ version: v1
 language: rust
 sources:
   googleapis:
-    commit: 9fcfbea0aa5b50fa22e190faceb073d74504172b
+    commit: 1b5f8632487bce889ce05366647addc6ef5ee36d
 default:
   output: src/generated/
   generate:
@@ -89,79 +89,348 @@ default:
         package: google-cloud-wkt
         source: google.protobuf
         force_used: true
-name_overrides:
-  google/api/apikeys/v2: google-cloud-apikeys-v2
-  google/api/cloudquotas/v1: google-cloud-api-cloudquotas-v1
-  google/api/servicemanagement/v1: google-cloud-api-servicemanagement-v1
-  google/api/serviceusage/v1: google-cloud-api-serviceusage-v1
-  google/bigtable/admin/v2: google-cloud-bigtable-admin-v2
-  google/cloud/translate/v3: google-cloud-translation-v3
-  google/container/v1: google-cloud-container-v1
-  google/datastore/admin/v1: google-cloud-datastore-admin-v1
-  google/devtools/artifactregistry/v1: google-cloud-artifactregistry-v1
-  google/devtools/cloudbuild/v1: google-cloud-build-v1
-  google/devtools/cloudbuild/v2: google-cloud-build-v2
-  google/devtools/cloudprofiler/v2: google-cloud-profiler-v2
-  google/devtools/cloudtrace/v2: google-cloud-trace-v2
-  google/devtools/containeranalysis/v1: google-cloud-containeranalysis-v1
-  google/firestore/admin/v1: google-cloud-firestore-admin-v1
-  google/iam/credentials/v1: google-cloud-iam-credentials-v1
-  google/iam/v2: google-cloud-iam-v2
-  google/iam/v3: google-cloud-iam-v3
-  google/identity/accesscontextmanager/v1: google-cloud-identity-accesscontextmanager-v1
-  google/logging/v2: google-cloud-logging-v2
-  google/privacy/dlp/v2: google-cloud-privacy-dlp-v2
-  google/storagetransfer/v1: google-cloud-storagetransfer-v1
-  grafeas/v1: google-cloud-grafeas-v1
 libraries:
+  - name: google-cloud-accessapproval-v1
+    api: google/cloud/accessapproval/v1
+    copyright_year: "2025"
+  - name: google-cloud-advisorynotifications-v1
+    api: google/cloud/advisorynotifications/v1
+    copyright_year: "2025"
   - name: google-cloud-aiplatform-v1
-    generate:
-      disabled: true
+    api: google/cloud/aiplatform/v1
+    copyright_year: "2025"
     rust:
       per_service_features: true
       disabled_rustdoc_warnings:
         - redundant_explicit_links
         - broken_intra_doc_links
         - invalid_html_tags
-  - name: google-cloud-asset-v1
+  - name: google-cloud-alloydb-connectors-v1
+    api: google/cloud/alloydb/connectors/v1
+    copyright_year: "2025"
+  - name: google-cloud-alloydb-v1
+    api: google/cloud/alloydb/v1
+    copyright_year: "2025"
+  - name: google-cloud-api
+    api: google/api
+    copyright_year: "2025"
+  - name: google-cloud-api-cloudquotas-v1
+    api: google/api/cloudquotas/v1
+    copyright_year: "2025"
+  - name: google-cloud-api-servicecontrol-v1
+    api: google/api/servicecontrol/v1
+    copyright_year: "2025"
+  - name: google-cloud-api-servicecontrol-v2
+    api: google/api/servicecontrol/v2
+    copyright_year: "2025"
+  - name: google-cloud-api-servicemanagement-v1
+    api: google/api/servicemanagement/v1
+    copyright_year: "2025"
+  - name: google-cloud-api-serviceusage-v1
+    api: google/api/serviceusage/v1
+    copyright_year: "2025"
+  - name: google-cloud-apigateway-v1
+    api: google/cloud/apigateway/v1
+    copyright_year: "2025"
+  - name: google-cloud-apigeeconnect-v1
+    api: google/cloud/apigeeconnect/v1
+    copyright_year: "2025"
+  - name: google-cloud-apihub-v1
+    api: google/cloud/apihub/v1
+    copyright_year: "2025"
+  - name: google-cloud-apikeys-v2
+    api: google/api/apikeys/v2
+    copyright_year: "2025"
+  - name: google-cloud-appengine-v1
+    api: google/appengine/v1
+    copyright_year: "2025"
+  - name: google-cloud-apphub-v1
+    api: google/cloud/apphub/v1
+    copyright_year: "2025"
+  - name: google-cloud-apps-script-type
+    api: google/apps/script/type
+    copyright_year: "2025"
+  - name: google-cloud-apps-script-type-calendar
+    api: google/apps/script/type/calendar
+    copyright_year: "2025"
     rust:
       package_dependencies:
+        - name: apps_script_type
+          package: google-cloud-apps-script-type
+          source: google.apps.script.type
+  - name: google-cloud-apps-script-type-docs
+    api: google/apps/script/type/docs
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: apps_script_type
+          package: google-cloud-apps-script-type
+          source: google.apps.script.type
+  - name: google-cloud-apps-script-type-drive
+    api: google/apps/script/type/drive
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: apps_script_type
+          package: google-cloud-apps-script-type
+          source: google.apps.script.type
+  - name: google-cloud-apps-script-type-gmail
+    api: google/apps/script/type/gmail
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: apps_script_type
+          package: google-cloud-apps-script-type
+          source: google.apps.script.type
+  - name: google-cloud-apps-script-type-sheets
+    api: google/apps/script/type/sheets
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: apps_script_type
+          package: google-cloud-apps-script-type
+          source: google.apps.script.type
+  - name: google-cloud-apps-script-type-slides
+    api: google/apps/script/type/slides
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: apps_script_type
+          package: google-cloud-apps-script-type
+          source: google.apps.script.type
+  - name: google-cloud-artifactregistry-v1
+    api: google/devtools/artifactregistry/v1
+    copyright_year: "2025"
+  - name: google-cloud-asset-v1
+    api: google/cloud/asset/v1
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: accesscontextmanager_v1
+          package: google-cloud-identity-accesscontextmanager-v1
+          source: google.identity.accesscontextmanager.v1
         - name: orgpolicy_v1
           package: google-cloud-orgpolicy-v1
           source: google.cloud.orgpolicy.v1
-        - name: accesscontextmanager_type
-          package: google-identity-accesscontextmanager-type
-          source: google.identity.accesscontextmanager.type
-        - name: accesscontextmanager_v1
-          package: google-identity-accesscontextmanager-v1
-          source: google.identity.accesscontextmanager.v1
         - name: osconfig_v1
           package: google-cloud-osconfig-v1
           source: google.cloud.osconfig.v1
+  - name: google-cloud-assuredworkloads-v1
+    api: google/cloud/assuredworkloads/v1
+    copyright_year: "2025"
+  - name: google-cloud-backupdr-v1
+    api: google/cloud/backupdr/v1
+    copyright_year: "2025"
+  - name: google-cloud-baremetalsolution-v2
+    api: google/cloud/baremetalsolution/v2
+    copyright_year: "2025"
+  - name: google-cloud-beyondcorp-appconnections-v1
+    api: google/cloud/beyondcorp/appconnections/v1
+    copyright_year: "2025"
+  - name: google-cloud-beyondcorp-appconnectors-v1
+    api: google/cloud/beyondcorp/appconnectors/v1
+    copyright_year: "2025"
+  - name: google-cloud-beyondcorp-appgateways-v1
+    api: google/cloud/beyondcorp/appgateways/v1
+    copyright_year: "2025"
+  - name: google-cloud-beyondcorp-clientconnectorservices-v1
+    api: google/cloud/beyondcorp/clientconnectorservices/v1
+    copyright_year: "2025"
+  - name: google-cloud-beyondcorp-clientgateways-v1
+    api: google/cloud/beyondcorp/clientgateways/v1
+    copyright_year: "2025"
+  - name: google-cloud-bigquery-analyticshub-v1
+    api: google/cloud/bigquery/analyticshub/v1
+    copyright_year: "2025"
+  - name: google-cloud-bigquery-connection-v1
+    api: google/cloud/bigquery/connection/v1
+    copyright_year: "2025"
+  - name: google-cloud-bigquery-datapolicies-v1
+    api: google/cloud/bigquery/datapolicies/v1
+    copyright_year: "2025"
+  - name: google-cloud-bigquery-datapolicies-v2
+    api: google/cloud/bigquery/datapolicies/v2
+    copyright_year: "2025"
+  - name: google-cloud-bigquery-datatransfer-v1
+    api: google/cloud/bigquery/datatransfer/v1
+    copyright_year: "2025"
+  - name: google-cloud-bigquery-migration-v2
+    api: google/cloud/bigquery/migration/v2
+    copyright_year: "2025"
+  - name: google-cloud-bigquery-reservation-v1
+    api: google/cloud/bigquery/reservation/v1
+    copyright_year: "2025"
   - name: google-cloud-bigquery-v2
+    api: google/cloud/bigquery/v2
     publish:
       disabled: true
+    copyright_year: "2025"
+  - name: google-cloud-bigtable-admin-v2
+    api: google/bigtable/admin/v2
+    copyright_year: "2025"
+  - name: google-cloud-billing-v1
+    api: google/cloud/billing/v1
+    copyright_year: "2025"
+  - name: google-cloud-binaryauthorization-v1
+    api: google/cloud/binaryauthorization/v1
+    copyright_year: "2025"
+  - name: google-cloud-build-v1
+    api: google/devtools/cloudbuild/v1
+    copyright_year: "2025"
+  - name: google-cloud-build-v2
+    api: google/devtools/cloudbuild/v2
+    copyright_year: "2025"
+  - name: google-cloud-certificatemanager-v1
+    api: google/cloud/certificatemanager/v1
+    copyright_year: "2025"
+  - name: google-cloud-chronicle-v1
+    api: google/cloud/chronicle/v1
+    copyright_year: "2025"
+  - name: google-cloud-cloudcontrolspartner-v1
+    api: google/cloud/cloudcontrolspartner/v1
+    copyright_year: "2025"
+  - name: google-cloud-clouddms-v1
+    api: google/cloud/clouddms/v1
+    copyright_year: "2025"
+  - name: google-cloud-cloudsecuritycompliance-v1
+    api: google/cloud/cloudsecuritycompliance/v1
+    copyright_year: "2025"
+  - name: google-cloud-commerce-consumer-procurement-v1
+    api: google/cloud/commerce/consumer/procurement/v1
+    copyright_year: "2025"
+  - name: google-cloud-common
+    api: google/cloud/common
+    copyright_year: "2025"
   - name: google-cloud-compute-v1
-    generate:
-      disabled: true
+    api: discoveries/compute.v1.json
+    copyright_year: "2025"
     rust:
+      per_service_features: true
       package_dependencies:
         - name: lro
-          package: google-cloud-longrunning
-          source: google.longrunning
+          package: google-cloud-lro
+          force_used: true
         - name: rpc
           package: google-cloud-rpc
-          source: google.rpc
+          force_used: true
+      disabled_rustdoc_warnings:
+        - bare_urls
+        - broken_intra_doc_links
+        - redundant_explicit_links
+  - name: google-cloud-confidentialcomputing-v1
+    api: google/cloud/confidentialcomputing/v1
+    copyright_year: "2025"
+  - name: google-cloud-config-v1
+    api: google/cloud/config/v1
+    copyright_year: "2025"
+  - name: google-cloud-configdelivery-v1
+    api: google/cloud/configdelivery/v1
+    copyright_year: "2025"
+  - name: google-cloud-connectors-v1
+    api: google/cloud/connectors/v1
+    copyright_year: "2025"
+  - name: google-cloud-contactcenterinsights-v1
+    api: google/cloud/contactcenterinsights/v1
+    copyright_year: "2025"
+  - name: google-cloud-container-v1
+    api: google/container/v1
+    copyright_year: "2025"
+  - name: google-cloud-containeranalysis-v1
+    api: google/devtools/containeranalysis/v1
+    copyright_year: "2025"
+  - name: google-cloud-datacatalog-lineage-v1
+    api: google/cloud/datacatalog/lineage/v1
+    copyright_year: "2025"
+  - name: google-cloud-datacatalog-v1
+    api: google/cloud/datacatalog/v1
+    copyright_year: "2025"
+  - name: google-cloud-dataform-v1
+    api: google/cloud/dataform/v1
+    copyright_year: "2025"
+  - name: google-cloud-datafusion-v1
+    api: google/cloud/datafusion/v1
+    copyright_year: "2025"
+  - name: google-cloud-dataplex-v1
+    api: google/cloud/dataplex/v1
+    copyright_year: "2025"
+  - name: google-cloud-dataproc-v1
+    api: google/cloud/dataproc/v1
+    copyright_year: "2025"
+  - name: google-cloud-datastore-admin-v1
+    api: google/datastore/admin/v1
+    copyright_year: "2025"
+  - name: google-cloud-datastream-v1
+    api: google/cloud/datastream/v1
+    copyright_year: "2025"
+  - name: google-cloud-deploy-v1
+    api: google/cloud/deploy/v1
+    copyright_year: "2025"
+  - name: google-cloud-developerconnect-v1
+    api: google/cloud/developerconnect/v1
+    copyright_year: "2025"
+  - name: google-cloud-devicestreaming-v1
+    api: google/cloud/devicestreaming/v1
+    copyright_year: "2025"
   - name: google-cloud-dialogflow-cx-v3
+    api: google/cloud/dialogflow/cx/v3
+    copyright_year: "2025"
     rust:
       per_service_features: true
   - name: google-cloud-dialogflow-v2
+    api: google/cloud/dialogflow/v2
+    copyright_year: "2025"
     rust:
       per_service_features: true
   - name: google-cloud-discoveryengine-v1
+    api: google/cloud/discoveryengine/v1
+    copyright_year: "2025"
     rust:
       per_service_features: true
+  - name: google-cloud-documentai-v1
+    api: google/cloud/documentai/v1
+    copyright_year: "2025"
+  - name: google-cloud-domains-v1
+    api: google/cloud/domains/v1
+    copyright_year: "2025"
+  - name: google-cloud-edgecontainer-v1
+    api: google/cloud/edgecontainer/v1
+    copyright_year: "2025"
+  - name: google-cloud-edgenetwork-v1
+    api: google/cloud/edgenetwork/v1
+    copyright_year: "2025"
+  - name: google-cloud-essentialcontacts-v1
+    api: google/cloud/essentialcontacts/v1
+    copyright_year: "2025"
+  - name: google-cloud-eventarc-v1
+    api: google/cloud/eventarc/v1
+    copyright_year: "2025"
+  - name: google-cloud-filestore-v1
+    api: google/cloud/filestore/v1
+    copyright_year: "2025"
+  - name: google-cloud-financialservices-v1
+    api: google/cloud/financialservices/v1
+    copyright_year: "2025"
+  - name: google-cloud-firestore-admin-v1
+    api: google/firestore/admin/v1
+    copyright_year: "2025"
+  - name: google-cloud-functions-v2
+    api: google/cloud/functions/v2
+    copyright_year: "2025"
+  - name: google-cloud-gkebackup-v1
+    api: google/cloud/gkebackup/v1
+    copyright_year: "2025"
+  - name: google-cloud-gkeconnect-gateway-v1
+    api: google/cloud/gkeconnect/gateway/v1
+    copyright_year: "2025"
+  - name: google-cloud-gkehub-configmanagement-v1
+    api: google/cloud/gkehub/v1/configmanagement
+    copyright_year: "2025"
+  - name: google-cloud-gkehub-multiclusteringress-v1
+    api: google/cloud/gkehub/v1/multiclusteringress
+    copyright_year: "2025"
   - name: google-cloud-gkehub-v1
+    api: google/cloud/gkehub/v1
+    copyright_year: "2025"
     rust:
       package_dependencies:
         - name: gkehub_configmanagement_v1
@@ -170,12 +439,20 @@ libraries:
         - name: gkehub_multiclusteringress_v1
           package: google-cloud-gkehub-multiclusteringress-v1
           source: google.cloud.gkehub.multiclusteringress.v1
+  - name: google-cloud-gkemulticloud-v1
+    api: google/cloud/gkemulticloud/v1
+    copyright_year: "2025"
+  - name: google-cloud-gkerecommender-v1
+    api: google/cloud/gkerecommender/v1
+    copyright_year: "2025"
+  - name: google-cloud-grafeas-v1
+    api: grafeas/v1
+    copyright_year: "2025"
   - name: google-cloud-gsuiteaddons-v1
+    api: google/cloud/gsuiteaddons/v1
+    copyright_year: "2025"
     rust:
       package_dependencies:
-        - name: apps_script_type
-          package: google-cloud-apps-script-type
-          source: google.apps.script.type
         - name: apps_script_calendar
           package: google-cloud-apps-script-type-calendar
           source: google.apps.script.type.calendar
@@ -194,50 +471,375 @@ libraries:
         - name: apps_script_slides
           package: google-cloud-apps-script-type-slides
           source: google.apps.script.type.slides
+        - name: apps_script_type
+          package: google-cloud-apps-script-type
+          source: google.apps.script.type
+  - name: google-cloud-iam-admin-v1
+    api: google/iam/admin/v1
+    copyright_year: "2025"
+  - name: google-cloud-iam-credentials-v1
+    api: google/iam/credentials/v1
+    copyright_year: "2025"
+  - name: google-cloud-iam-v1
+    api: google/iam/v1
+    copyright_year: "2024"
+  - name: google-cloud-iam-v2
+    api: google/iam/v2
+    copyright_year: "2025"
+  - name: google-cloud-iam-v3
+    api: google/iam/v3
+    copyright_year: "2025"
+  - name: google-cloud-iap-v1
+    api: google/cloud/iap/v1
+    copyright_year: "2025"
+  - name: google-cloud-identity-accesscontextmanager-type
+    api: google/identity/accesscontextmanager/type
+    copyright_year: "2025"
+  - name: google-cloud-identity-accesscontextmanager-v1
+    api: google/identity/accesscontextmanager/v1
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: accesscontextmanager_type
+          package: google-cloud-identity-accesscontextmanager-type
+          source: google.identity.accesscontextmanager.type
+  - name: google-cloud-ids-v1
+    api: google/cloud/ids/v1
+    copyright_year: "2025"
   - name: google-cloud-kms-inventory-v1
+    api: google/cloud/kms/inventory/v1
+    copyright_year: "2025"
     rust:
       package_dependencies:
         - name: kms
           package: google-cloud-kms-v1
           source: google.cloud.kms.v1
+  - name: google-cloud-kms-v1
+    api: google/cloud/kms/v1
+    copyright_year: "2025"
+  - name: google-cloud-language-v2
+    api: google/cloud/language/v2
+    copyright_year: "2025"
+  - name: google-cloud-licensemanager-v1
+    api: google/cloud/licensemanager/v1
+    copyright_year: "2025"
+  - name: google-cloud-location
+    api: google/cloud/location
+    copyright_year: "2024"
+    rust:
+      package_dependencies:
+        - name: location
+          package: ""
+  - name: google-cloud-locationfinder-v1
+    api: google/cloud/locationfinder/v1
+    copyright_year: "2025"
+  - name: google-cloud-logging-type
+    api: google/logging/type
+    copyright_year: "2025"
+  - name: google-cloud-logging-v2
+    api: google/logging/v2
+    copyright_year: "2025"
+  - name: google-cloud-longrunning
+    api: google/longrunning
+    copyright_year: "2024"
+    rust:
+      package_dependencies:
+        - name: longrunning
+          package: ""
+  - name: google-cloud-lustre-v1
+    api: google/cloud/lustre/v1
+    copyright_year: "2025"
+  - name: google-cloud-managedidentities-v1
+    api: google/cloud/managedidentities/v1
+    copyright_year: "2025"
+  - name: google-cloud-managedkafka-schemaregistry-v1
+    api: google/cloud/managedkafka/schemaregistry/v1
+    copyright_year: "2025"
+  - name: google-cloud-managedkafka-v1
+    api: google/cloud/managedkafka/v1
+    copyright_year: "2025"
+  - name: google-cloud-memcache-v1
+    api: google/cloud/memcache/v1
+    copyright_year: "2025"
+  - name: google-cloud-memorystore-v1
+    api: google/cloud/memorystore/v1
+    copyright_year: "2025"
+  - name: google-cloud-metastore-v1
+    api: google/cloud/metastore/v1
+    copyright_year: "2025"
+  - name: google-cloud-migrationcenter-v1
+    api: google/cloud/migrationcenter/v1
+    copyright_year: "2025"
+  - name: google-cloud-modelarmor-v1
+    api: google/cloud/modelarmor/v1
+    copyright_year: "2025"
+  - name: google-cloud-monitoring-dashboard-v1
+    api: google/monitoring/dashboard/v1
+    copyright_year: "2025"
+  - name: google-cloud-monitoring-metricsscope-v1
+    api: google/monitoring/metricsscope/v1
+    copyright_year: "2025"
+  - name: google-cloud-monitoring-v3
+    api: google/monitoring/v3
+    copyright_year: "2025"
+  - name: google-cloud-netapp-v1
+    api: google/cloud/netapp/v1
+    copyright_year: "2025"
+  - name: google-cloud-networkconnectivity-v1
+    api: google/cloud/networkconnectivity/v1
+    copyright_year: "2025"
+  - name: google-cloud-networkmanagement-v1
+    api: google/cloud/networkmanagement/v1
+    copyright_year: "2025"
+  - name: google-cloud-networksecurity-v1
+    api: google/cloud/networksecurity/v1
+    copyright_year: "2025"
+  - name: google-cloud-networkservices-v1
+    api: google/cloud/networkservices/v1
+    copyright_year: "2025"
+  - name: google-cloud-notebooks-v2
+    api: google/cloud/notebooks/v2
+    copyright_year: "2025"
+  - name: google-cloud-optimization-v1
+    api: google/cloud/optimization/v1
+    copyright_year: "2025"
+  - name: google-cloud-oracledatabase-v1
+    api: google/cloud/oracledatabase/v1
+    copyright_year: "2025"
+  - name: google-cloud-orchestration-airflow-service-v1
+    api: google/cloud/orchestration/airflow/service/v1
+    copyright_year: "2025"
+  - name: google-cloud-orgpolicy-v1
+    api: google/cloud/orgpolicy/v1
+    copyright_year: "2025"
+  - name: google-cloud-orgpolicy-v2
+    api: google/cloud/orgpolicy/v2
+    copyright_year: "2025"
   - name: google-cloud-osconfig-v1
+    api: google/cloud/osconfig/v1
+    copyright_year: "2025"
     rust:
       disabled_rustdoc_warnings:
         - redundant_explicit_links
         - broken_intra_doc_links
         - bare_urls
         - invalid_html_tags
+  - name: google-cloud-oslogin-common
+    api: google/cloud/oslogin/common
+    copyright_year: "2025"
   - name: google-cloud-oslogin-v1
+    api: google/cloud/oslogin/v1
+    copyright_year: "2025"
     rust:
       package_dependencies:
         - name: oslogin_common
           package: google-cloud-oslogin-common
           source: google.cloud.oslogin.common
+  - name: google-cloud-parallelstore-v1
+    api: google/cloud/parallelstore/v1
+    copyright_year: "2025"
+  - name: google-cloud-parametermanager-v1
+    api: google/cloud/parametermanager/v1
+    copyright_year: "2025"
   - name: google-cloud-policysimulator-v1
+    api: google/cloud/policysimulator/v1
+    copyright_year: "2025"
     rust:
       package_dependencies:
         - name: orgpolicy_v2
           package: google-cloud-orgpolicy-v2
           source: google.cloud.orgpolicy.v2
   - name: google-cloud-policytroubleshooter-iam-v3
+    api: google/cloud/policytroubleshooter/iam/v3
+    copyright_year: "2025"
     rust:
       package_dependencies:
         - name: iam_v2
           package: google-cloud-iam-v2
           source: google.iam.v2
+  - name: google-cloud-policytroubleshooter-v1
+    api: google/cloud/policytroubleshooter/v1
+    copyright_year: "2025"
+  - name: google-cloud-privacy-dlp-v2
+    api: google/privacy/dlp/v2
+    copyright_year: "2025"
+  - name: google-cloud-privilegedaccessmanager-v1
+    api: google/cloud/privilegedaccessmanager/v1
+    copyright_year: "2025"
+  - name: google-cloud-profiler-v2
+    api: google/devtools/cloudprofiler/v2
+    copyright_year: "2025"
+  - name: google-cloud-rapidmigrationassessment-v1
+    api: google/cloud/rapidmigrationassessment/v1
+    copyright_year: "2025"
+  - name: google-cloud-recaptchaenterprise-v1
+    api: google/cloud/recaptchaenterprise/v1
+    copyright_year: "2025"
+  - name: google-cloud-recommender-logging-v1
+    api: google/cloud/recommender/logging/v1
+    copyright_year: "2025"
+    rust:
+      package_dependencies:
+        - name: recommender
+          package: google-cloud-recommender-v1
+          source: google.cloud.recommender.v1
+  - name: google-cloud-recommender-v1
+    api: google/cloud/recommender/v1
+    copyright_year: "2025"
+  - name: google-cloud-redis-cluster-v1
+    api: google/cloud/redis/cluster/v1
+    copyright_year: "2025"
+  - name: google-cloud-redis-v1
+    api: google/cloud/redis/v1
+    copyright_year: "2025"
+  - name: google-cloud-resourcemanager-v3
+    api: google/cloud/resourcemanager/v3
+    copyright_year: "2025"
+  - name: google-cloud-retail-v2
+    api: google/cloud/retail/v2
+    copyright_year: "2025"
+  - name: google-cloud-rpc
+    api: google/rpc
+    copyright_year: "2024"
+  - name: google-cloud-rpc-context
+    api: google/rpc/context
+    copyright_year: "2025"
+  - name: google-cloud-run-v2
+    api: google/cloud/run/v2
+    copyright_year: "2025"
+  - name: google-cloud-scheduler-v1
+    api: google/cloud/scheduler/v1
+    copyright_year: "2025"
   - name: google-cloud-secretmanager-v1
+    api: google/cloud/secretmanager/v1
     copyright_year: "2024"
     rust:
       generate_setter_samples: true
+  - name: google-cloud-securesourcemanager-v1
+    api: google/cloud/securesourcemanager/v1
+    copyright_year: "2025"
+  - name: google-cloud-security-privateca-v1
+    api: google/cloud/security/privateca/v1
+    copyright_year: "2025"
+  - name: google-cloud-security-publicca-v1
+    api: google/cloud/security/publicca/v1
+    copyright_year: "2025"
+  - name: google-cloud-securitycenter-v2
+    api: google/cloud/securitycenter/v2
+    copyright_year: "2025"
+  - name: google-cloud-securityposture-v1
+    api: google/cloud/securityposture/v1
+    copyright_year: "2025"
+  - name: google-cloud-servicedirectory-v1
+    api: google/cloud/servicedirectory/v1
+    copyright_year: "2025"
+  - name: google-cloud-servicehealth-v1
+    api: google/cloud/servicehealth/v1
+    copyright_year: "2025"
+  - name: google-cloud-shell-v1
+    api: google/cloud/shell/v1
+    copyright_year: "2025"
+  - name: google-cloud-showcase-v1beta1
+    api: schema/google/showcase/v1beta1
+    publish:
+      disabled: true
+    copyright_year: "2025"
+  - name: google-cloud-spanner-admin-database-v1
+    api: google/spanner/admin/database/v1
+    copyright_year: "2025"
+  - name: google-cloud-spanner-admin-instance-v1
+    api: google/spanner/admin/instance/v1
+    copyright_year: "2025"
+  - name: google-cloud-speech-v2
+    api: google/cloud/speech/v2
+    copyright_year: "2025"
   - name: google-cloud-sql-v1
+    api: google/cloud/sql/v1
+    copyright_year: "2025"
     rust:
       pagination_overrides:
         - id: .google.cloud.sql.v1.SqlInstancesService.List
           item_field: items
+  - name: google-cloud-storagebatchoperations-v1
+    api: google/cloud/storagebatchoperations/v1
+    copyright_year: "2025"
   - name: google-cloud-storageinsights-v1
+    api: google/cloud/storageinsights/v1
+    copyright_year: "2025"
     rust:
       name_overrides: .google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_buckets=CloudStorageBucketsOneOf,.google.cloud.storageinsights.v1.DatasetConfig.cloud_storage_locations=CloudStorageLocationsOneOf
+  - name: google-cloud-storagetransfer-v1
+    api: google/storagetransfer/v1
+    copyright_year: "2025"
+  - name: google-cloud-support-v2
+    api: google/cloud/support/v2
+    copyright_year: "2025"
+  - name: google-cloud-talent-v4
+    api: google/cloud/talent/v4
+    copyright_year: "2025"
+  - name: google-cloud-tasks-v2
+    api: google/cloud/tasks/v2
+    copyright_year: "2025"
+  - name: google-cloud-telcoautomation-v1
+    api: google/cloud/telcoautomation/v1
+    copyright_year: "2025"
+  - name: google-cloud-texttospeech-v1
+    api: google/cloud/texttospeech/v1
+    copyright_year: "2025"
+  - name: google-cloud-timeseriesinsights-v1
+    api: google/cloud/timeseriesinsights/v1
+    copyright_year: "2025"
+  - name: google-cloud-tpu-v2
+    api: google/cloud/tpu/v2
+    copyright_year: "2025"
+  - name: google-cloud-trace-v1
+    api: google/devtools/cloudtrace/v1
+    copyright_year: "2025"
+  - name: google-cloud-trace-v2
+    api: google/devtools/cloudtrace/v2
+    copyright_year: "2025"
+  - name: google-cloud-translation-v3
+    api: google/cloud/translate/v3
+    copyright_year: "2025"
+  - name: google-cloud-type
+    api: google/type
+    copyright_year: "2024"
+  - name: google-cloud-video-livestream-v1
+    api: google/cloud/video/livestream/v1
+    copyright_year: "2025"
+  - name: google-cloud-video-stitcher-v1
+    api: google/cloud/video/stitcher/v1
+    copyright_year: "2025"
+  - name: google-cloud-video-transcoder-v1
+    api: google/cloud/video/transcoder/v1
+    copyright_year: "2025"
+  - name: google-cloud-videointelligence-v1
+    api: google/cloud/videointelligence/v1
+    copyright_year: "2025"
+  - name: google-cloud-vision-v1
+    api: google/cloud/vision/v1
+    copyright_year: "2025"
+  - name: google-cloud-vmmigration-v1
+    api: google/cloud/vmmigration/v1
+    copyright_year: "2025"
+  - name: google-cloud-vmwareengine-v1
+    api: google/cloud/vmwareengine/v1
+    copyright_year: "2025"
+  - name: google-cloud-vpcaccess-v1
+    api: google/cloud/vpcaccess/v1
+    copyright_year: "2025"
+  - name: google-cloud-webrisk-v1
+    api: google/cloud/webrisk/v1
+    copyright_year: "2025"
+  - name: google-cloud-websecurityscanner-v1
+    api: google/cloud/websecurityscanner/v1
+    copyright_year: "2025"
+  - name: google-cloud-workflows-executions-v1
+    api: google/cloud/workflows/executions/v1
+    copyright_year: "2025"
   - name: google-cloud-workflows-v1
+    api: google/cloud/workflows/v1
+    copyright_year: "2025"
     rust:
       disabled_rustdoc_warnings:
         - redundant_explicit_links
@@ -245,41 +847,39 @@ libraries:
         - invalid_html_tags
         - bare_urls
       generate_setter_samples: true
-  - name: google-identity-accesscontextmanager-v1
-    rust:
-      package_dependencies:
-        - name: accesscontextmanager_type
-          package: google-identity-accesscontextmanager-type
-          source: google.identity.accesscontextmanager.type
+  - name: google-cloud-workstations-v1
+    api: google/cloud/workstations/v1
+    copyright_year: "2025"
+  - name: secretmanager-openapi-v1
+    api: testdata/secretmanager_openapi_v1.json
+    publish:
+      disabled: true
+    copyright_year: "2024"
 versions:
-  google-api-cloudquotas-v1: 1.1.0
-  google-api-servicecontrol-v1: 1.1.0
-  google-api-servicecontrol-v2: 1.1.0
-  google-api-servicemanagement-v1: 1.2.1
-  google-api-serviceusage-v1: 1.2.1
-  google-api: 1.1.0
-  google-appengine-v1: 1.2.1
-  google-apps-script-type-calendar: 1.1.0
-  google-apps-script-type-docs: 1.1.0
-  google-apps-script-type-drive: 1.1.0
-  google-apps-script-type-gmail: 1.1.0
-  google-apps-script-type-sheets: 1.1.0
-  google-apps-script-type-slides: 1.1.0
-  google-apps-script-type: 1.1.0
-  google-bigtable-admin-v2: 1.2.1
   google-cloud-accessapproval-v1: 1.1.0
   google-cloud-advisorynotifications-v1: 1.1.0
   google-cloud-aiplatform-v1: 1.3.1
   google-cloud-alloydb-connectors-v1: 1.1.0
   google-cloud-alloydb-v1: 1.2.1
+  google-cloud-api: 1.1.0
   google-cloud-api-cloudquotas-v1: 1.1.0
+  google-cloud-api-servicecontrol-v1: 1.1.0
+  google-cloud-api-servicecontrol-v2: 1.1.0
   google-cloud-api-servicemanagement-v1: 1.2.1
   google-cloud-api-serviceusage-v1: 1.2.1
   google-cloud-apigateway-v1: 1.2.1
   google-cloud-apigeeconnect-v1: 1.1.0
   google-cloud-apihub-v1: 1.2.1
   google-cloud-apikeys-v2: 1.1.1
+  google-cloud-appengine-v1: 1.2.1
   google-cloud-apphub-v1: 1.2.1
+  google-cloud-apps-script-type: 1.1.0
+  google-cloud-apps-script-type-calendar: 1.1.0
+  google-cloud-apps-script-type-docs: 1.1.0
+  google-cloud-apps-script-type-drive: 1.1.0
+  google-cloud-apps-script-type-gmail: 1.1.0
+  google-cloud-apps-script-type-sheets: 1.1.0
+  google-cloud-apps-script-type-slides: 1.1.0
   google-cloud-artifactregistry-v1: 1.1.1
   google-cloud-asset-v1: 1.1.1
   google-cloud-assuredworkloads-v1: 1.2.1
@@ -310,6 +910,7 @@ versions:
   google-cloud-cloudsecuritycompliance-v1: 2.1.1
   google-cloud-commerce-consumer-procurement-v1: 1.1.1
   google-cloud-common: 1.1.0
+  google-cloud-compute-v1: 0.2.1
   google-cloud-confidentialcomputing-v1: 1.1.0
   google-cloud-config-v1: 1.2.1
   google-cloud-configdelivery-v1: 1.2.1
@@ -343,17 +944,20 @@ versions:
   google-cloud-functions-v2: 1.2.1
   google-cloud-gkebackup-v1: 1.2.1
   google-cloud-gkeconnect-gateway-v1: 1.1.0
-  google-cloud-gkehub-v1-configmanagement: 1.1.0
-  google-cloud-gkehub-v1-multiclusteringress: 1.1.0
+  google-cloud-gkehub-configmanagement-v1: 1.1.0
+  google-cloud-gkehub-multiclusteringress-v1: 1.1.0
   google-cloud-gkehub-v1: 1.2.1
   google-cloud-gkemulticloud-v1: 1.2.1
   google-cloud-gkerecommender-v1: 1.1.0
   google-cloud-grafeas-v1: 1.1.0
   google-cloud-gsuiteaddons-v1: 1.1.0
+  google-cloud-iam-admin-v1: 1.1.0
   google-cloud-iam-credentials-v1: 1.1.0
+  google-cloud-iam-v1: 1.1.0
   google-cloud-iam-v2: 1.1.1
   google-cloud-iam-v3: 1.1.1
   google-cloud-iap-v1: 1.1.0
+  google-cloud-identity-accesscontextmanager-type: 1.1.0
   google-cloud-identity-accesscontextmanager-v1: 1.1.1
   google-cloud-ids-v1: 1.2.1
   google-cloud-kms-inventory-v1: 1.1.0
@@ -362,7 +966,9 @@ versions:
   google-cloud-licensemanager-v1: 1.2.1
   google-cloud-location: 1.1.0
   google-cloud-locationfinder-v1: 1.0.0
+  google-cloud-logging-type: 1.1.0
   google-cloud-logging-v2: 1.2.1
+  google-cloud-longrunning: 1.2.0
   google-cloud-lustre-v1: 1.2.1
   google-cloud-managedidentities-v1: 1.2.1
   google-cloud-managedkafka-schemaregistry-v1: 1.2.1
@@ -372,6 +978,9 @@ versions:
   google-cloud-metastore-v1: 1.2.1
   google-cloud-migrationcenter-v1: 1.2.1
   google-cloud-modelarmor-v1: 1.1.0
+  google-cloud-monitoring-dashboard-v1: 1.1.0
+  google-cloud-monitoring-metricsscope-v1: 1.1.1
+  google-cloud-monitoring-v3: 1.1.0
   google-cloud-netapp-v1: 1.2.1
   google-cloud-networkconnectivity-v1: 1.2.1
   google-cloud-networkmanagement-v1: 1.2.1
@@ -402,6 +1011,8 @@ versions:
   google-cloud-redis-v1: 1.2.1
   google-cloud-resourcemanager-v3: 1.1.1
   google-cloud-retail-v2: 2.1.1
+  google-cloud-rpc: 1.1.0
+  google-cloud-rpc-context: 1.1.0
   google-cloud-run-v2: 1.2.1
   google-cloud-scheduler-v1: 1.1.0
   google-cloud-secretmanager-v1: 1.1.1
@@ -413,6 +1024,9 @@ versions:
   google-cloud-servicedirectory-v1: 1.1.0
   google-cloud-servicehealth-v1: 1.1.0
   google-cloud-shell-v1: 1.1.1
+  google-cloud-showcase-v1beta1: 1.0.0
+  google-cloud-spanner-admin-database-v1: 1.2.1
+  google-cloud-spanner-admin-instance-v1: 1.2.1
   google-cloud-speech-v2: 1.2.1
   google-cloud-sql-v1: 1.2.0
   google-cloud-storagebatchoperations-v1: 1.2.1
@@ -425,9 +1039,10 @@ versions:
   google-cloud-texttospeech-v1: 1.3.1
   google-cloud-timeseriesinsights-v1: 1.1.0
   google-cloud-tpu-v2: 1.2.1
+  google-cloud-trace-v1: 1.0.0
   google-cloud-trace-v2: 1.1.0
-  google-cloud-translate-v3: 1.2.1
   google-cloud-translation-v3: 1.2.1
+  google-cloud-type: 1.1.0
   google-cloud-video-livestream-v1: 1.2.1
   google-cloud-video-stitcher-v1: 1.2.1
   google-cloud-video-transcoder-v1: 1.1.0
@@ -441,33 +1056,4 @@ versions:
   google-cloud-workflows-executions-v1: 1.1.0
   google-cloud-workflows-v1: 1.2.1
   google-cloud-workstations-v1: 1.2.1
-  google-container-v1: 1.2.0
-  google-datastore-admin-v1: 1.2.1
-  google-devtools-artifactregistry-v1: 1.1.1
-  google-devtools-cloudbuild-v1: 1.1.1
-  google-devtools-cloudbuild-v2: 1.1.1
-  google-devtools-cloudprofiler-v2: 1.1.0
-  google-devtools-cloudtrace-v2: 1.1.0
-  google-devtools-containeranalysis-v1: 1.1.0
-  google-firestore-admin-v1: 1.2.1
-  google-iam-admin-v1: 1.1.0
-  google-iam-credentials-v1: 1.1.0
-  google-iam-v1: 1.1.0
-  google-iam-v2: 1.1.1
-  google-iam-v3: 1.1.1
-  google-identity-accesscontextmanager-type: 1.1.0
-  google-identity-accesscontextmanager-v1: 1.1.1
-  google-logging-type: 1.1.0
-  google-logging-v2: 1.2.1
-  google-longrunning: 1.2.0
-  google-monitoring-dashboard-v1: 1.1.0
-  google-monitoring-metricsscope-v1: 1.1.1
-  google-monitoring-v3: 1.1.0
-  google-privacy-dlp-v2: 1.2.0
-  google-rpc-context: 1.1.0
-  google-rpc: 1.1.0
-  google-spanner-admin-database-v1: 1.2.1
-  google-spanner-admin-instance-v1: 1.2.1
-  google-storagetransfer-v1: 1.2.1
-  google-type: 1.1.0
-  grafeas-v1: 1.1.0
+  secretmanager-openapi-v1: 1.0.0

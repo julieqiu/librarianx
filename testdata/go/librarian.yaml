@@ -13,29 +13,40 @@ default:
     rest_numeric_enums: true
   release:
     tag_format: '{name}/v{version}'
-name_overrides:
-  google/ai/generativelanguage: ai
-  google/analytics/admin: analytics
-  google/apps/events/subscriptions: apps
-  google/area120/tables: area120
-  google/cloud/beyondcorp/appconnections: beyondcorp
-  google/cloud/bigquery: bigquery/v2
-  google/cloud/bigquery/analyticshub: bigquery
-  google/cloud/commerce/consumer/procurement: commerce
-  google/cloud/gkeconnect/gateway: gkeconnect
-  google/cloud/maintenance/api: maintenance
-  google/cloud/orchestration/airflow/service: orchestration
-  google/cloud/saasplatform/saasservicemgmt: saasplatform
-  google/cloud/security/privateca: security
-  google/cloud/tasks: cloudtasks
-  google/cloud/video/livestream: video
-  google/devtools/clouderrorreporting: errorreporting
-  google/devtools/cloudtrace: trace
-  google/maps/addressvalidation: maps
-  google/pubsub: pubsub/v2
-  google/shopping/css: shopping
-  google/streetview/publish: streetview
 libraries:
+  - name: accessapproval
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: accessapproval_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/accessapproval/apiv1;accessapproval
+      metadata: true
+  - name: accesscontextmanager
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: accesscontextmanager_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/accesscontextmanager/apiv1;accesscontextmanager
+      metadata: true
+  - name: advisorynotifications
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: advisorynotifications_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/advisorynotifications/apiv1;advisorynotifications
+      metadata: true
+  - name: ai
+    apis:
+      - google/ai/generativelanguage/v1
+      - google/ai/generativelanguage/v1alpha
+      - google/ai/generativelanguage/v1beta
+      - google/ai/generativelanguage/v1beta2
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: generativeai_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/ai/generativelanguage/apiv1;generativelanguage
+      metadata: true
   - name: aiplatform
     transport: grpc
     rest_numeric_enums: true
@@ -58,6 +69,35 @@ libraries:
     go:
       import_path: cloud.google.com/go/alloydb/apiv1;alloydb
       metadata: true
+  - name: analytics
+    api: google/analytics/admin/v1alpha
+    rest_numeric_enums: true
+    release_level: alpha
+    grpc_service_config: admin_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/analytics/admin/apiv1alpha;admin
+      metadata: true
+  - name: apigateway
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: apigateway_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/apigateway/apiv1;apigateway
+      metadata: true
+  - name: apigeeconnect
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: connection_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/apigeeconnect/apiv1;apigeeconnect
+      metadata: true
+  - name: apigeeregistry
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: apigeeregistry_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/apigeeregistry/apiv1;apigeeregistry
+      metadata: true
   - name: apihub
     transport: rest
     rest_numeric_enums: true
@@ -65,6 +105,27 @@ libraries:
     grpc_service_config: apihub_v1_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/apihub/apiv1;apihub
+      metadata: true
+  - name: apikeys
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: apikeys_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/apikeys/apiv2;apikeys
+      metadata: true
+  - name: appengine
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: appengine_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/appengine/apiv1;appengine
+      metadata: true
+  - name: apphub
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: apphub_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/apphub/apiv1;apphub
       metadata: true
   - name: apps
     apis:
@@ -77,6 +138,54 @@ libraries:
     grpc_service_config: subscriptions_v1_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/apps/events/subscriptions/apiv1;subscriptions
+      metadata: true
+  - name: area120
+    api: google/area120/tables/v1alpha1
+    rest_numeric_enums: true
+    release_level: alpha
+    grpc_service_config: tables_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/area120/tables/apiv1alpha1;tables
+  - name: artifactregistry
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: artifactregistry_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/artifactregistry/apiv1;artifactregistry
+      metadata: true
+  - name: asset
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudasset_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/asset/apiv1;asset
+  - name: assuredworkloads
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: assuredworkloads_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/assuredworkloads/apiv1;assuredworkloads
+      metadata: true
+  - name: automl
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: automl_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/automl/apiv1;automl
+      metadata: true
+  - name: backupdr
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: backupdr_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/backupdr/apiv1;backupdr
+      metadata: true
+  - name: baremetalsolution
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: baremetalsolution_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/baremetalsolution/apiv2;baremetalsolution
       metadata: true
   - name: batch
     keep:
@@ -131,6 +240,7 @@ libraries:
       import_path: cloud.google.com/go/bigquery/analyticshub/apiv1;analyticshub
       metadata: true
   - name: bigquery/v2
+    api: google/cloud/bigquery/v2
     release_level: alpha
     release:
       disabled: true
@@ -168,6 +278,65 @@ libraries:
     go:
       import_path: cloud.google.com/go/billing/budgets/apiv1;budgets
       metadata: true
+  - name: binaryauthorization
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: binaryauthorization_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/binaryauthorization/apiv1;binaryauthorization
+      metadata: true
+  - name: capacityplanner
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: capacityplanner_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/capacityplanner/apiv1beta;capacityplanner
+      metadata: true
+  - name: certificatemanager
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: certificatemanager_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/certificatemanager/apiv1;certificatemanager
+      metadata: true
+  - name: channel
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudchannel_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/channel/apiv1;channel
+      metadata: true
+  - name: chat
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: chat_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/chat/apiv1;chat
+      metadata: true
+  - name: chronicle
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: chronicle_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/chronicle/apiv1;chronicle
+      metadata: true
+  - name: cloudbuild
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudbuild_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/cloudbuild/apiv1/v2;cloudbuild
+      metadata: true
+      apis:
+        - path: google/devtools/cloudbuild/v1
+          client_directory: apiv1/v2
+  - name: cloudcontrolspartner
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudcontrolspartner_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/cloudcontrolspartner/apiv1;cloudcontrolspartner
+      metadata: true
   - name: clouddms
     transport: grpc
     rest_numeric_enums: true
@@ -176,6 +345,46 @@ libraries:
     go:
       import_path: cloud.google.com/go/clouddms/apiv1;clouddms
       metadata: true
+  - name: cloudprofiler
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: cloudprofiler_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/cloudprofiler/apiv2;cloudprofiler
+      metadata: true
+  - name: cloudquotas
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudquotas_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/cloudquotas/apiv1;cloudquotas
+      metadata: true
+  - name: cloudtasks
+    apis:
+      - google/cloud/tasks/v2
+      - google/cloud/tasks/v2beta2
+      - google/cloud/tasks/v2beta3
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudtasks_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/cloudtasks/apiv2;cloudtasks
+      metadata: true
+      apis:
+        - path: google/cloud/tasks/v2
+          client_directory: apiv2
+        - path: google/cloud/tasks/v2beta2
+          client_directory: apiv2beta2
+        - path: google/cloud/tasks/v2beta3
+          client_directory: apiv2beta3
+  - name: commerce
+    api: google/cloud/commerce/consumer/procurement/v1
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: commerceconsumerprocurement_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/commerce/consumer/procurement/apiv1;procurement
+      metadata: true
   - name: compute
     transport: rest
     release_level: ga
@@ -183,6 +392,51 @@ libraries:
     go:
       import_path: cloud.google.com/go/compute/apiv1;compute
       metadata: true
+  - name: confidentialcomputing
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: confidentialcomputing_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/confidentialcomputing/apiv1;confidentialcomputing
+      metadata: true
+  - name: config
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: config_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/config/apiv1;config
+      metadata: true
+  - name: configdelivery
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: configdelivery_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/configdelivery/apiv1;configdelivery
+      metadata: true
+  - name: contactcenterinsights
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: contactcenterinsights_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/contactcenterinsights/apiv1;contactcenterinsights
+      metadata: true
+  - name: container
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: container_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/container/apiv1;container
+      metadata: true
+  - name: containeranalysis
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: containeranalysis_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/containeranalysis/apiv1beta1;containeranalysis
+      apis:
+        - path: google/devtools/containeranalysis/v1beta1
+          nested_protos:
+            - grafeas/grafeas.proto
   - name: datacatalog
     apis:
       - google/cloud/datacatalog/lineage/v1
@@ -195,6 +449,55 @@ libraries:
     grpc_service_config: lineage_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/datacatalog/lineage/apiv1;lineage
+      metadata: true
+  - name: dataflow
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: dataflow_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/dataflow/apiv1beta3;dataflow
+      metadata: true
+  - name: dataform
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: dataform_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/dataform/apiv1;dataform
+      metadata: true
+  - name: datafusion
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: datafusion_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/datafusion/apiv1;datafusion
+      metadata: true
+  - name: datalabeling
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: datalabeling_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/datalabeling/apiv1beta1;datalabeling
+      metadata: true
+  - name: dataplex
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: dataplex_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/dataplex/apiv1;dataplex
+      metadata: true
+  - name: dataproc
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: dataproc_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/dataproc/v2/apiv1;dataproc
+      metadata: true
+      module_path_version: v2
+  - name: dataqna
+    release_level: alpha
+    grpc_service_config: dataqna_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/dataqna/apiv1alpha;dataqna
       metadata: true
   - name: datastore
     apis:
@@ -220,6 +523,27 @@ libraries:
     go:
       import_path: cloud.google.com/go/datastream/apiv1;datastream
       metadata: true
+  - name: deploy
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: clouddeploy_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/deploy/apiv1;deploy
+      metadata: true
+  - name: developerconnect
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: developerconnect_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/developerconnect/apiv1;developerconnect
+      metadata: true
+  - name: devicestreaming
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: devicestreaming_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/devicestreaming/apiv1;devicestreaming
+      metadata: true
   - name: dialogflow
     apis:
       - google/cloud/dialogflow/cx/v3
@@ -232,7 +556,49 @@ libraries:
     go:
       import_path: cloud.google.com/go/dialogflow/cx/apiv3;cx
       metadata: true
+  - name: discoveryengine
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: discoveryengine_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/discoveryengine/apiv1;discoveryengine
+      metadata: true
+  - name: dlp
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: dlp_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/dlp/apiv2;dlp
+  - name: documentai
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: documentai_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/documentai/apiv1;documentai
+      metadata: true
+  - name: domains
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: domains_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/domains/apiv1beta1;domains
+      metadata: true
+  - name: edgecontainer
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: edgecontainer_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/edgecontainer/apiv1;edgecontainer
+      metadata: true
+  - name: edgenetwork
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: edgenetwork_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/edgenetwork/apiv1;edgenetwork
+      metadata: true
   - name: errorreporting
+    api: google/devtools/clouderrorreporting/v1beta1
     rest_numeric_enums: true
     release_level: beta
     release:
@@ -244,6 +610,13 @@ libraries:
       apis:
         - path: google/devtools/clouderrorreporting/v1beta1
           client_directory: apiv1beta1
+  - name: essentialcontacts
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: essentialcontacts_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/essentialcontacts/apiv1;essentialcontacts
+      metadata: true
   - name: eventarc
     apis:
       - google/cloud/eventarc/publishing/v1
@@ -253,6 +626,20 @@ libraries:
     grpc_service_config: eventarc_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/eventarc/apiv1;eventarc
+      metadata: true
+  - name: filestore
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: file_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/filestore/apiv1;filestore
+      metadata: true
+  - name: financialservices
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: financialservices_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/financialservices/apiv1;financialservices
       metadata: true
   - name: firestore
     apis:
@@ -269,12 +656,43 @@ libraries:
       apis:
         - path: google/firestore/admin/v1
           client_directory: apiv1/admin
+  - name: functions
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: functions_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/functions/apiv1;functions
+      metadata: true
+  - name: geminidataanalytics
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: geminidataanalytics_v1beta_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/geminidataanalytics/apiv1beta;geminidataanalytics
+      metadata: true
+  - name: gkebackup
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: gkebackup_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/gkebackup/apiv1;gkebackup
+      metadata: true
   - name: gkeconnect
+    apis:
+      - google/cloud/gkeconnect/gateway/v1
+      - google/cloud/gkeconnect/gateway/v1beta1
     transport: rest
     release_level: beta
     grpc_service_config: connectgateway_v1beta1_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/gkeconnect/gateway/apiv1beta1;gateway
+      metadata: true
+  - name: gkehub
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: membership_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/gkehub/apiv1beta1;gkehub
       metadata: true
   - name: gkemulticloud
     transport: grpc
@@ -282,6 +700,20 @@ libraries:
     grpc_service_config: gkemulticloud_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/gkemulticloud/apiv1;gkemulticloud
+      metadata: true
+  - name: gkerecommender
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: gkerecommender_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/gkerecommender/apiv1;gkerecommender
+      metadata: true
+  - name: gsuiteaddons
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: gsuiteaddons_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/gsuiteaddons/apiv1;gsuiteaddons
       metadata: true
   - name: iam
     apis:
@@ -295,6 +727,34 @@ libraries:
     grpc_service_config: iamcredentials_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/iam/credentials/apiv1;credentials
+  - name: iap
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: iap_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/iap/apiv1;iap
+      metadata: true
+  - name: identitytoolkit
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: identitytoolkit_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/identitytoolkit/apiv2;identitytoolkit
+      metadata: true
+  - name: ids
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: ids_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/ids/apiv1;ids
+      metadata: true
+  - name: iot
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudiot_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/iot/apiv1;iot
+      metadata: true
   - name: kms
     apis:
       - google/cloud/kms/inventory/v1
@@ -304,6 +764,34 @@ libraries:
     grpc_service_config: cloudkms_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/kms/apiv1;kms
+      metadata: true
+  - name: language
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: language_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/language/apiv1;language
+      metadata: true
+  - name: licensemanager
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: licensemanager_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/licensemanager/apiv1;licensemanager
+      metadata: true
+  - name: lifesciences
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: lifesciences_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/lifesciences/apiv2beta;lifesciences
+      metadata: true
+  - name: locationfinder
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: cloudlocationfinder_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/locationfinder/apiv1;locationfinder
       metadata: true
   - name: logging
     rest_numeric_enums: true
@@ -325,6 +813,21 @@ libraries:
       apis:
         - path: google/longrunning
           client_directory: autogen
+  - name: lustre
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: lustre_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/lustre/apiv1;lustre
+      metadata: true
+  - name: maintenance
+    api: google/cloud/maintenance/api/v1beta
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: maintenance_v1beta_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/maintenance/api/apiv1beta;api
+      metadata: true
   - name: managedidentities
     transport: grpc
     rest_numeric_enums: true
@@ -372,6 +875,13 @@ libraries:
     go:
       import_path: cloud.google.com/go/mediatranslation/apiv1beta1;mediatranslation
       metadata: true
+  - name: memcache
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: memcache_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/memcache/apiv1;memcache
+      metadata: true
   - name: memorystore
     transport: rest
     rest_numeric_enums: true
@@ -379,6 +889,27 @@ libraries:
     grpc_service_config: memorystore_v1_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/memorystore/apiv1;memorystore
+      metadata: true
+  - name: metastore
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: metastore_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/metastore/apiv1;metastore
+      metadata: true
+  - name: migrationcenter
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: migrationcenter_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/migrationcenter/apiv1;migrationcenter
+      metadata: true
+  - name: modelarmor
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: modelarmor_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/modelarmor/apiv1;modelarmor
       metadata: true
   - name: monitoring
     apis:
@@ -394,6 +925,13 @@ libraries:
       apis:
         - path: google/monitoring/v3
           client_directory: apiv3/v2
+  - name: netapp
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: netapp_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/netapp/apiv1;netapp
+      metadata: true
   - name: networkconnectivity
     transport: grpc
     rest_numeric_enums: true
@@ -402,6 +940,27 @@ libraries:
     go:
       import_path: cloud.google.com/go/networkconnectivity/apiv1;networkconnectivity
       metadata: true
+  - name: networkmanagement
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: networkmanagement_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/networkmanagement/apiv1;networkmanagement
+      metadata: true
+  - name: networksecurity
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: networksecurity_v1beta1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/networksecurity/apiv1beta1;networksecurity
+      metadata: true
+  - name: networkservices
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: networkservices_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/networkservices/apiv1;networkservices
+      metadata: true
   - name: notebooks
     transport: grpc
     rest_numeric_enums: true
@@ -409,6 +968,28 @@ libraries:
     grpc_service_config: notebooks_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/notebooks/apiv1;notebooks
+      metadata: true
+  - name: optimization
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudoptimization_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/optimization/apiv1;optimization
+      metadata: true
+  - name: oracledatabase
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: oracledatabase_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/oracledatabase/apiv1;oracledatabase
+      metadata: true
+  - name: orchestration
+    api: google/cloud/orchestration/airflow/service/v1
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: composer_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/orchestration/airflow/service/apiv1;service
       metadata: true
   - name: osconfig
     apis:
@@ -433,6 +1014,34 @@ libraries:
     grpc_service_config: oslogin_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/oslogin/apiv1;oslogin
+  - name: parallelstore
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: parallelstore_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/parallelstore/apiv1;parallelstore
+      metadata: true
+  - name: parametermanager
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: parametermanager_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/parametermanager/apiv1;parametermanager
+      metadata: true
+  - name: phishingprotection
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: phishingprotection_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/phishingprotection/apiv1beta1;phishingprotection
+      metadata: true
+  - name: policysimulator
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: policysimulator_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/policysimulator/apiv1;policysimulator
+      metadata: true
   - name: policytroubleshooter
     apis:
       - google/cloud/policytroubleshooter/iam/v3
@@ -443,7 +1052,21 @@ libraries:
     go:
       import_path: cloud.google.com/go/policytroubleshooter/iam/apiv3;iam
       metadata: true
+  - name: privatecatalog
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: cloudprivatecatalog_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/privatecatalog/apiv1beta1;privatecatalog
+      metadata: true
+  - name: privilegedaccessmanager
+    rest_numeric_enums: true
+    release_level: beta
+    go:
+      import_path: cloud.google.com/go/privilegedaccessmanager/apiv1;privilegedaccessmanager
+      metadata: true
   - name: pubsub/v2
+    api: google/pubsub/v1
     rest_numeric_enums: true
     release_level: ga
     release:
@@ -463,6 +1086,13 @@ libraries:
     go:
       import_path: cloud.google.com/go/pubsublite/apiv1;pubsublite
       metadata: true
+  - name: rapidmigrationassessment
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: rapidmigrationassessment_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/rapidmigrationassessment/apiv1;rapidmigrationassessment
+      metadata: true
   - name: recaptchaenterprise
     transport: grpc
     rest_numeric_enums: true
@@ -472,6 +1102,20 @@ libraries:
       import_path: cloud.google.com/go/recaptchaenterprise/v2/apiv1;recaptchaenterprise
       metadata: true
       module_path_version: v2
+  - name: recommendationengine
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: recommendationengine_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/recommendationengine/apiv1beta1;recommendationengine
+      metadata: true
+  - name: recommender
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: recommender_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/recommender/apiv1;recommender
+      metadata: true
   - name: redis
     apis:
       - google/cloud/redis/cluster/v1
@@ -483,6 +1127,19 @@ libraries:
     go:
       import_path: cloud.google.com/go/redis/apiv1;redis
       metadata: true
+  - name: resourcemanager
+    rest_numeric_enums: true
+    release_level: ga
+    go:
+      import_path: cloud.google.com/go/resourcemanager/apiv2;resourcemanager
+      metadata: true
+  - name: retail
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: retail_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/retail/apiv2;retail
+      metadata: true
   - name: run
     keep:
       - ^run/apiv2/locations_client\.go$
@@ -491,6 +1148,35 @@ libraries:
     grpc_service_config: run_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/run/apiv2;run
+      metadata: true
+  - name: saasplatform
+    api: google/cloud/saasplatform/saasservicemgmt/v1beta1
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: saasservicemgmt_v1beta1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/saasplatform/saasservicemgmt/apiv1beta1;saasservicemgmt
+      metadata: true
+  - name: scheduler
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudscheduler_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/scheduler/apiv1;scheduler
+      metadata: true
+  - name: secretmanager
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: secretmanager_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/secretmanager/apiv1;secretmanager
+      metadata: true
+  - name: securesourcemanager
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: securesourcemanager_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/securesourcemanager/apiv1;securesourcemanager
       metadata: true
   - name: security
     apis:
@@ -514,6 +1200,61 @@ libraries:
     grpc_service_config: securitycenter_settings_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/securitycenter/settings/apiv1beta1;settings
+      metadata: true
+  - name: securitycentermanagement
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: securitycentermanagement_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/securitycentermanagement/apiv1;securitycentermanagement
+      metadata: true
+  - name: securityposture
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: securityposture_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/securityposture/apiv1;securityposture
+      metadata: true
+  - name: servicecontrol
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: servicecontrol_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/servicecontrol/apiv1;servicecontrol
+      metadata: true
+  - name: servicedirectory
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: servicedirectory_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/servicedirectory/apiv1;servicedirectory
+      metadata: true
+  - name: servicehealth
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: servicehealth_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/servicehealth/apiv1;servicehealth
+      metadata: true
+  - name: servicemanagement
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: servicemanagement_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/servicemanagement/apiv1;servicemanagement
+      metadata: true
+  - name: serviceusage
+    release_level: ga
+    grpc_service_config: serviceusage_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/serviceusage/apiv1;serviceusage
+      metadata: true
+  - name: shell
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: cloudshell_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/shell/apiv1;shell
       metadata: true
   - name: shopping
     apis:
@@ -566,6 +1307,13 @@ libraries:
     go:
       import_path: cloud.google.com/go/spanner/adapter/apiv1;adapter
       metadata: true
+  - name: speech
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: speech_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/speech/apiv1;speech
+      metadata: true
   - name: storage
     apis:
       - google/storage/control/v2
@@ -580,6 +1328,63 @@ libraries:
       metadata: true
       delete_generation_output_paths:
         - internal/generated/snippets/storage/internal
+  - name: storagebatchoperations
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: storagebatchoperations_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/storagebatchoperations/apiv1;storagebatchoperations
+      metadata: true
+  - name: storageinsights
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: storageinsights_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/storageinsights/apiv1;storageinsights
+      metadata: true
+  - name: storagetransfer
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: storagetransfer_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/storagetransfer/apiv1;storagetransfer
+      metadata: true
+  - name: streetview
+    api: google/streetview/publish/v1
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: streetview_publish_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/streetview/publish/apiv1;publish
+      metadata: true
+  - name: support
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: support_v2_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/support/apiv2;support
+      metadata: true
+  - name: talent
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: talent_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/talent/apiv4;talent
+      metadata: true
+  - name: telcoautomation
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: telcoautomation_v1_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/telcoautomation/apiv1;telcoautomation
+      metadata: true
+  - name: texttospeech
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: texttospeech_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/texttospeech/apiv1;texttospeech
+      metadata: true
   - name: tpu
     transport: grpc
     rest_numeric_enums: true
@@ -588,6 +1393,29 @@ libraries:
     go:
       import_path: cloud.google.com/go/tpu/apiv1;tpu
       metadata: true
+  - name: trace
+    apis:
+      - google/devtools/cloudtrace/v1
+      - google/devtools/cloudtrace/v2
+    rest_numeric_enums: true
+    grpc_service_config: cloudtrace_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/trace/apiv1;trace
+      apis:
+        - path: google/devtools/cloudtrace/v1
+          client_directory: apiv1
+        - path: google/devtools/cloudtrace/v2
+          client_directory: apiv2
+  - name: translate
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: translate_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/translate/apiv3;translate
+      metadata: true
+      apis:
+        - path: google/cloud/translate/v3
+          proto_package: google.cloud.translation.v3
   - name: video
     apis:
       - google/cloud/video/livestream/v1
@@ -599,6 +1427,28 @@ libraries:
     go:
       import_path: cloud.google.com/go/video/livestream/apiv1;livestream
       metadata: true
+  - name: videointelligence
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: videointelligence_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/videointelligence/apiv1;videointelligence
+      metadata: true
+  - name: vision
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: vision_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/vision/v2/apiv1;vision
+      metadata: true
+      module_path_version: v2
+  - name: visionai
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: visionai_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/visionai/apiv1;visionai
+      metadata: true
   - name: vmmigration
     keep:
       - ^vmmigration/apiv1/iam_policy_client\.go$
@@ -607,6 +1457,34 @@ libraries:
     grpc_service_config: vmmigration_v1_grpc_service_config.json
     go:
       import_path: cloud.google.com/go/vmmigration/apiv1;vmmigration
+      metadata: true
+  - name: vmwareengine
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: vmwareengine_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/vmwareengine/apiv1;vmwareengine
+      metadata: true
+  - name: vpcaccess
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: vpcaccess_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/vpcaccess/apiv1;vpcaccess
+      metadata: true
+  - name: webrisk
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: webrisk_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/webrisk/apiv1;webrisk
+      metadata: true
+  - name: websecurityscanner
+    rest_numeric_enums: true
+    release_level: ga
+    grpc_service_config: websecurityscanner_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/websecurityscanner/apiv1;websecurityscanner
       metadata: true
   - name: workflows
     apis:
@@ -620,63 +1498,184 @@ libraries:
     go:
       import_path: cloud.google.com/go/workflows/executions/apiv1;executions
       metadata: true
+  - name: workstations
+    rest_numeric_enums: true
+    release_level: beta
+    grpc_service_config: workstations_grpc_service_config.json
+    go:
+      import_path: cloud.google.com/go/workstations/apiv1beta;workstations
+      metadata: true
 versions:
+  accessapproval: 1.8.8
+  accesscontextmanager: 1.9.7
+  advisorynotifications: 1.5.6
   ai: 0.14.0
   aiplatform: 1.109.0
   alloydb: 1.19.0
   analytics: 0.30.1
+  apigateway: 1.7.7
+  apigeeconnect: 1.7.7
+  apigeeregistry: 0.10.0
   apihub: 0.2.0
+  apikeys: 1.2.7
+  appengine: 1.9.7
+  apphub: 0.4.0
   apps: 0.8.0
   area120: 0.9.7
+  artifactregistry: 1.17.2
+  asset: 1.22.0
+  assuredworkloads: 1.13.0
+  automl: 1.15.0
+  backupdr: 1.5.0
+  baremetalsolution: 1.4.0
   batch: 1.13.0
   beyondcorp: 1.2.0
   bigquery: 1.72.0
   bigtable: 1.40.1
   billing: 1.21.0
+  binaryauthorization: 1.10.0
+  capacityplanner: 0.2.0
+  certificatemanager: 1.9.6
+  channel: 1.20.0
+  chat: 0.16.0
+  chronicle: 0.2.0
+  cloudbuild: 1.23.1
+  cloudcontrolspartner: 1.5.0
   clouddms: 1.8.8
+  cloudprofiler: 0.4.6
+  cloudquotas: 1.4.0
   cloudtasks: 1.13.7
   commerce: 1.2.6
   compute: 1.49.1
+  confidentialcomputing: 1.10.1
+  config: 1.5.1
+  configdelivery: 0.1.1
+  contactcenterinsights: 1.17.4
+  container: 1.45.0
+  containeranalysis: 0.14.2
   datacatalog: 1.26.1
+  dataflow: 0.11.1
+  dataform: 0.12.1
+  datafusion: 1.8.7
+  datalabeling: 0.9.7
+  dataplex: 1.28.0
+  dataproc: 2.15.0
+  dataqna: 0.9.8
   datastore: 1.21.0
   datastream: 1.15.1
+  deploy: 1.27.3
+  developerconnect: 0.4.1
+  devicestreaming: 0.1.1
   dialogflow: 1.71.0
+  discoveryengine: 1.22.0
+  dlp: 1.27.0
+  documentai: 1.39.0
+  domains: 0.10.7
+  edgecontainer: 1.4.4
+  edgenetwork: 1.3.0
   errorreporting: 0.3.2
+  essentialcontacts: 1.7.7
   eventarc: 1.17.0
+  filestore: 1.10.3
+  financialservices: 0.1.4
   firestore: 1.20.0
+  functions: 1.19.7
+  geminidataanalytics: 0.2.1
+  gkebackup: 1.8.1
   gkeconnect: 0.12.5
+  gkehub: 0.16.0
   gkemulticloud: 1.5.4
+  gkerecommender: 0.1.0
+  gsuiteaddons: 1.7.8
   iam: 1.5.3
+  iap: 1.11.3
+  identitytoolkit: 0.2.6
+  ids: 1.5.7
+  iot: 1.8.7
   kms: 1.23.2
+  language: 1.14.6
+  licensemanager: 0.1.1
+  lifesciences: 0.10.7
+  locationfinder: 0.1.1
   logging: 1.13.1
   longrunning: 0.7.0
+  lustre: 0.2.1
   maintenance: 0.1.2
   managedidentities: 1.7.7
   managedkafka: 0.8.1
   maps: 1.26.0
   mediatranslation: 0.9.7
+  memcache: 1.11.7
   memorystore: 0.3.1
+  metastore: 1.14.8
+  migrationcenter: 1.1.6
+  modelarmor: 0.6.1
   monitoring: 1.24.3
+  netapp: 1.10.1
   networkconnectivity: 1.19.1
+  networkmanagement: 1.21.0
+  networksecurity: 0.10.7
+  networkservices: 0.6.0
   notebooks: 1.12.7
+  optimization: 1.7.7
+  oracledatabase: 0.6.0
   orchestration: 1.11.10
   osconfig: 1.15.1
   oslogin: 1.14.7
+  parallelstore: 0.11.4
+  parametermanager: 0.3.1
+  phishingprotection: 0.9.7
+  policysimulator: 0.4.1
   policytroubleshooter: 1.11.7
+  privatecatalog: 0.10.8
+  privilegedaccessmanager: 0.3.1
   pubsub/v2: 2.3.0
   pubsublite: 1.8.2
+  rapidmigrationassessment: 1.1.8
   recaptchaenterprise: 2.20.5
+  recommendationengine: 0.9.7
+  recommender: 1.13.6
   redis: 1.18.3
+  resourcemanager: 1.10.7
+  retail: 1.25.1
   run: 1.12.1
   saasplatform: 0.1.0
+  scheduler: 1.11.8
+  secretmanager: 1.16.0
+  securesourcemanager: 1.4.1
   security: 1.19.2
   securitycenter: 1.38.1
+  securitycentermanagement: 1.1.6
+  securityposture: 0.2.6
+  servicecontrol: 1.14.6
+  servicedirectory: 1.12.7
+  servicehealth: 1.2.4
+  servicemanagement: 1.10.7
+  serviceusage: 1.9.7
+  shell: 1.8.7
   shopping: 1.3.0
   spanner: 1.86.1
+  speech: 1.28.1
   storage: 1.57.1
+  storagebatchoperations: 0.1.1
+  storageinsights: 1.2.1
+  storagetransfer: 1.13.1
   streetview: 0.2.6
+  support: 1.4.1
+  talent: 1.8.4
+  telcoautomation: 1.1.6
+  texttospeech: 1.16.0
   tpu: 1.8.4
   trace: 1.11.7
+  translate: 1.12.7
   video: 1.27.1
+  videointelligence: 1.12.7
+  vision: 2.9.6
+  visionai: 0.4.6
   vmmigration: 1.9.1
+  vmwareengine: 1.3.6
+  vpcaccess: 1.8.7
+  webrisk: 1.11.2
+  websecurityscanner: 1.7.7
   workflows: 1.14.3
+  workstations: 1.1.6
