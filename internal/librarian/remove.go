@@ -34,16 +34,6 @@ func Remove(ctx context.Context, cfg *config.Config, name string) error {
 		}
 	}
 
-	// Remove from name_overrides (find all entries with this name as value)
-	if cfg.NameOverrides != nil {
-		for apiPath, libraryName := range cfg.NameOverrides {
-			if libraryName == name {
-				delete(cfg.NameOverrides, apiPath)
-				found = true
-			}
-		}
-	}
-
 	// Remove from libraries
 	var newLibraries []*config.Library
 	for _, lib := range cfg.Libraries {

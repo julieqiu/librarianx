@@ -42,12 +42,6 @@ type Config struct {
 	// Default contains default generation settings.
 	Default *Default `yaml:"default"`
 
-	// NameOverrides contains overrides for auto-derived library names.
-	// Allows customizing library names for specific APIs when the auto-derived
-	// name doesn't match existing package names or conventions.
-	// Key is API path (e.g., "google/api/apikeys/v2"), value is library name.
-	NameOverrides map[string]string `yaml:"name_overrides,omitempty"`
-
 	// Libraries contains configuration overrides for libraries that need special handling.
 	// Only include libraries that differ from defaults.
 	// Versions are looked up from the Versions map below.

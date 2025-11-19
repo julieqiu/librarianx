@@ -76,32 +76,3 @@ func TestReadWrite(t *testing.T) {
 		})
 	}
 }
-
-func TestConfig_GetNameOverride(t *testing.T) {
-	cfg := &Config{
-		NameOverrides: map[string]string{
-			"google/api/apikeys/v2":            "google-api-keys",
-			"google/cloud/bigquery/storage/v1": "google-cloud-bigquery-storage",
-		},
-	}
-
-	for _, test := range []struct {
-		name    string
-		apiPath string
-		want    string
-	}{
-		{"found first override", "google/api/apikeys/v2", "google-api-keys"},
-		{"found second override", "google/cloud/bigquery/storage/v1", "google-cloud-bigquery-storage"},
-		{"not found", "google/cloud/secretmanager/v1", ""},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			var got string
-			if cfg.NameOverrides != nil {
-				got = cfg.NameOverrides[test.apiPath]
-			}
-			if got != test.want {
-				t.Errorf("NameOverrides[%q] = %q, want %q", test.apiPath, got, test.want)
-			}
-		})
-	}
-}

@@ -178,9 +178,6 @@ func buildCodec(library *config.Library) map[string]string {
 	}
 
 	rust := library.Rust
-	if rust.NameOverrides != "" {
-		codec["name-overrides"] = rust.NameOverrides
-	}
 	if rust.ModulePath != "" {
 		codec["module-path"] = rust.ModulePath
 	}

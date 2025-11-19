@@ -24,25 +24,12 @@ import (
 // Returns the library with service configs populated, ready for generation.
 // If not found in config, tries to create a library from the API path (fallback for version-mode languages).
 func FindLibraryByName(cfg *Config, name, googleapisDir string) (*Library, error) {
-	// Check if this library name should be overridden
-	// This handles cases where DiscoverLibraries creates libraries with derived names
-	// but the config has name_overrides for those API paths
-	overrideName := name
-	if cfg.Default != nil && cfg.Default.Generate != nil && cfg.Default.Generate.OneLibraryPer != "" {
-		apiPath, err := DeriveAPIPath(cfg.Default.Generate.OneLibraryPer, name)
-		if err == nil && cfg.NameOverrides != nil {
-			if override := cfg.NameOverrides[apiPath]; override != "" {
-				overrideName = override
-			}
-		}
-	}
-
-	// Find library by override name in config
-	library := findLibraryInConfig(cfg, overrideName)
+	// Find library by name in config
+	library := findLibraryInConfig(cfg, name)
 	if library == nil {
 		var err error
-		// Create library using original name for API path derivation, but override name for library name
-		library, err = createLibraryFromName(cfg, name, overrideName, googleapisDir)
+		// Create library from name
+		library, err = createLibraryFromName(cfg, name, googleapisDir)
 		if err != nil {
 			return nil, err
 		}
@@ -72,21 +59,20 @@ func findLibraryInConfig(cfg *Config, name string) *Library {
 }
 
 // createLibraryFromName creates a new library from a library name (fallback path).
-// originalName is used to derive the API path, overrideName is used for the library's Name field.
-func createLibraryFromName(cfg *Config, originalName, overrideName, googleapisDir string) (*Library, error) {
+func createLibraryFromName(cfg *Config, name, googleapisDir string) (*Library, error) {
 	// Get one_library_per mode to derive API path
 	if cfg.Default == nil || cfg.Default.Generate == nil || cfg.Default.Generate.OneLibraryPer == "" {
-		return nil, fmt.Errorf("library %q not found in config and one_library_per not set", overrideName)
+		return nil, fmt.Errorf("library %q not found in config and one_library_per not set", name)
 	}
 
-	// Derive API path from original library name (not override name)
-	apiPath, err := DeriveAPIPath(cfg.Default.Generate.OneLibraryPer, originalName)
+	// Derive API path from library name
+	apiPath, err := DeriveAPIPath(cfg.Default.Generate.OneLibraryPer, name)
 	if err != nil {
-		return nil, fmt.Errorf("failed to derive API path from name %q: %w", originalName, err)
+		return nil, fmt.Errorf("failed to derive API path from name %q: %w", name, err)
 	}
 
-	// Create library from API path using override name
-	return createLibraryFromAPIPath(overrideName, apiPath, googleapisDir)
+	// Create library from API path
+	return createLibraryFromAPIPath(name, apiPath, googleapisDir)
 }
 
 // ensureLibraryHasAPIs ensures the library has APIs configured, deriving them if needed.

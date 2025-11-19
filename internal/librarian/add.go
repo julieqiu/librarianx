@@ -61,22 +61,8 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 	}
 
 	// Check if library already exists
-	if err := checkLibraryNotExists(cfg, library.Name, apiPath); err != nil {
+	if err := checkLibraryNotExists(cfg, library.Name); err != nil {
 		return err
-	}
-
-	// Derive standard name from API path
-	derivedName, err := config.DeriveLibraryName(oneLibraryPer, apiPath)
-	if err != nil {
-		return fmt.Errorf("failed to derive library name: %w", err)
-	}
-
-	// Add to name_overrides if name differs from derived name
-	if library.Name != derivedName {
-		if cfg.NameOverrides == nil {
-			cfg.NameOverrides = make(map[string]string)
-		}
-		cfg.NameOverrides[apiPath] = library.Name
 	}
 
 	// Add to versions if version provided
@@ -102,18 +88,11 @@ func Add(ctx context.Context, cfg *config.Config, googleapisDir string, library 
 }
 
 // checkLibraryNotExists returns an error if the library already exists in any section.
-func checkLibraryNotExists(cfg *config.Config, name, apiPath string) error {
+func checkLibraryNotExists(cfg *config.Config, name string) error {
 	// Check versions
 	if cfg.Versions != nil {
 		if _, exists := cfg.Versions[name]; exists {
 			return fmt.Errorf("library %q already exists in versions (use 'librarian remove' to remove it first)", name)
-		}
-	}
-
-	// Check name_overrides
-	if cfg.NameOverrides != nil {
-		if existingName, exists := cfg.NameOverrides[apiPath]; exists {
-			return fmt.Errorf("API path %q already has a name override to %q (use 'librarian remove' to remove it first)", apiPath, existingName)
 		}
 	}
 

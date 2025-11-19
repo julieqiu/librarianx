@@ -93,9 +93,9 @@ func run() error {
 	}
 	fmt.Fprintf(os.Stderr, "Found %d APIs in googleapis\n", len(googleapisAPIs))
 
-	// Build name_overrides and libraries based on naming conventions
-	fmt.Fprintf(os.Stderr, "Building name_overrides and libraries...\n")
-	buildNameOverridesAndLibraries(cfg, googleapisAPIs, language)
+	// Build libraries based on naming conventions
+	fmt.Fprintf(os.Stderr, "Building libraries...\n")
+	buildLibraries(cfg, googleapisAPIs, language)
 
 	// Discover versions from packages
 	fmt.Fprintf(os.Stderr, "Discovering package versions...\n")
@@ -270,17 +270,15 @@ func deriveExpectedName(servicePath, language string) string {
 	return parts[len(parts)-1]
 }
 
-// buildNameOverridesAndLibraries constructs name_overrides and libraries based on naming conventions.
+// buildLibraries constructs libraries based on naming conventions.
 // When one_library_per: service, all versions of a service are grouped into one library by default.
 // For example, google/ai/generativelanguage includes v1, v1alpha, v1beta, v1beta2.
 // Expected library names:
 //   - Python: google-ai-generativelanguage (replace / with -)
 //   - Go: generativelanguage (last component)
 //
-// Only list in name_overrides if actual name differs from expected.
-// Only list in libraries if there's extra config OR APIs from multiple services.
-func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string, language string) {
-	nameOverrides := make(map[string]string)
+// Only list in libraries if there's extra config OR APIs from multiple services OR name differs from expected.
+func buildLibraries(cfg *config.Config, googleapisAPIs []string, language string) {
 	var newLibraries []*config.Library
 
 	// Create a map of API path to library for quick lookup
@@ -327,7 +325,7 @@ func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string,
 		sort.Strings(libToServices[libName])
 	}
 
-	// Determine which libraries need to be in libraries section vs name_overrides
+	// Determine which libraries need to be in libraries section
 	for _, lib := range cfg.Libraries {
 		services := libToServices[lib.Name]
 
@@ -368,14 +366,10 @@ func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string,
 				}
 				// else: auto-discovered, don't list anywhere
 			} else {
-				// Name doesn't match convention - add to name_overrides
-				nameOverrides[servicePath] = lib.Name
-				if hasExtraConfig {
-					// Also add to libraries without api/apis fields
-					lib.API = ""
-					lib.APIs = nil
-					newLibraries = append(newLibraries, lib)
-				}
+				// Name doesn't match convention - add to libraries with name field
+				lib.API = ""
+				lib.APIs = nil
+				newLibraries = append(newLibraries, lib)
 			}
 		} else if len(services) > 1 {
 			// Library covers multiple services - must list in libraries with explicit apis
@@ -387,22 +381,10 @@ func buildNameOverridesAndLibraries(cfg *config.Config, googleapisAPIs []string,
 			lib.APIs = allAPIs
 			lib.API = ""
 			newLibraries = append(newLibraries, lib)
-
-			// Check if name matches convention for primary service
-			// Use first service alphabetically as primary
-			primaryService := services[0]
-			expectedName := deriveExpectedName(primaryService, language)
-			if lib.Name != expectedName {
-				// Name doesn't match convention - add to name_overrides
-				nameOverrides[primaryService] = lib.Name
-			}
 		}
 	}
 
 	cfg.Libraries = newLibraries
-	if len(nameOverrides) > 0 {
-		cfg.NameOverrides = nameOverrides
-	}
 }
 
 // discoverVersions discovers package versions from .librarian/state.yaml.
@@ -413,10 +395,6 @@ func discoverVersions(cfg *config.Config, state *LegacyState) map[string]string 
 	libraryNames := make(map[string]bool)
 	for _, lib := range cfg.Libraries {
 		libraryNames[lib.Name] = true
-	}
-	// Also check name_overrides values
-	for _, name := range cfg.NameOverrides {
-		libraryNames[name] = true
 	}
 
 	// Extract versions from state.yaml

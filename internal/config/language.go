@@ -64,9 +64,6 @@ type RustCrate struct {
 	// SkippedIds is a list of IDs to skip.
 	SkippedIds []string `yaml:"skipped_ids,omitempty"`
 
-	// NameOverrides contains name overrides.
-	NameOverrides string `yaml:"name_overrides,omitempty"`
-
 	// PackageDependencies is a list of package dependencies.
 	PackageDependencies []RustPackageDependency `yaml:"package_dependencies,omitempty"`
 
