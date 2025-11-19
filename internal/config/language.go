@@ -224,3 +224,12 @@ type DartPackage struct {
 	// DevDependencies is a list of development dependencies.
 	DevDependencies []string `yaml:"dev_dependencies,omitempty"`
 }
+
+// PythonSources contains Python-specific source repository configurations.
+type PythonSources struct {
+	// GoogleCloudPython is the google-cloud-python repository configuration.
+	GoogleCloudPython *Source `yaml:"google-cloud-python,omitempty"`
+
+	// Synthtool is the synthtool repository configuration.
+	Synthtool *Source `yaml:"synthtool,omitempty"`
+}

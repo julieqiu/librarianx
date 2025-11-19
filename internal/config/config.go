@@ -64,6 +64,9 @@ type Config struct {
 type Sources struct {
 	// Googleapis is the googleapis repository configuration.
 	Googleapis *Source `yaml:"googleapis,omitempty"`
+
+	// Python contains Python-specific source repository configurations.
+	Python *PythonSources `yaml:"python,omitempty"`
 }
 
 // Source represents a single source repository configuration.
@@ -222,7 +225,7 @@ type LibraryPublish struct {
 // New returns a new Config with language-specific defaults.
 func New(lang, version, googleapisCommit, discoveryCommit string) (*Config, error) {
 	return &Config{
-		Version:  version,
+		Version: version,
 		Language: lang,
 		Sources: &Sources{
 			Googleapis: &Source{

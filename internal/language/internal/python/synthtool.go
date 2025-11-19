@@ -16,23 +16,16 @@ package python
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
-	"net/http"
 	"os/exec"
 
 	"github.com/julieqiu/librarianx/internal/fetch"
 )
 
-// InstallSynthtool installs synthtool from the latest commit of github.com/googleapis/synthtool.
+// installSynthtool installs synthtool from a specific commit of github.com/googleapis/synthtool.
 // It downloads the tarball to cacheDir and runs pip install.
-func InstallSynthtool(ctx context.Context, cacheDir string) error {
+func installSynthtool(ctx context.Context, cacheDir, commit string) error {
 	repo := "github.com/googleapis/synthtool"
-
-	commit, err := latestSynthtoolCommit()
-	if err != nil {
-		return fmt.Errorf("failed to get latest synthtool commit: %w", err)
-	}
 
 	synthtoolDir, err := fetch.DownloadAndExtractTarball(repo, commit, cacheDir)
 	if err != nil {
@@ -46,29 +39,4 @@ func InstallSynthtool(ctx context.Context, cacheDir string) error {
 	}
 
 	return nil
-}
-
-func latestSynthtoolCommit() (string, error) {
-	url := "https://api.github.com/repos/googleapis/synthtool/commits/master"
-	resp, err := http.Get(url)
-	if err != nil {
-		return "", fmt.Errorf("failed to get latest SHA: %w", err)
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode >= 300 {
-		return "", fmt.Errorf("HTTP error fetching latest SHA: %s", resp.Status)
-	}
-
-	var body struct {
-		SHA string `json:"sha"`
-	}
-	if err := json.NewDecoder(resp.Body).Decode(&body); err != nil {
-		return "", fmt.Errorf("failed to decode response: %w", err)
-	}
-
-	if body.SHA == "" {
-		return "", fmt.Errorf("no SHA found in GitHub response")
-	}
-	return body.SHA, nil
 }

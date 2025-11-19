@@ -15,6 +15,7 @@
 package language
 
 import (
+	"context"
 	"fmt"
 
 	"github.com/julieqiu/librarianx/internal/config"
@@ -23,7 +24,8 @@ import (
 )
 
 // Init initializes a default config for the given language.
-func Init(language string) (*config.Default, error) {
+// It returns the default config and updates cfg.Sources with language-specific sources.
+func Init(ctx context.Context, language, cacheDir string, cfg *config.Config) (*config.Default, error) {
 	switch language {
 	case "rust":
 		if err := rust.SetupWorkspace("."); err != nil {
@@ -31,7 +33,15 @@ func Init(language string) (*config.Default, error) {
 		}
 		return rust.Init(), nil
 	case "python":
-		return python.Init(), nil
+		defaults, pythonSources, err := python.Init(ctx, cacheDir)
+		if err != nil {
+			return nil, err
+		}
+		if cfg.Sources == nil {
+			cfg.Sources = &config.Sources{}
+		}
+		cfg.Sources.Python = pythonSources
+		return defaults, nil
 	}
 	return nil, fmt.Errorf("not supported: %q", language)
 }

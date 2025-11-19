@@ -52,7 +52,7 @@ Example:
 			}
 			language := cmd.Args().Get(0)
 			version := Version()
-			return runInit(language, version)
+			return runInit(ctx, language, version)
 		},
 	}
 }
@@ -61,11 +61,15 @@ const (
 	configPath = "librarian.yaml"
 )
 
-func runInit(lang, version string) (err error) {
+func runInit(ctx context.Context, lang, version string) (err error) {
 	if _, err := os.Stat(configPath); err == nil {
 		return errConfigAlreadyExists
 	}
 	commit, err := fetch.LatestGoogleapis()
+	if err != nil {
+		return err
+	}
+	cacheDir, err := cacheDir()
 	if err != nil {
 		return err
 	}
@@ -77,7 +81,7 @@ func runInit(lang, version string) (err error) {
 	if err != nil {
 		return err
 	}
-	cfg.Default, err = language.Init(lang)
+	cfg.Default, err = language.Init(ctx, lang, cacheDir, cfg)
 	if err != nil {
 		return err
 	}
@@ -88,7 +92,7 @@ func runInit(lang, version string) (err error) {
 	return nil
 }
 
-func googleapisDir(commit string) (string, error) {
+func cacheDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {
 		return "", err
@@ -97,7 +101,15 @@ func googleapisDir(commit string) (string, error) {
 	if err := os.MkdirAll(configCache, 0o755); err != nil {
 		return "", err
 	}
-	dir, err := fetch.DownloadAndExtractTarball("github.com/googleapis/googleapis", commit, configCache)
+	return configCache, nil
+}
+
+func googleapisDir(commit string) (string, error) {
+	cache, err := cacheDir()
+	if err != nil {
+		return "", err
+	}
+	dir, err := fetch.DownloadAndExtractTarball("github.com/googleapis/googleapis", commit, cache)
 	if err != nil {
 		return "", err
 	}
