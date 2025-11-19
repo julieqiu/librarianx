@@ -36,7 +36,7 @@ func TestAdd(t *testing.T) {
 		Language: "rust",
 		Default: &config.Default{
 			Generate: &config.DefaultGenerate{
-				OneLibraryPer: "version",
+				OneLibraryPer: "channel",
 			},
 		},
 	}
@@ -74,7 +74,7 @@ func TestAdd_WithNameOverride(t *testing.T) {
 		Language: "rust",
 		Default: &config.Default{
 			Generate: &config.DefaultGenerate{
-				OneLibraryPer: "version",
+				OneLibraryPer: "channel",
 			},
 		},
 	}
@@ -107,7 +107,7 @@ func TestAdd_AlreadyExists(t *testing.T) {
 		Language: "rust",
 		Default: &config.Default{
 			Generate: &config.DefaultGenerate{
-				OneLibraryPer: "version",
+				OneLibraryPer: "channel",
 			},
 		},
 		Versions: map[string]string{

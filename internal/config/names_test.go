@@ -16,7 +16,7 @@ package config
 
 import "testing"
 
-func TestDeriveLibraryName_Version(t *testing.T) {
+func TestDeriveLibraryName_Channel(t *testing.T) {
 	for _, test := range []struct {
 		apiPath string
 		want    string
@@ -26,18 +26,18 @@ func TestDeriveLibraryName_Version(t *testing.T) {
 		{"grafeas/v1", "grafeas-v1"},
 		{"google/cloud/storage/v1", "google-cloud-storage-v1"},
 	} {
-		got, err := DeriveLibraryName("version", test.apiPath)
+		got, err := DeriveLibraryName("channel", test.apiPath)
 		if err != nil {
-			t.Errorf("DeriveLibraryName(%q, %q) error: %v", "version", test.apiPath, err)
+			t.Errorf("DeriveLibraryName(%q, %q) error: %v", "channel", test.apiPath, err)
 			continue
 		}
 		if got != test.want {
-			t.Errorf("DeriveLibraryName(%q, %q) = %q, want %q", "version", test.apiPath, got, test.want)
+			t.Errorf("DeriveLibraryName(%q, %q) = %q, want %q", "channel", test.apiPath, got, test.want)
 		}
 	}
 }
 
-func TestDeriveLibraryName_Service(t *testing.T) {
+func TestDeriveLibraryName_API(t *testing.T) {
 	for _, test := range []struct {
 		apiPath string
 		want    string
@@ -47,13 +47,13 @@ func TestDeriveLibraryName_Service(t *testing.T) {
 		{"google/api/apikeys/v2", "google-api-apikeys"},
 		{"google/cloud/storage/v1", "google-cloud-storage"},
 	} {
-		got, err := DeriveLibraryName("service", test.apiPath)
+		got, err := DeriveLibraryName("api", test.apiPath)
 		if err != nil {
-			t.Errorf("DeriveLibraryName(%q, %q) error: %v", "service", test.apiPath, err)
+			t.Errorf("DeriveLibraryName(%q, %q) error: %v", "api", test.apiPath, err)
 			continue
 		}
 		if got != test.want {
-			t.Errorf("DeriveLibraryName(%q, %q) = %q, want %q", "service", test.apiPath, got, test.want)
+			t.Errorf("DeriveLibraryName(%q, %q) = %q, want %q", "api", test.apiPath, got, test.want)
 		}
 	}
 }
@@ -65,7 +65,7 @@ func TestDeriveLibraryName_Invalid(t *testing.T) {
 	}
 }
 
-func TestDeriveAPIPath_Version(t *testing.T) {
+func TestDeriveAPIPath_Channel(t *testing.T) {
 	for _, test := range []struct {
 		libraryName string
 		want        string
@@ -75,18 +75,18 @@ func TestDeriveAPIPath_Version(t *testing.T) {
 		{"grafeas-v1", "grafeas/v1"},
 		{"google-cloud-storage-v1", "google/cloud/storage/v1"},
 	} {
-		got, err := DeriveAPIPath("version", test.libraryName)
+		got, err := DeriveAPIPath("channel", test.libraryName)
 		if err != nil {
-			t.Errorf("DeriveAPIPath(%q, %q) error: %v", "version", test.libraryName, err)
+			t.Errorf("DeriveAPIPath(%q, %q) error: %v", "channel", test.libraryName, err)
 			continue
 		}
 		if got != test.want {
-			t.Errorf("DeriveAPIPath(%q, %q) = %q, want %q", "version", test.libraryName, got, test.want)
+			t.Errorf("DeriveAPIPath(%q, %q) = %q, want %q", "channel", test.libraryName, got, test.want)
 		}
 	}
 }
 
-func TestDeriveAPIPath_Service(t *testing.T) {
+func TestDeriveAPIPath_API(t *testing.T) {
 	for _, test := range []struct {
 		libraryName string
 		want        string
@@ -95,13 +95,13 @@ func TestDeriveAPIPath_Service(t *testing.T) {
 		{"google-api-apikeys", "google/api/apikeys"},
 		{"google-cloud-storage", "google/cloud/storage"},
 	} {
-		got, err := DeriveAPIPath("service", test.libraryName)
+		got, err := DeriveAPIPath("api", test.libraryName)
 		if err != nil {
-			t.Errorf("DeriveAPIPath(%q, %q) error: %v", "service", test.libraryName, err)
+			t.Errorf("DeriveAPIPath(%q, %q) error: %v", "api", test.libraryName, err)
 			continue
 		}
 		if got != test.want {
-			t.Errorf("DeriveAPIPath(%q, %q) = %q, want %q", "service", test.libraryName, got, test.want)
+			t.Errorf("DeriveAPIPath(%q, %q) = %q, want %q", "api", test.libraryName, got, test.want)
 		}
 	}
 }

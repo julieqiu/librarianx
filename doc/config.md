@@ -27,7 +27,7 @@ sources:
 
 defaults:
   output: packages/
-  one_library_per: service
+  one_library_per: api
   transport: grpc+rest
   generate: all
 
@@ -56,7 +56,7 @@ sources:
 
 defaults:
   output: generated/
-  one_library_per: version
+  one_library_per: channel
   generate: explicit
 
 release:
@@ -153,7 +153,7 @@ The precendence is this:
 ```yaml
 defaults:
   output: packages/
-  one_library_per: service    # Bundle all versions into one library (Python/Go)
+  one_library_per: api    # Bundle all versions into one library (Python/Go)
   generate: all               # Auto-discover and generate all APIs
   transport: grpc+rest
   rest_numeric_enums: true
@@ -173,12 +173,12 @@ defaults:
 
 #### `one_library_per` Explained
 
-**`one_library_per: service`** (Python/Go default)
-- All versions of a service → one library
+**`one_library_per: api`** (Python/Go default)
+- All versions of a product → one library
 - Example: `google/cloud/vision/v1` and `google/cloud/vision/v1beta` → `packages/google-cloud-vision/`
 
-**`one_library_per: version`** (Rust/Dart default)
-- Each version → separate library
+**`one_library_per: channel`** (Rust/Dart default)
+- Each channel → separate library
 - Example: `google/cloud/vision/v1` → `src/generated/google-cloud-vision-v1/`
 - Example: `google/cloud/vision/v1beta` → `src/generated/google-cloud-vision-v1beta/`
 
@@ -495,7 +495,7 @@ sources:
 
 defaults:
   output: packages/
-  one_library_per: service
+  one_library_per: api
   transport: grpc+rest
   generate: all
 
@@ -539,7 +539,7 @@ sources:
 
 defaults:
   output: ./
-  one_library_per: service
+  one_library_per: api
   transport: grpc+rest
   generate: all
 
@@ -575,7 +575,7 @@ sources:
 
 defaults:
   output: src/generated/
-  one_library_per: version
+  one_library_per: channel
   release_level: stable
   generate: all
 
@@ -604,7 +604,7 @@ sources:
 
 defaults:
   output: generated/
-  one_library_per: version
+  one_library_per: channel
   generate: explicit
 
 release:
@@ -665,7 +665,7 @@ Generate:       Create packages/google-api-keys/ with keep rules
 
 Library names are derived from API paths using language conventions:
 
-### Python (one_library_per: service)
+### Python (one_library_per: api)
 
 ```
 API path: google/cloud/secretmanager/v1
@@ -673,7 +673,7 @@ Name:     google-cloud-secretmanager
 Path:     packages/google-cloud-secretmanager/
 ```
 
-### Go (one_library_per: service)
+### Go (one_library_per: api)
 
 ```
 API path: google/cloud/secretmanager/v1
@@ -681,7 +681,7 @@ Name:     secretmanager
 Path:     secretmanager/
 ```
 
-### Rust (one_library_per: version)
+### Rust (one_library_per: channel)
 
 ```
 API path: google/cloud/secretmanager/v1
@@ -689,7 +689,7 @@ Name:     google-cloud-secretmanager-v1
 Path:     src/generated/google-cloud-secretmanager-v1/
 ```
 
-### Dart (one_library_per: version)
+### Dart (one_library_per: channel)
 
 ```
 API path: google/cloud/secretmanager/v1

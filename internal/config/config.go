@@ -93,9 +93,9 @@ type DefaultGenerate struct {
 	// for the language, unless otherwise specified.
 	All bool `yaml:"all,omitempty"`
 
-	// OneLibraryPer specifies packaging strategy: "service" or "version".
-	// - "service": Bundle all versions of a service into one library (Python, Go default)
-	// - "version": Create separate library per version (Rust, Dart default)
+	// OneLibraryPer specifies packaging strategy: "api" or "channel".
+	// - "api": Bundle all versions of a service into one library (Python, Go default)
+	// - "channel": Create separate library per version (Rust, Dart default)
 	OneLibraryPer string `yaml:"one_library_per,omitempty"`
 
 	// Transport is the default transport protocol (e.g., "grpc+rest", "grpc").

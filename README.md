@@ -33,7 +33,7 @@ sources:
 
 defaults:
   output: packages/
-  one_library_per: service
+  one_library_per: api
   transport: grpc+rest
   generate: all
 
@@ -148,12 +148,12 @@ libraries:
 
 ### Bundling Strategies
 
-**Service-level** (`one_library_per: service`) - Python/Go default:
+**API-level** (`one_library_per: api`) - Python/Go default:
 - All versions → one library
 - `google/cloud/vision/v1` + `google/cloud/vision/v1beta` → `packages/google-cloud-vision/`
 
-**Version-level** (`one_library_per: version`) - Rust/Dart default:
-- Each version → separate library
+**Channel-level** (`one_library_per: channel`) - Rust/Dart default:
+- Each channel → separate library
 - `google/cloud/vision/v1` → `src/generated/google-cloud-vision-v1/`
 - `google/cloud/vision/v1beta` → `src/generated/google-cloud-vision-v1beta/`
 
@@ -165,7 +165,7 @@ language: go
 
 defaults:
   output: ./
-  one_library_per: service
+  one_library_per: api
   generate: all
 
 libraries:
@@ -198,8 +198,8 @@ defaults:
 
 **`one_library_per`** - Bundling strategy:
 ```yaml
-one_library_per: service  # Bundle all versions (Python/Go)
-one_library_per: version  # Separate per version (Rust/Dart)
+one_library_per: api  # Bundle all versions (Python/Go)
+one_library_per: channel  # Separate per version (Rust/Dart)
 ```
 
 **`generate`** - Generation mode:
@@ -251,7 +251,7 @@ sources:
 
 defaults:
   output: packages/
-  one_library_per: service
+  one_library_per: api
   transport: grpc+rest
   rest_numeric_enums: true
   generate: all

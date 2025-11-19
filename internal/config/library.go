@@ -97,7 +97,7 @@ func ensureLibraryHasAPIs(cfg *Config, library *Library, name string) error {
 	}
 
 	// For version-mode languages (like Rust), derive API from library name
-	if cfg.Default == nil || cfg.Default.Generate == nil || cfg.Default.Generate.OneLibraryPer != "version" {
+	if cfg.Default == nil || cfg.Default.Generate == nil || cfg.Default.Generate.OneLibraryPer != "channel" {
 		return fmt.Errorf("library %q has no APIs configured", name)
 	}
 

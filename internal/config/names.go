@@ -20,32 +20,32 @@ import (
 )
 
 // DeriveLibraryName converts an API path to a library name based on one_library_per mode.
-//   - "version": Each API version gets its own library (Rust, Dart)
+//   - "channel": Each API version gets its own library (Rust, Dart)
 //     Example: google/cloud/secretmanager/v1 → google-cloud-secretmanager-v1
-//   - "service": All versions bundled into one library (Python, Go)
+//   - "api": All versions bundled into one library (Python, Go)
 //     Example: google/cloud/secretmanager/v1 → google-cloud-secretmanager
 func DeriveLibraryName(oneLibraryPer, apiPath string) (string, error) {
 	switch oneLibraryPer {
-	case "version":
+	case "channel":
 		return strings.ReplaceAll(apiPath, "/", "-"), nil
-	case "service":
+	case "api":
 		name := strings.ReplaceAll(apiPath, "/", "-")
 		return stripVersionSuffix(name), nil
 	default:
-		return "", fmt.Errorf("unsupported one_library_per mode: %q (must be \"version\" or \"service\")", oneLibraryPer)
+		return "", fmt.Errorf("unsupported one_library_per mode: %q (must be \"channel\" or \"api\")", oneLibraryPer)
 	}
 }
 
 // DeriveAPIPath converts a library name to an API path based on one_library_per mode.
-// Note: service mode can only derive service path, not full path with version.
-// - "version": google-cloud-secretmanager-v1 → google/cloud/secretmanager/v1.
-// - "service": google-cloud-secretmanager → google/cloud/secretmanager.
+// Note: api mode can only derive api path, not full path with version.
+// - "channel": google-cloud-secretmanager-v1 → google/cloud/secretmanager/v1.
+// - "api": google-cloud-secretmanager → google/cloud/secretmanager.
 func DeriveAPIPath(oneLibraryPer, libraryName string) (string, error) {
-	if oneLibraryPer != "version" && oneLibraryPer != "service" {
-		return "", fmt.Errorf("unsupported one_library_per mode: %q (must be \"version\" or \"service\")", oneLibraryPer)
+	if oneLibraryPer != "channel" && oneLibraryPer != "api" {
+		return "", fmt.Errorf("unsupported one_library_per mode: %q (must be \"channel\" or \"api\")", oneLibraryPer)
 	}
 	// Both modes: replace - with /
-	// Note: service mode can only derive service path, not full path with version
+	// Note: api mode can only derive api path, not full path with version
 	return strings.ReplaceAll(libraryName, "-", "/"), nil
 }
 

@@ -39,7 +39,7 @@ default:
   output: "packages/{name}/"
   generate:
     all: true
-    one_library_per: service
+    one_library_per: api
     transport: grpc+rest
     rest_numeric_enums: true
     release_level: stable
@@ -116,13 +116,13 @@ default:
 
 **`one_library_per` (string)**
 Packaging strategy:
-- `"service"`: Bundle all versions of a service into one library (default for Python, Go)
+- `"api"`: Bundle all versions of a product into one library (default for Python, Go)
 - `"version"`: Create separate library per version (default for Rust, Dart)
 
 ```yaml
 default:
   generate:
-    one_library_per: service
+    one_library_per: api
 ```
 
 **`transport` (string)**
@@ -348,7 +348,7 @@ When `default.generate.all: true` is set, Librarian operates in auto-discovery m
    google/**/v*alpha*
    ```
 
-2. **Groups APIs by service** (when `one_library_per: service`):
+2. **Groups APIs by service** (when `one_library_per: api`):
    ```
    google/cloud/secretmanager/v1
    google/cloud/secretmanager/v1beta2
@@ -657,7 +657,7 @@ default:
   output: "src/generated/{name}/"
   generate:
     all: true
-    one_library_per: version
+    one_library_per: channel
     transport: grpc
 
 name_overrides:

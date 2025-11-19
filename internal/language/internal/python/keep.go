@@ -21,21 +21,8 @@ import (
 	"strings"
 )
 
-// defaultKeepPaths is the default list of files/directories to preserve during regeneration.
-var defaultKeepPaths = []string{
-	"CHANGELOG.md",
-	"docs/CHANGELOG.md",
-	"docs/README.rst",
-	"docs/index.rst",
-	"samples/README.txt",
-	"samples/snippets/README.rst",
-	"scripts/",
-	"tests/system/",
-	"tests/unit/gapic/type/test_type.py",
-}
-
 // cleanOutputDirectory deletes everything in the output directory except files listed in keepPaths.
-func cleanOutputDirectory(outdir string, keepPaths []string, libraryName string) error {
+func cleanOutputDirectory(outdir string, keepPaths []string) error {
 	// Check if directory exists
 	if _, err := os.Stat(outdir); os.IsNotExist(err) {
 		return nil

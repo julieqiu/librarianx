@@ -24,7 +24,7 @@ func ConfigDefault() *config.Default {
 		Output: "src/generated/",
 		Generate: &config.DefaultGenerate{
 			All:           true,
-			OneLibraryPer: "version",
+			OneLibraryPer: "channel",
 			ReleaseLevel:  "stable",
 		},
 

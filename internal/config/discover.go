@@ -58,11 +58,11 @@ func DiscoverLibraries(googleapisDir, lang, oneLibraryPer string) ([]*Library, e
 		}
 
 		// Add API to library
-		if oneLibraryPer == "version" {
+		if oneLibraryPer == "channel" {
 			// Version mode: one API per library
 			lib.API = api.Path
 		} else {
-			// Service mode: multiple APIs per library
+			// API mode: multiple APIs per library
 			lib.APIs = append(lib.APIs, api.Path)
 		}
 

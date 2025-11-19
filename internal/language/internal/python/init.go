@@ -24,7 +24,7 @@ func ConfigDefault() *config.Default {
 		Output: "packages/{name}/",
 		Generate: &config.DefaultGenerate{
 			All:              true,
-			OneLibraryPer:    "service",
+			OneLibraryPer:    "api",
 			Transport:        "grpc+rest",
 			RestNumericEnums: true,
 			ReleaseLevel:     "stable",

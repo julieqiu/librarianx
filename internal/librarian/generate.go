@@ -30,10 +30,10 @@ func generateCommand() *cli.Command {
 		UsageText: "librarian generate [--all] [library-name]",
 		Description: `Generate a client library from googleapis.
 
-For Python (service-level bundling):
+For Python (api-level bundling):
   librarian generate google-cloud-secretmanager
 
-For Rust (version-level libraries):
+For Rust (channel-level libraries):
   librarian generate google-cloud-secretmanager-v1
 
 Generate all APIs:
