@@ -225,7 +225,7 @@ type LibraryPublish struct {
 // New returns a new Config with language-specific defaults.
 func New(lang, version, googleapisCommit, discoveryCommit string) (*Config, error) {
 	return &Config{
-		Version: version,
+		Version:  version,
 		Language: lang,
 		Sources: &Sources{
 			Googleapis: &Source{
