@@ -271,24 +271,34 @@ func deriveExpectedName(servicePath, language string) string {
 }
 
 // buildLibraries constructs libraries based on naming conventions.
+// Migrates name_overrides entries into the libraries section.
 // When one_library_per: service, all versions of a service are grouped into one library by default.
 // For example, google/ai/generativelanguage includes v1, v1alpha, v1beta, v1beta2.
 // Expected library names:
 //   - Python: google-ai-generativelanguage (replace / with -)
 //   - Go: generativelanguage (last component)
 //
-// Only list in libraries if there's extra config OR APIs from multiple services OR name differs from expected.
+// Rules:
+// 1. If name differs from expected: must list in libraries with name + api/apis.
+// 2. If extra config: must list in libraries (with name if needed).
+// 3. If multiple services: must list in libraries with apis.
+// 4. Each API should only appear once (either auto-discovered or in libraries).
 func buildLibraries(cfg *config.Config, googleapisAPIs []string, language string) {
 	var newLibraries []*config.Library
+
+	// Track which APIs are explicitly listed to avoid auto-discovery
+	explicitAPIs := make(map[string]bool)
 
 	// Create a map of API path to library for quick lookup
 	apiToLib := make(map[string]*config.Library)
 	for _, lib := range cfg.Libraries {
 		if lib.API != "" {
 			apiToLib[lib.API] = lib
+			explicitAPIs[lib.API] = true
 		}
 		for _, api := range lib.APIs {
 			apiToLib[api] = lib
+			explicitAPIs[api] = true
 		}
 	}
 
@@ -332,9 +342,12 @@ func buildLibraries(cfg *config.Config, googleapisAPIs []string, language string
 		// Check if library has extra configuration
 		hasExtraConfig := lib.Transport != "" ||
 			lib.Python != nil ||
+			lib.Go != nil ||
+			lib.Rust != nil ||
 			len(lib.Keep) > 0 ||
 			lib.Release != nil ||
-			lib.Generate != nil
+			lib.Generate != nil ||
+			lib.Publish != nil
 
 		// Always keep googleapis-common-protos in libraries section
 		if lib.Name == "googleapis-common-protos" {
@@ -350,35 +363,49 @@ func buildLibraries(cfg *config.Config, googleapisAPIs []string, language string
 			continue
 		}
 
+		// Get all APIs for this library (preserve what came from state.yaml)
+		var libAPIs []string
+		if len(lib.APIs) > 0 {
+			libAPIs = lib.APIs
+		} else if lib.API != "" {
+			libAPIs = []string{lib.API}
+		} else {
+			// Collect from services
+			for _, service := range services {
+				libAPIs = append(libAPIs, serviceToAPIs[service]...)
+			}
+		}
+		sort.Strings(libAPIs)
+
 		// If library covers exactly one service
 		if len(services) == 1 {
 			servicePath := services[0]
 			expectedName := deriveExpectedName(servicePath, language)
 
 			// Check if name matches convention
-			if lib.Name == expectedName {
-				// Name matches convention
-				if hasExtraConfig {
-					// Has extra config - add to libraries without api/apis fields
-					lib.API = ""
+			nameMatchesConvention := lib.Name == expectedName
+
+			if !nameMatchesConvention {
+				// Name doesn't match convention - MUST list with name + api/apis
+				if len(libAPIs) == 1 {
+					lib.API = libAPIs[0]
 					lib.APIs = nil
-					newLibraries = append(newLibraries, lib)
+				} else {
+					lib.APIs = libAPIs
+					lib.API = ""
 				}
-				// else: auto-discovered, don't list anywhere
-			} else {
-				// Name doesn't match convention - add to libraries with name field
+				newLibraries = append(newLibraries, lib)
+			} else if hasExtraConfig {
+				// Name matches but has extra config - list without api/apis (auto-discovered)
 				lib.API = ""
 				lib.APIs = nil
 				newLibraries = append(newLibraries, lib)
 			}
+			// else: name matches and no extra config - omit entirely (auto-discovered)
+
 		} else if len(services) > 1 {
 			// Library covers multiple services - must list in libraries with explicit apis
-			var allAPIs []string
-			for _, service := range services {
-				allAPIs = append(allAPIs, serviceToAPIs[service]...)
-			}
-			sort.Strings(allAPIs)
-			lib.APIs = allAPIs
+			lib.APIs = libAPIs
 			lib.API = ""
 			newLibraries = append(newLibraries, lib)
 		}
