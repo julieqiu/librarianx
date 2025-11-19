@@ -352,6 +352,7 @@ python_mono_repo.owlbot_main(%q)
 	}
 
 	// If there is no noxfile, run isort and black
+	// This is required for proto-only libraries which are not GAPIC
 	noxfilePath := filepath.Join(outdir, pathToLibrary, "noxfile.py")
 	if _, err := os.Stat(noxfilePath); os.IsNotExist(err) {
 		if err := runIsort(outdir); err != nil {
