@@ -96,6 +96,9 @@ type RustCrate struct {
 
 	// PaginationOverrides contains overrides for pagination configuration.
 	PaginationOverrides []RustPaginationOverride `yaml:"pagination_overrides,omitempty"`
+
+	// NameOverrides contains codec-level overrides for type and service names.
+	NameOverrides string `yaml:"name_overrides,omitempty"`
 }
 
 // RustPackageDependency represents a package dependency configuration.
