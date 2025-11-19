@@ -22,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/julieqiu/librarianx/internal/config"
+	golang "github.com/julieqiu/librarianx/internal/language/internal/go"
 	"github.com/julieqiu/librarianx/internal/language/internal/python"
 	"github.com/julieqiu/librarianx/internal/language/internal/rust"
 )
@@ -29,6 +30,8 @@ import (
 // Create creates a new client library for the specified language.
 func Create(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	switch language {
+	case "go":
+		return golang.Create(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "rust":
 		return rust.Create(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "python":
@@ -68,6 +71,8 @@ func Generate(ctx context.Context, oneLibraryPer, language, repo string, library
 // This is used internally by generateForAPI and generateForChannel.
 func generateAPI(ctx context.Context, language, repo string, library *config.Library, defaults *config.Default, googleapisDir, serviceConfigPath, defaultOutput string) error {
 	switch language {
+	case "go":
+		return golang.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "rust":
 		return rust.Generate(ctx, library, defaults, googleapisDir, serviceConfigPath, defaultOutput)
 	case "python":
